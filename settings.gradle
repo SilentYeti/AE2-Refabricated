@@ -102,7 +102,7 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'ae2'
+rootProject.name = 'ae2-refabricated'
 
 // Multiloader layout:
 //   :common   loader-agnostic code + the platform SPI, compiled against vanilla only (NeoForm)
