@@ -43,6 +43,9 @@ build
 # code format to reduce noise in git commits
 !codeformat/
 
+# porting tooling
+!tools/
+
 # Github specific files and directories
 !.github/
 

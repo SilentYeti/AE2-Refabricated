@@ -78,7 +78,8 @@ assets/data are bundled into each loader jar.
 `appeng.platform.AEPlatform` is the seam. Code in `:common` must never import `net.neoforged.*` or
 `net.fabricmc.*`; each loader registers an implementation via `META-INF/services`.
 
-See [FABRIC-PARITY.md](FABRIC-PARITY.md) for what is left before the Fabric build matches NeoForge,
+See [PORTING.md](PORTING.md) for the working checklist and how to test,
+[FABRIC-PARITY.md](FABRIC-PARITY.md) for the research behind it,
 and [MULTILOADER.md](MULTILOADER.md) for the porting notes, the measured migration roadmap, and
 the three coupling axes — two of which no import scan can see.
 
