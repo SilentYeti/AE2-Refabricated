@@ -36,7 +36,6 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
-import net.neoforged.neoforge.common.extensions.IMenuTypeExtension;
 
 import appeng.core.AppEng;
 import appeng.init.InitMenuTypes;
@@ -44,6 +43,7 @@ import appeng.menu.AEBaseMenu;
 import appeng.menu.MenuOpener;
 import appeng.menu.locator.MenuHostLocator;
 import appeng.menu.locator.MenuLocators;
+import appeng.platform.MenuPlatform;
 
 /**
  * Builder that allows creation of menu types which can be opened from multiple types of hosts.
@@ -164,7 +164,7 @@ public final class MenuTypeBuilder<M extends AEBaseMenu, I> {
             }
         }
 
-        player.openMenu(new AppEngMenuProvider(), buffer -> {
+        MenuPlatform.get().openMenu(player, new AppEngMenuProvider(), buffer -> {
             MenuLocators.writeToPacket(buffer, locator);
             buffer.writeBoolean(fromSubMenu);
 
@@ -188,7 +188,7 @@ public final class MenuTypeBuilder<M extends AEBaseMenu, I> {
         Preconditions.checkState(this.id == null, "id should not be set");
 
         this.id = id;
-        menuType = IMenuTypeExtension.create(this::fromNetwork);
+        menuType = MenuPlatform.get().createMenuType(this::fromNetwork);
         MenuOpener.addOpener(menuType, this::open);
         return menuType;
     }

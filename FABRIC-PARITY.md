@@ -31,34 +31,66 @@ Checked against `fabric-api 0.157.0+26.2` by listing the nested modules, not ass
 | `DeferredRegister` | 10 registers | direct `Registry.register` | **confirmed** (items already done) |
 | `neoforge.capabilities` | 57 `BlockCapability`, 7 `ItemCapability`, 3 `EntityCapability` | `fabric-api-lookup-api-v1` (`BlockApiLookup`, `ItemApiLookup`) | **confirmed** |
 | `neoforge.transfer` item/fluid | `ItemResource` 23, `FluidResource` 13, `Transaction` 18 | `fabric-transfer-api-v1` (`Storage<ItemVariant>`, `Transaction`) | **confirmed** |
-| `neoforge.transfer.energy` | `EnergyHandler` 6 | **none in Fabric API** | **gap** |
+| `neoforge.transfer.energy` | `EnergyHandler`, 6 sites, all FE interop | `teamreborn:energy:5.0.0` | **confirmed** (see below) |
 | `neoforge.attachment` | `AttachmentType` | `fabric-data-attachment-api-v1` | **confirmed** |
 | payload networking | 37 packet classes | `fabric-networking-api-v1` (`PayloadTypeRegistry`) | **confirmed** |
-| `IMenuTypeExtension.create` | `MenuTypeBuilder`, ~107 refs in `menu/` | **no screen-handler module in this build** | **gap** |
+| `IMenuTypeExtension.create` | `MenuTypeBuilder`, 2 call sites | **nothing, anywhere** | **gap** |
 | `NeoForge.EVENT_BUS` | server/player/level/chunk events | `fabric-lifecycle-events-v1`, `fabric-entity-events-v1`, `fabric-events-interaction-v0` | **confirmed** |
 | `ModConfigSpec` | `AEConfig` | none; AE2 writes its own | n/a |
 | `neoforge.model.data` | model data for cable bus | `fabric-renderer-api-v1` | **confirmed**, different shape |
 | datagen providers | full datagen suite | `fabric-data-generation-api-v1` | **confirmed**, but see below |
 | chunk loading tickets | `ChunkLoadingService`, spatial anchors | no direct equivalent | **gap** |
 
-### The two real gaps
+### Energy — solved, and smaller than it looked
 
-**Menus with opening data.** `MenuType implements IMenuTypeExtension` — NeoForge injects that
-interface onto the vanilla class, and `MenuTypeBuilder` is built on it. This Fabric API build has no
-screen-handler module. Options, cheapest first: open a plain `MenuType` and push the opening data as
-a follow-up packet on AE2's own channel (it already has 37 payload types and a working
-`MenuTypeBuilder` seam to hide it behind); or vendor an extended-menu implementation. Decide before
-touching `menu/`, because 78 files sit behind it.
+**AE2's own power system is self-contained.** `IEnergyService`, `IAEPowerStorage` and the energy grid
+import nothing from NeoForge. The `neoforge.transfer.energy` usage is confined to six files and is
+entirely *Forge Energy interop* — `ForgeEnergyAdapter` is literally the adapter, plus the FE P2P
+tunnel, the energy acceptor part, powered items and a debug generator.
 
-**Energy.** NeoForge's `EnergyHandler` has no Fabric API counterpart. The ecosystem convention is
-Team Reborn Energy, a third-party mod whose 26.2 availability is **unverified** — check before
-depending on it. AE2 could instead expose its own energy interface through
-`fabric-api-lookup-api-v1` and provide a compatibility bridge later; that keeps parity self-contained
-at the cost of not interoperating with other Fabric energy mods on day one.
+So this never blocked AE2's own mechanics; it blocks other mods pushing power into AE2.
 
-**Chunk loading** is a third, smaller gap: spatial anchors force-load chunks through NeoForge's
-ticket controller. Fabric has no equivalent API, so this needs a direct `ServerLevel` ticket
-implementation.
+The Fabric equivalent is [**`teamreborn:energy:5.0.0`**](https://github.com/TechReborn/Energy) from
+`https://maven.fabricmc.net/`, which is built on the same API Lookup and Transaction substrate as
+`fabric-transfer-api-v1`, so it maps onto the same abstraction the item and fluid work needs.
+
+    repositories { maven { url = 'https://maven.fabricmc.net/' } }
+    dependencies { implementation 'teamreborn:energy:5.0.0' }
+
+`EnergyStorage.SIDED.registerForBlockEntity(...)` and `EnergyStorage.ITEM` correspond to AE2's
+`Capabilities.Energy.BLOCK` and `.ITEM` registrations; `SimpleEnergyStorage` replaces the hand-rolled
+handler in `ForgeEnergyAdapter`.
+
+**Verified, not assumed:** its POM asks for `fabric-transfer-api-v1:7.0.0` while 26.2 ships `8.0.12`,
+a major bump. Gradle resolves 7.0.0 → 8.0.12 and a probe using `EnergyStorage` and
+`SimpleEnergyStorage` compiles clean against it. That proves the surface AE2 would touch survives the
+bump; it does **not** prove runtime behaviour, so exercise it in the client gametest before trusting
+it.
+
+### Menus — no API exists, so AE2 supplies its own
+
+`MenuType implements IMenuTypeExtension`: NeoForge injects that onto the vanilla class. Vanilla's own
+`openMenu(MenuProvider)` carries no data and `MenuType` takes a plain `(containerId, inventory)`
+supplier, so there is nothing to fall back to. `fabric-screen-handler-api-v1` exists on the Fabric
+maven but is **absent from the 0.157.0+26.2 bundle**, and no other module has taken the capability
+over — checked module by module across all 44 nested jars.
+
+The coupling turned out to be two lines in one file, so it is now behind
+[`appeng.platform.MenuPlatform`](common/src/main/java/appeng/platform/MenuPlatform.java):
+`createMenuType` and `openMenu`, both vanilla-typed. NeoForge implements it as a pass-through, so
+nothing changed there. The Fabric implementation is deliberately left throwing, with the intended
+design written out in its javadoc: send the extra data as an AE2 payload first, then call vanilla
+`openMenu`, and have the menu supplier consume a client-side stash.
+
+That rests on the payload being handled before the open-screen packet. Both travel the same
+connection and are dispatched to the client thread in arrival order, so it should hold — but it is an
+assumption about scheduling rather than a guarantee, and it is precisely what the client gametest
+should assert once a menu exists to open.
+
+### Chunk loading
+
+The remaining gap, and a small one: spatial anchors force-load chunks through NeoForge's ticket
+controller. Fabric has no equivalent, so this needs a direct `ServerLevel` ticket implementation.
 
 ## Order of work
 
@@ -86,7 +118,8 @@ differ in shape but not in intent — NeoForge's `SnapshotJournal` maps onto Fab
 `SnapshotParticipant`. Energy is deferred to the decision above.
 
 **5 — Networking and menus** (37 + 78 files)
-Straightforward once the menu-data decision is made.
+The menu-data decision is made and the seam is in place; this stage is filling in
+`FabricMenuPlatform` and porting the payload registrations.
 
 **6 — The grid** (`me/` 57, `parts/` 72, `blockentity/` 47, `block/` 47)
 The bulk, but by this point almost entirely vanilla-typed; expect most of the 658 transitively
@@ -137,5 +170,5 @@ Worth agreeing up front, because each is a decision rather than a task:
 - **GuideME's guide UI**, until GuideME's own Fabric side registers content. Its `:common` is 82 of
   284 files; AE2's guide integration is 13 files and cannot move before that.
 - **The 3d scene export** in GuideME, stubbed because it captured geometry through `MultiBufferSource`.
-- **Interoperating with other Fabric energy/storage mods**, if AE2 defines its own energy interface
-  rather than adopting an ecosystem one.
+- **Forge Energy interop**, until stage 4 wires `teamreborn:energy` in. AE2's own power works without
+  it; what is missing is other mods pushing power into AE2.
