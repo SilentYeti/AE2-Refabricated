@@ -19,10 +19,11 @@ references, so renaming it would break the mod. Only the display name differs.
 
     JAVA_HOME=/usr/lib/jvm/java-25-openjdk ./gradlew build
 
-Requires JDK 25. [GuideME](../guideme-262) must be published to mavenLocal first — it is a required
-dependency and needed its own 26.2 port:
+Requires JDK 25. [GuideME-Refabricated](https://github.com/SilentYeti/GuideME-Refabricated) must be
+published to mavenLocal first — it is a required dependency and needed its own 26.2 port:
 
-    cd ../guideme-262 && ./gradlew :neoforge:publishToMavenLocal -Pversion=26.2.0-ae2port
+    git clone https://github.com/SilentYeti/GuideME-Refabricated.git
+    cd GuideME-Refabricated && ./gradlew :neoforge:publishToMavenLocal -Pversion=26.2.0-ae2port
 
 | | jar | run |
 |---|---|---|
@@ -42,13 +43,14 @@ assets/data are bundled into each loader jar.
 `appeng.platform.AEPlatform` is the seam. Code in `:common` must never import `net.neoforged.*` or
 `net.fabricmc.*`; each loader registers an implementation via `META-INF/services`.
 
-See [MULTILOADER.md](../MULTILOADER.md) for the porting notes, the measured migration roadmap, and
+See [MULTILOADER.md](MULTILOADER.md) for the porting notes, the measured migration roadmap, and
 the three coupling axes — two of which no import scan can see.
 
 ## Upstream
 
-Baseline is upstream tag `v26.1.11-beta`. `../ae2-26.2-port.patch` is the 26.2 port against that
-tag; the multiloader restructure is this repository's history.
+Baseline is upstream tag `v26.1.11-beta`. [`docs/ae2-26.2-port.patch`](docs/ae2-26.2-port.patch) is
+the 26.2 port against that tag, kept because this repository's first commit squashes work that
+predates it; the multiloader restructure is in the history proper.
 
 ## License
 
