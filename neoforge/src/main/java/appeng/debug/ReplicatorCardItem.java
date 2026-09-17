@@ -46,6 +46,7 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.spatial.ISpatialService;
 import appeng.core.AEConfig;
 import appeng.core.AppEng;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.items.AEBaseItem;
 import appeng.util.InteractionUtil;
 
@@ -232,7 +233,7 @@ public class ReplicatorCardItem extends AEBaseItem {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

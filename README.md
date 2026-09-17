@@ -11,9 +11,31 @@ references, so renaming it would break the mod. Only the display name differs.
 
 | | state |
 |---|---|
-| NeoForge | **works** — builds, loads, 489 unit tests pass |
-| Fabric | **scaffolding** — jar builds and loads, resolves the platform SPI, registers no content |
-| Rendering | never verified by drawing a frame |
+| NeoForge | **works** — builds, loads, 520 unit tests and 69 game tests pass |
+| Fabric | **partial** — registers 90 items (tools, materials, cards, cell components, paint balls) and AE2's creative tab, with their models and translations; no blocks, parts, networks or data pack |
+| Rendering | **runs** — `runClient` reaches the menu with every atlas baked and no render-thread errors; no GUI has been driven by hand |
+| Guide export | **broken** — see below |
+
+`runGametest` runs 69 tests against a real dedicated server, so registration, recipes, networks and
+block entities are exercised, not just compiled.
+
+On Fabric, `:fabric:runClientGametest` boots a client, creates a world and asserts that the items in
+[`AECommonItems`](common/src/main/java/appeng/core/definitions/AECommonItems.java) are registered,
+have a resolved item model, and appear under AE2's creative tab. The other 58 of AE2's 118 item
+declarations each name the seam they are waiting on in `AECommonItems.notYetPortable()`;
+`AECommonItemsTest` fails if an item is added to `AEItems` without being either ported or listed
+there. See [MULTILOADER.md](MULTILOADER.md#the-item-port) for what is left.
+
+**The Fabric jar deliberately ships no data pack.** AE2's tags name blocks that only `:neoforge`
+registers, and a missing tag reference is not skipped -- it fails registry loading and aborts world
+creation. So `:fabric` excludes `data/**` (see its `processResources`) until the blocks follow, which
+means no AE2 recipes, advancements or loot tables on Fabric yet. Assets are shipped in full, and
+have to be: the item model definitions under `assets/ae2/items` are datagen output, so without them
+even a registered item has no model.
+
+`runGuideexport` and `createStaticSite` throw: GuideME's `SceneExporter` is a deliberate 26.2 stub
+(the 3d scene export relied on `MultiBufferSource`, which 26.2 removed in favour of submit-based
+rendering). Fixing that means porting the exporter in GuideME-Refabricated, not here.
 
 ## Build
 
@@ -29,6 +51,19 @@ published to mavenLocal first — it is a required dependency and needed its own
 |---|---|---|
 | NeoForge | `neoforge/build/libs/ae2-refabricated-neoforge-*.jar` | `./gradlew :neoforge:runClient` |
 | Fabric | `fabric/build/libs/ae2-refabricated-fabric-*.jar` | `./gradlew :fabric:runClient` |
+
+### In IntelliJ
+
+The Gradle build pins the IDEA project SDK to JDK 25, so a Gradle sync is enough for the run
+configurations ModDevGradle generates -- they declare no JRE of their own and take the project SDK.
+
+If **Run Client** still fails with `Unrecognized option: --sun-misc-unsafe-memory-access=allow`, the
+run is being delegated to a Gradle daemon on an older JDK: set *Settings -> Build, Execution,
+Deployment -> Build Tools -> Gradle -> Gradle JVM* to the same JDK 25. The flag comes from NeoForge
+and only exists from JDK 24 on, so an older JVM rejects it before Minecraft starts.
+
+`./gradlew :neoforge:runClient` is unaffected by either setting: ModDevGradle gives its own run tasks
+the Java toolchain launcher, so it works even when Gradle itself is running on an older JDK.
 
 ## Layout
 

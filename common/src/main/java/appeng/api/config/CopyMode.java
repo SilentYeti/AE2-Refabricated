@@ -25,6 +25,7 @@ package appeng.api.config;
 
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+
 import appeng.util.AEStreamCodecs;
 
 public enum CopyMode {

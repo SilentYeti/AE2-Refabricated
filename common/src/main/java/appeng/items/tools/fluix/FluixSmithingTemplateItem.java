@@ -8,8 +8,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.util.Util;
 import net.minecraft.world.item.SmithingTemplateItem;
 
+import appeng.api.ids.AEConstants;
 import appeng.api.ids.AEItemIds;
-import appeng.core.AppEng;
 import appeng.core.localization.GuiText;
 
 public class FluixSmithingTemplateItem extends SmithingTemplateItem {
@@ -23,7 +23,8 @@ public class FluixSmithingTemplateItem extends SmithingTemplateItem {
     private static final Identifier EMPTY_SLOT_SHOVEL = Identifier.parse("item/empty_slot_shovel");
     private static final Identifier EMPTY_SLOT_PICKAXE = Identifier.parse("item/empty_slot_pickaxe");
 
-    private static final Identifier EMPTY_SLOT_BLOCK = AppEng.makeId("item/empty_slot_block");
+    private static final Identifier EMPTY_SLOT_BLOCK = Identifier.fromNamespaceAndPath(AEConstants.MOD_ID,
+            "item/empty_slot_block");
 
     public FluixSmithingTemplateItem(Properties p) {
         super(

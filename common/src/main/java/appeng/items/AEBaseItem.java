@@ -25,6 +25,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 
+import appeng.core.definitions.CreativeTabSink;
+
 public abstract class AEBaseItem extends Item {
 
     public AEBaseItem(Properties properties) {
@@ -37,7 +39,7 @@ public abstract class AEBaseItem extends Item {
         return id != BuiltInRegistries.ITEM.getDefaultKey() ? id : null;
     }
 
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         output.accept(this);
     }
 

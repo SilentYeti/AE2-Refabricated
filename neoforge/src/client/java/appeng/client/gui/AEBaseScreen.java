@@ -1018,6 +1018,11 @@ public abstract class AEBaseScreen<T extends AEBaseMenu> extends AbstractContain
             slot.y = HIDDEN_SLOT_POS.getY();
         }
 
+        // Clearing the field first suppresses removed() on the outgoing screen: a sub-screen shares the
+        // menu with its parent, and MEStorageScreen.removed() in particular stores view state and marks
+        // crafting-pinned keys prunable, neither of which should happen when merely switching screens.
+        // Accessible via accesstransformer.cfg; 26.2 moved the field from Minecraft onto Gui.
+        minecraft.gui.screen = null;
         minecraft.gui.setScreen(screen);
 
         if (!screen.savedSlotInfos.isEmpty()) {

@@ -39,6 +39,7 @@ import net.minecraft.world.level.block.Blocks;
 
 import appeng.core.AEConfig;
 import appeng.core.AELog;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.items.AEBaseItem;
 import appeng.util.InteractionUtil;
 
@@ -159,7 +160,7 @@ public class EraserItem extends AEBaseItem {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

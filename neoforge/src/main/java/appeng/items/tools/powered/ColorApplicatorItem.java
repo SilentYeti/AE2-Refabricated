@@ -82,6 +82,7 @@ import appeng.blockentity.misc.PaintSplotchesBlockEntity;
 import appeng.core.AEConfig;
 import appeng.core.ConventionTags;
 import appeng.core.definitions.AEItems;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.core.localization.GuiText;
 import appeng.helpers.IMouseWheelItem;
 import appeng.hooks.IBlockTool;
@@ -519,7 +520,7 @@ public class ColorApplicatorItem extends AEBasePoweredItem
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         super.addToMainCreativeTab(parameters, output);
 
         output.accept(createFullColorApplicator());

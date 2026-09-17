@@ -17,6 +17,12 @@ neoForge.enable {
     neoFormVersion = project.neoform_version
 }
 
+// Datagen output. It used to live in :neoforge, which meant the Fabric jar shipped none of AE2's
+// recipes, tags, loot tables or advancements -- and none of its item models either, since the item
+// model definitions under assets/ae2/items are generated too. It is loader-agnostic data, so it
+// belongs here and ships in both jars. `:neoforge:runData` still writes it (see its --output).
+sourceSets.main.resources.srcDir 'src/generated/resources'
+
 dependencies {
     compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 }

@@ -13,6 +13,7 @@ import net.minecraft.world.item.enchantment.Enchantable;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 
+import appeng.core.definitions.CreativeTabSink;
 import appeng.core.localization.GuiText;
 import appeng.core.localization.Tooltips;
 import appeng.items.parts.PartItem;
@@ -42,7 +43,7 @@ public class AnnihilationPlanePartItem extends PartItem<AnnihilationPlanePart> {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         super.addToMainCreativeTab(parameters, output);
 
         var enchantmentRegistry = parameters.holders().lookupOrThrow(Registries.ENCHANTMENT);

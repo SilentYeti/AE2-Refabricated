@@ -38,6 +38,7 @@ import appeng.api.ids.AEComponents;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
 import appeng.core.definitions.AEItems;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.items.AEBaseItem;
 
 /**
@@ -140,7 +141,7 @@ public class WrappedGenericStack extends AEBaseItem {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         // Don't show this item in CreativeTabs
     }
 }

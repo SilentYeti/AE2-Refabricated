@@ -33,6 +33,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.item.DyeColor;
+
 import appeng.util.AEStreamCodecs;
 
 /**

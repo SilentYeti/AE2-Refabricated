@@ -23,6 +23,7 @@ import com.mojang.serialization.Codec;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.util.StringRepresentable;
+
 import appeng.util.AEStreamCodecs;
 
 public enum InscriberProcessType implements StringRepresentable {

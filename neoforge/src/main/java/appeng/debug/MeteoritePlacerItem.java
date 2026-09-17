@@ -37,6 +37,7 @@ import net.minecraft.world.level.levelgen.structure.BoundingBox;
 
 import appeng.core.AEConfig;
 import appeng.core.AppEng;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.items.AEBaseItem;
 import appeng.util.InteractionUtil;
 import appeng.util.Platform;
@@ -137,7 +138,7 @@ public class MeteoritePlacerItem extends AEBaseItem {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

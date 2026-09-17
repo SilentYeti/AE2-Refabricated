@@ -40,13 +40,41 @@ sourceSets {
     main {
         compileClasspath += commonMain.output
         runtimeClasspath += commonMain.output
+
+        // The shared assets and data are pulled through this project's own processResources rather
+        // than copied straight out of :common, so that the exclusions below apply in a dev run as
+        // well as in the jar. :common's *classes* still come from its output.
+        resources.srcDir project(':common').file('src/main/resources')
+        resources.srcDir project(':common').file('src/generated/resources')
+    }
+    // Client game tests. Kept out of `main` so the test entrypoint and its fabric.mod.json never ship
+    // in the published jar; it loads as a second, dev-only mod alongside ae2.
+    gametest {
+        compileClasspath += main.output + main.compileClasspath + commonMain.output
+        runtimeClasspath += main.output + main.runtimeClasspath + commonMain.output
     }
 }
 
 tasks.named('compileJava') { dependsOn ':common:classes' }
+tasks.named('compileGametestJava') { dependsOn ':common:classes' }
+
+// Dev-only. In a packaged jar :common's classes and resources are merged into this one (see the jar
+// task below), but in a dev run they sit in their own build directories, and Fabric Loader only scans
+// the directory that holds fabric.mod.json. Grouping the paths tells the loader they are all one mod,
+// which is what gets AE2's models, textures, recipes and tags loaded at all: without it the mod
+// registers its items and then has no resource pack and no data pack behind them. The loader splits
+// this on the path separator, and on a doubled separator between groups.
+final ae2ModPaths = files(
+        sourceSets.main.output.classesDirs,
+        sourceSets.main.output.resourcesDir,
+        commonMain.output.classesDirs,
+).files.collect { it.absolutePath }.join(File.pathSeparator)
 
 loom {
     runs {
+        configureEach {
+            property 'fabric.classPathGroups', ae2ModPaths
+        }
         client {
             client()
             runDir = 'run'
@@ -58,13 +86,24 @@ loom {
             runDir = 'run-server'
             programArgs '--nogui'
         }
+        // Boots a client, creates a singleplayer world and asserts what AE2 registered. Creating the
+        // world is the point: it starts the integrated server, which is the only thing that loads
+        // AE2's recipes, tags and loot tables, none of which a client on the title screen ever reads.
+        clientGametest {
+            client()
+            source sourceSets.gametest
+            runDir = 'run-gametest'
+            property 'fabric.client.gametest'
+            property 'appeng.tests', 'true'
+        }
     }
 }
 
-// The loader-agnostic classes and the shared assets/data ship inside this jar, exactly as they do in
-// the NeoForge one -- :common is never published as a standalone artifact.
+// The loader-agnostic classes ship inside this jar, exactly as they do in the NeoForge one -- :common
+// is never published as a standalone artifact. Its resources are not taken from here: they come in
+// through processResources, which is what applies the exclusions.
 tasks.named('jar', Jar) {
-    from(commonMain.output)
+    from(commonMain.output.classesDirs)
     from(rootProject.file('guidebook')) {
         into 'assets/ae2/ae2guide'
     }
@@ -81,4 +120,16 @@ processResources {
     filesMatching('fabric.mod.json') {
         expand props
     }
+
+    // AE2's data pack is not shippable on Fabric yet. Its tag files, worldgen and dynamic registry
+    // entries name blocks and items that only :neoforge registers, and a missing tag reference is not
+    // skipped -- it fails registry loading outright, which aborts world creation. The assets are a
+    // different story and are needed: the item model definitions under assets/ae2/items are datagen
+    // output, so without them even the items Fabric does register have no model.
+    //
+    // Drop this exclusion once AE2's blocks and the rest of its items register on Fabric.
+    exclude 'data/**'
+
+    // Only ever produced by the NeoForge datagen run
+    exclude '.cache/**'
 }

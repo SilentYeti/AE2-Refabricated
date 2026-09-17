@@ -32,6 +32,7 @@ import appeng.api.config.AccessRestriction;
 import appeng.api.config.Actionable;
 import appeng.api.ids.AEComponents;
 import appeng.api.implementations.items.IAEItemPowerStorage;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.core.localization.Tooltips;
 import appeng.items.AEBaseItem;
 
@@ -55,7 +56,7 @@ public abstract class AEBasePoweredItem extends AEBaseItem implements IAEItemPow
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         super.addToMainCreativeTab(parameters, output);
 
         var charged = new ItemStack(this, 1);

@@ -24,10 +24,10 @@ import java.util.ServiceLoader;
 /**
  * The seam between loader-agnostic code in {@code :common} and the mod loader underneath it.
  * <p>
- * Code in {@code :common} must never import {@code net.neoforged.*} or {@code net.fabricmc.*}. When it needs
- * something only a loader can answer, it asks this interface, and {@code :neoforge} / {@code :fabric} each
- * supply an implementation discovered through {@link ServiceLoader}. Keep this surface small: every method
- * added here has to be written twice.
+ * Code in {@code :common} must never import {@code net.neoforged.*} or {@code net.fabricmc.*}. When it needs something
+ * only a loader can answer, it asks this interface, and {@code :neoforge} / {@code :fabric} each supply an
+ * implementation discovered through {@link ServiceLoader}. Keep this surface small: every method added here has to be
+ * written twice.
  */
 public interface AEPlatform {
     /**
@@ -63,8 +63,8 @@ public interface AEPlatform {
     // --- lookup ---
 
     /**
-     * Resolved once on first use. Fails loudly rather than degrading, because an absent implementation means
-     * the loader module was not bundled and nothing downstream can work.
+     * Resolved once on first use. Fails loudly rather than degrading, because an absent implementation means the loader
+     * module was not bundled and nothing downstream can work.
      */
     static AEPlatform get() {
         var instance = Holder.INSTANCE;

@@ -23,15 +23,15 @@ import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
 
+import appeng.core.definitions.AECommonItems;
 import appeng.platform.AEPlatform;
 
 /**
  * Fabric entrypoint.
  * <p>
- * This does not yet start AE2: the mod's content lives in {@code :neoforge} and is still bound to NeoForge
- * APIs (registries, capabilities and the transfer API in particular). What this proves today is that the
- * multiloader wiring is sound -- the Fabric jar builds, loads, bundles {@code :common} and the shared
- * assets, and resolves the platform SPI. Content moves across as each NeoForge API gets an abstraction.
+ * Starts the part of AE2 that is loader-agnostic today: the items declared in {@link AECommonItems} and the creative
+ * tab holding them. The rest of the mod's content still lives in {@code :neoforge} bound to NeoForge APIs (capabilities
+ * and the transfer API in particular), and moves across as each of those gets an abstraction.
  */
 public class AppEngFabric implements ModInitializer {
     private static final Logger LOG = LoggerFactory.getLogger("AE2");
@@ -41,6 +41,10 @@ public class AppEngFabric implements ModInitializer {
         var platform = AEPlatform.get();
         LOG.info("AE2 Fabric: platform SPI resolved -- loader={}, dev={}, client={}",
                 platform.loader(), platform.isDevelopmentEnvironment(), platform.isPhysicalClient());
-        LOG.warn("AE2 on Fabric is scaffolding only: no blocks, items or networks are registered yet.");
+        FabricItems.register();
+        LOG.info("AE2 Fabric: registered {} items and the creative tab", FabricItems.registered().size());
+        LOG.warn("AE2 on Fabric is still partial: {} more of AE2's items need the grid, menu, energy or "
+                + "storage seams before they can be registered, and no blocks, parts or networks exist yet.",
+                AECommonItems.notYetPortable().size());
     }
 }

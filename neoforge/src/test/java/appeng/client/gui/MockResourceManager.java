@@ -18,6 +18,7 @@
 
 package appeng.client.gui;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -36,8 +37,6 @@ import net.minecraft.server.packs.repository.ServerPacksSource;
 import net.minecraft.server.packs.resources.ReloadableResourceManager;
 import net.minecraft.util.Unit;
 
-import appeng.core.AppEng;
-
 /**
  * Fake resource manager that more or less loads AE2 resource pack resources.
  */
@@ -51,8 +50,8 @@ public final class MockResourceManager {
         // file that only exists in it.
         var packs = new ArrayList<PackResources>();
         packs.add(ServerPacksSource.createVanillaPackSource());
-        packs.add(pack("ae2_common", "/pack.mcmeta", 1));
-        packs.add(pack("ae2", "/META-INF/neoforge.mods.toml", 2));
+        packs.add(pack("ae2_common", "/pack.mcmeta", 1, "assets/ae2"));
+        packs.add(pack("ae2", "/META-INF/neoforge.mods.toml", 2, "ae2.mixins.json"));
 
         ReloadableResourceManager resourceManager = new ReloadableResourceManager(PackType.CLIENT_RESOURCES);
         resourceManager.createReload(Runnable::run, Runnable::run, CompletableFuture.supplyAsync(() -> Unit.INSTANCE),
@@ -61,27 +60,43 @@ public final class MockResourceManager {
     }
 
     /**
-     * @param marker   A resource that exists only in the root being looked for.
+     * Neither marker is unique on the test classpath -- the Minecraft jar also carries a {@code pack.mcmeta} and
+     * GuideME a {@code neoforge.mods.toml} -- so every candidate is resolved and the first one that is a directory
+     * containing {@code proof} wins. Picking whichever the class loader happened to return first would silently mount
+     * the wrong root, or blow up on a {@code jar:} URL.
+     *
+     * @param marker   A resource that exists in the root being looked for.
      * @param levelsUp How far the root sits above that marker.
+     * @param proof    A path that exists relative to the root, used to recognize it.
      */
-    private static PathPackResources pack(String id, String marker, int levelsUp) {
-        var markerUrl = AppEng.class.getResource(marker);
-        if (markerUrl == null) {
-            throw new IllegalStateException("Couldn't find resource root via marker " + marker);
-        }
-
-        Path root;
+    private static PathPackResources pack(String id, String marker, int levelsUp, String proof) {
+        var candidates = new ArrayList<Path>();
         try {
-            root = Paths.get(markerUrl.toURI());
+            var urls = MockResourceManager.class.getClassLoader()
+                    .getResources(marker.substring(1))
+                    .asIterator();
+            while (urls.hasNext()) {
+                var url = urls.next();
+                if (!"file".equals(url.getProtocol())) {
+                    continue; // Inside a jar, so not one of our source roots
+                }
+
+                var root = Paths.get(url.toURI());
+                for (var i = 0; i < levelsUp; i++) {
+                    root = root.getParent();
+                }
+                candidates.add(root);
+                if (Files.exists(root.resolve(proof))) {
+                    return new PathPackResources(
+                            new PackLocationInfo(id, Component.literal("AE2"), PackSource.BUILT_IN, Optional.empty()),
+                            root);
+                }
+            }
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to convert " + markerUrl + " to a path on disk.", e);
-        }
-        for (var i = 0; i < levelsUp; i++) {
-            root = root.getParent();
+            throw new IllegalStateException("Failed to locate the resource root containing " + marker, e);
         }
 
-        return new PathPackResources(
-                new PackLocationInfo(id, Component.literal("AE2"), PackSource.BUILT_IN, Optional.empty()),
-                root);
+        throw new IllegalStateException("Couldn't find a resource root via marker " + marker
+                + " that contains " + proof + ". Candidates: " + candidates);
     }
 }

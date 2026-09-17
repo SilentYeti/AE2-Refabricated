@@ -12,14 +12,20 @@ public class CrowdinPlugin implements Plugin<Project> {
     public void apply(Project project) {
         var tasks = project.getTasks();
 
+        // Both halves live in :common since the multiloader restructure: en_us.json is datagen output
+        // under src/generated, the translations are hand-maintained under src/main.
+        var root = project.getRootProject().getLayout().getProjectDirectory();
+        var sourceFolder = root.dir("common/src/generated/resources/assets/ae2/lang");
+        var translationsFolder = root.dir("common/src/main/resources/assets/ae2/lang");
+
         tasks.register("uploadToCrowdin", UploadSources.class, task -> {
-            task.getLangFolder().set(project.getLayout().getProjectDirectory().dir("src/generated/resources/assets/ae2/lang"));
+            task.getLangFolder().set(sourceFolder);
         });
         tasks.register("uploadTranslations", UploadTranslations.class, task -> {
-            task.getLangFolder().set(project.getLayout().getProjectDirectory().dir("src/main/resources/assets/ae2/lang"));
+            task.getLangFolder().set(translationsFolder);
         });
         tasks.register("downloadFromCrowdin", DownloadFromCrowdin.class, task -> {
-            task.getLangFolder().set(project.getLayout().getProjectDirectory().dir("src/main/resources/assets/ae2/lang"));
+            task.getLangFolder().set(translationsFolder);
         });
 
         tasks.withType(CrowdinTask.class).configureEach(task -> {

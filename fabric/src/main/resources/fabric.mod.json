@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "AE2: Refabricated",
   "description": "A Minecraft mod about Matter, Energy and using them to conquer the world...",
-  "authors": [ "AlgorithmX2", "Technici4n", "shartte" ],
+  "authors": ["AlgorithmX2", "Technici4n", "shartte"],
   "contact": {
     "homepage": "https://appliedenergistics.org",
     "sources": "https://github.com/AppliedEnergistics/Applied-Energistics-2",
@@ -14,7 +14,7 @@
   "icon": "logo.png",
   "environment": "*",
   "entrypoints": {
-    "main": [ "appeng.fabric.AppEngFabric" ]
+    "main": ["appeng.fabric.AppEngFabric"]
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",

@@ -4,9 +4,28 @@
  * :common). See settings.gradle for the layout.
  */
 import appengbuild.ProjectDefaultsPlugin
+import com.diffplug.gradle.spotless.JsonExtension
+import com.diffplug.spotless.LineEnding
 
 plugins {
     id 'java'
+    id 'idea'
+    // Applied here rather than per module: spotless refuses targets outside the project directory, so
+    // only the root project can reach the sources and shared resources of all three modules at once.
+    id 'com.diffplug.spotless'
+}
+
+// IntelliJ takes the project SDK from the IDEA model on Gradle sync. Without this it picks whatever
+// JAVA_HOME happens to be, and ModDevGradle's generated run configurations inherit it, because they
+// declare no JRE of their own. Running the game on anything older than 25 then dies before Minecraft
+// starts with "Unrecognized option: --sun-misc-unsafe-memory-access=allow" -- NeoForge passes a flag
+// that only exists from JDK 24 on. `./gradlew runClient` is unaffected either way, since ModDevGradle
+// gives its own run tasks the Java toolchain launcher.
+idea {
+    project {
+        jdkName = java_version
+        languageLevel = java_version
+    }
 }
 
 apply plugin: ProjectDefaultsPlugin
@@ -25,5 +44,62 @@ subprojects {
         options.addStringOption('Xdoclint:none', '-quiet')
         options.encoding = 'UTF-8'
         options.charSet = 'UTF-8'
+    }
+}
+
+/////////////
+// Spotless
+//
+// One configuration for the whole repository. Before the multiloader split this lived in the single
+// module alongside the code; now :common holds most of the sources and all of the shared
+// assets/data, :fabric holds the platform implementation, and spotless only sees them from up here.
+spotless {
+    // Not inferred from .gitattributes: this repository is also consumed as a source archive, where
+    // there is no Git repository for spotless to ask, and it would then fall back to the platform
+    // default -- which fails every check on Windows.
+    lineEndings = LineEnding.UNIX
+
+    java {
+        target fileTree(rootDir) {
+            include 'common/src/*/java/appeng/**/*.java'
+            include 'neoforge/src/*/java/appeng/**/*.java'
+            include 'fabric/src/*/java/appeng/**/*.java'
+        }
+
+        endWithNewline()
+        indentWithSpaces()
+        removeUnusedImports()
+        toggleOffOn()
+        eclipse().configFile file('codeformat/codeformat.xml')
+        importOrderFile file('codeformat/ae2.importorder')
+
+        // courtesy of diffplug/spotless#240
+        // https://github.com/diffplug/spotless/issues/240#issuecomment-385206606
+        custom 'noWildcardImports', {
+            if (it.contains('*;\n')) {
+                throw new Error('No wildcard imports allowed')
+            }
+
+            it
+        }
+        bumpThisNumberIfACustomStepChanges(1)
+    }
+
+    json {
+        target fileTree(rootDir) {
+            include 'common/src/main/resources/**/*.json'
+            include 'neoforge/src/*/resources/**/*.json'
+            include 'fabric/src/*/resources/**/*.json'
+            // Datagen output, not hand-written
+            exclude 'common/src/generated/resources/**'
+        }
+        var biomeConfig = it.new JsonExtension.BiomeJson(null)
+        try {
+            biomeConfig.downloadDir(new File(rootDir, ".gradle/biome").absolutePath)
+        } catch (Exception ignored) {
+        }
+        addStep(biomeConfig.createStep())
+        indentWithSpaces(2)
+        endWithNewline()
     }
 }

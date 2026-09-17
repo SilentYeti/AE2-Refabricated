@@ -1,0 +1,60 @@
+# exclude all
+/*
+
+# include important folders
+# need gradle 
+!gradle/
+!gradlew
+!gradlew.bat
+!build.gradle
+!settings.gradle
+!gradle.properties
+!crowdin.yml
+
+# Scripts
+!/scripts
+/scripts/node_modules
+!/buildSrc
+/buildSrc/build
+/buildSrc/.gradle
+
+# include markdowns
+!*.md
+!LICENSE
+
+# include sourcecode (multiloader: one module per loader plus the shared :common)
+!docs/
+!common/
+!neoforge/
+!fabric/
+common/src/generated/resources/.cache
+out
+build
+!/libs/
+!/guidebook
+/guidebook/sandbox
+
+# include git important files
+!.gitmodules
+!.gitignore
+!.gitattributes
+!.git-blame-ignore-revs
+
+# code format to reduce noise in git commits
+!codeformat/
+
+# Github specific files and directories
+!.github/
+
+# Explicit ignores
+Thumbs.db
+
+# Per-module build and run output. The whitelist above re-includes the module directories
+# wholesale, so these have to be excluded again explicitly or a dev run's world saves,
+# logs and options.txt end up staged.
+*/build/
+*/.gradle/
+*/run/
+*/run-server/
+*/run-gametest/
+*/logs/

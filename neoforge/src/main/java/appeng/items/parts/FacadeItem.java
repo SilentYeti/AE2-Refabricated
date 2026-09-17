@@ -45,6 +45,7 @@ import appeng.api.implementations.items.IFacadeItem;
 import appeng.api.parts.IFacadePart;
 import appeng.api.parts.IPartHost;
 import appeng.api.parts.PartHelper;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.facade.FacadePart;
 import appeng.items.AEBaseItem;
 
@@ -137,7 +138,7 @@ public class FacadeItem extends AEBaseItem implements IFacadeItem {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         // Don't show in creative mode, since it's not useful without NBT
     }
 

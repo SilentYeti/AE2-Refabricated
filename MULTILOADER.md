@@ -11,8 +11,8 @@ Both halves are documented here: AE2 first, GuideME in the second half.
 
 | | jar | run |
 |---|---|---|
-| NeoForge | `neoforge/build/libs/appliedenergistics2-neoforge-*.jar` | `./gradlew :neoforge:runClient` (also `runServer`, `runData`, `runGuide`, `runGametest`) |
-| Fabric | `fabric/build/libs/appliedenergistics2-fabric-*.jar` | `./gradlew :fabric:runClient` (also `runServer`) |
+| NeoForge | `neoforge/build/libs/ae2-refabricated-neoforge-*.jar` | `./gradlew :neoforge:runClient` (also `runServer`, `runData`, `runGuide`, `runGametest`) |
+| Fabric | `fabric/build/libs/ae2-refabricated-fabric-*.jar` | `./gradlew :fabric:runClient` (also `runServer`) |
 
 Requires `JAVA_HOME=/usr/lib/jvm/java-25-openjdk`. GuideME must be published to mavenLocal first:
 
@@ -62,17 +62,96 @@ method costs two implementations.
 
 ## What is actually ported
 
-`:common` holds 26 files -- the dependency-closed set that needed no abstraction at all. Everything
-else still lives in `:neoforge`. The Fabric jar builds, loads, bundles `:common` and the shared
-assets, and resolves the SPI; it registers no blocks, items or networks yet.
+`:common` holds the loader-agnostic Java plus **all** of the shared assets and data, hand-written
+(`src/main/resources`) and datagen output (`src/generated/resources`) alike. Everything else still
+lives in `:neoforge`. The Fabric jar builds, loads, bundles `:common`, resolves the SPI, and
+registers 90 items plus AE2's creative tab, with their models and translations. No blocks, parts,
+block entities, menus or networks yet.
+
+Datagen output only moved into `:common` after the fact, and that is worth knowing about: it used to
+live in `:neoforge`, so the Fabric jar shipped none of AE2's 555 recipes, 407 advancements, 101 loot
+tables or 44 tag files -- **and none of its item models**, because the item model definitions under
+`assets/ae2/items` are datagen output too. `:neoforge:runData` still produces it; only `--output`
+changed.
+
+Formatting is checked from the **root** project, not from `:neoforge` -- spotless rejects targets
+outside the project directory, so only the root can see all three modules. Do not move it back.
+
+## The item port
+
+60 of AE2's 118 item declarations (90 registry entries, counting the two colored paint ball
+families) now run on both loaders. They are declared in `AECommonItems` in `:common`; `:fabric`
+registers them directly, since Fabric has no deferred registry phase.
+
+`:fabric:runClientGametest` is what checks this, and it is the only automated test on the Fabric
+side: it boots a client, asserts the items are registered and that none of them fall back to the
+missing-model placeholder, then creates a world -- which is the only way to exercise a data pack --
+and screenshots AE2 stacks in the hotbar. It earned its place immediately by catching
+`METEORITE_COMPASS`, which registers fine and then has no model, because its model needs a custom
+`ItemModel` type that only NeoForge can register.
+
+### Why the Fabric jar carries no data pack
+
+A missing tag reference is not skipped: it fails registry loading, which aborts world creation. AE2's
+tag files name the blocks that only `:neoforge` registers, so shipping `data/**` to Fabric turns a
+working client into one that cannot load a world at all. `:fabric`'s `processResources` excludes it,
+and pulls the shared resources through itself rather than copying `:common`'s output straight into
+the jar, so that the exclusion applies to a dev run too. Assets ship in full.
+
+Along the way: 48 of the 365 item model definitions fail to parse on Fabric with
+`Unknown element id: ae2:color` and friends. Those are AE2's own custom `ItemModel` types, registered
+from `:neoforge` client code through `RegisterItemModelsEvent`; vanilla keeps `ItemModels.ID_MAPPER`
+private, so Fabric needs an access widener plus those model classes out of `:neoforge`. Every one of
+them belongs to an item Fabric does not register yet, so it is noise rather than breakage.
+
+`AEItems` itself stays in `:neoforge` and is unchanged. It cannot move yet, and the reason is worth
+writing down because it is *the* thing blocking the rest of the mod:
+
+    ItemDefinition -> AEItemKey / GenericStack -> AEComponents -> AEItems -> every item class
+                                                                         -> blocks, parts, menus, grid
+
+`AEItems` imports all 44 item classes and `AEKey`/`GenericStack` import `AEItems` back, so items,
+blocks, block entities, parts, menus and the grid are all one 559-file cycle with 94 files touching
+a NeoForge API. Measured: sealing the 14 highest-value classes in that cycle moves only 18 of the 44
+item classes, so **there is no small cut** -- the seams have to be built.
+
+Two coupling axes turned out to be one-line fixes rather than abstractions, and both are now gone:
+
+* `ConventionTags` only needed NeoForge for its `c:` tag constants. The ids are spelled out and
+  `ConventionTagsTest` pins all 26 against `Tags.Items`/`Tags.Blocks`/`Tags.Biomes`.
+* `AEBaseItem.addToMainCreativeTab` named `CreativeModeTab.Output`, which is `protected` in vanilla
+  and only widened by the access transformer. It takes `CreativeTabSink` now. `CreativeModeTabs`'
+  own tab constants are private for the same reason, so `AECommonItems` spells those keys out too,
+  pinned by `AECommonItemsTest`.
+
+`AECommonItems.notYetPortable()` names the seam each of the remaining 58 items is waiting on, and
+`AECommonItemsTest` fails if an item is added to `AEItems` without being ported or listed. Grouped by
+seam -- the portable cells need two, so the counts add up to more than 57:
+
+| seam | items waiting | what it needs |
+|---|---|---|
+| storage cells (`ICellHandler`, `StorageCells`) | 25 | the storage API, which is item-handler shaped: 10 basic cells, 10 portable cells, view/creative cell, 3 spatial cells |
+| energy (`IAEItemPowerStorage`, `AEBasePoweredItem`) | 16 | an energy abstraction over `neoforge.transfer` and Fabric's own energy API: 10 portable cells, 4 powered tools, 2 wireless terminals |
+| `Upgrades` / `UpgradeCardItem` | 9 | reaches `IPartHost` -> `IPart` -> `neoforge.model.data.ModelData` |
+| `PatternDetailsHelper` | 4 | the crafting pattern API |
+| `AEComponents` | 4 | `DeferredRegister` for data component types (2 of these also need the parts API) |
+| debug tools | 4 | `AEConfig` on `fml.config`, plus the grid and worldgen |
+| menus (`MenuTypeBuilder`) | 3 | menu registration plus the network channel |
+| the parts API | 1 | `FacadeItem` |
+| client item models | 1 | `METEORITE_COMPASS`, see above |
+| GuideME (`GuidesCommon`) | 1 | GuideME's own Fabric module |
+
+The energy and storage seams overlap heavily (portable cells need both), which is why they are the
+two to do first.
 
 ## Migration order (measured, not guessed)
 
-Counting files that become eligible for `:common` once a dependency is abstracted away:
+Counting files that become eligible for `:common` once a dependency is abstracted away. These were
+measured before anything moved, so the first row is history; the rest still holds.
 
 | abstract | files eligible for :common |
 |---|---|
-| nothing (today) | 26 |
+| nothing | 26 |
 | all of NeoForge | 34 |
 | all of NeoForge **+ GuideME** | **1347** |
 | ... + JEI/Jade/EMI/REI | 1392 |

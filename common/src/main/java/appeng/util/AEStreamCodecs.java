@@ -25,10 +25,10 @@ import net.minecraft.world.level.ChunkPos;
 /**
  * Loader-agnostic replacements for the handful of {@code NeoForgeStreamCodecs} helpers AE2 used.
  * <p>
- * Those helpers are thin wrappers over {@link FriendlyByteBuf} methods that vanilla already provides, so
- * nothing loader-specific is involved and these can live in {@code :common}. Keeping them here is what lets
- * the enums that carry a {@code STREAM_CODEC} - {@code AEColor}, {@code FuzzyMode} and friends - be
- * loader-agnostic, and almost the whole codebase depends on those.
+ * Those helpers are thin wrappers over {@link FriendlyByteBuf} methods that vanilla already provides, so nothing
+ * loader-specific is involved and these can live in {@code :common}. Keeping them here is what lets the enums that
+ * carry a {@code STREAM_CODEC} - {@code AEColor}, {@code FuzzyMode} and friends - be loader-agnostic, and almost the
+ * whole codebase depends on those.
  */
 public final class AEStreamCodecs {
     private AEStreamCodecs() {

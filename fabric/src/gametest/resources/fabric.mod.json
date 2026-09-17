@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "id": "ae2_gametest",
+  "version": "1.0.0",
+  "name": "AE2: Refabricated Client Game Tests",
+  "description": "Dev-only. Boots a client, creates a singleplayer world and checks what AE2 registered on Fabric.",
+  "license": "LGPL-3.0-only",
+  "environment": "client",
+  "entrypoints": {
+    "fabric-client-gametest": ["appeng.fabric.gametest.AE2ClientGameTest"]
+  },
+  "depends": {
+    "ae2": "*",
+    "fabric-client-gametest-api-v1": "*"
+  }
+}
