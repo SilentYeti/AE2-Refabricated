@@ -1,0 +1,29 @@
+/*
+ * Multiloader parent. Holds nothing loader-specific -- each subproject configures its own modding
+ * plugin (ModDevGradle for :neoforge, Loom for :fabric, ModDevGradle in NeoForm/vanilla mode for
+ * :common). See settings.gradle for the layout.
+ */
+import appengbuild.ProjectDefaultsPlugin
+
+plugins {
+    id 'java'
+}
+
+apply plugin: ProjectDefaultsPlugin
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: ProjectDefaultsPlugin
+
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+    }
+
+    // AE2's javadoc has never been doclint-clean; :neoforge already opts out and the other
+    // subprojects need the same treatment now that they produce javadoc jars too.
+    tasks.withType(Javadoc).configureEach {
+        options.addStringOption('Xdoclint:none', '-quiet')
+        options.encoding = 'UTF-8'
+        options.charSet = 'UTF-8'
+    }
+}

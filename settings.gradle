@@ -1,0 +1,113 @@
+import org.gradle.api.initialization.resolve.RepositoriesMode
+import org.gradle.api.initialization.resolve.RulesMode
+
+pluginManagement {
+    repositories {
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+        }
+        gradlePluginPortal()
+    }
+    plugins {
+        id 'com.diffplug.spotless' version '6.25.0'
+        // https://projects.neoforged.net/neoforged/ModDevGradle
+        id 'net.neoforged.moddev' version '2.0.141'
+        id 'net.neoforged.moddev.repositories' version '2.0.141'
+        // https://fabricmc.net/develop
+        id 'net.fabricmc.fabric-loom' version '1.17.13'
+    }
+}
+
+plugins {
+    id 'net.neoforged.moddev.repositories'
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+dependencyResolutionManagement {
+    // Loom injects its own repositories (LoomLocalRemappedMods and friends) into :fabric and cannot
+    // work under FAIL_ON_PROJECT_REPOS. PREFER_PROJECT lets it do that; :common and :neoforge declare
+    // none of their own and so still resolve exclusively through the settings repositories below.
+    repositoriesMode = RepositoriesMode.PREFER_PROJECT
+    rulesMode = RulesMode.FAIL_ON_PROJECT_RULES
+    repositories {
+        maven {
+            url = 'https://maven.shedaniel.me/'
+            content {
+                includeGroup 'me.shedaniel'
+                includeGroup 'me.shedaniel.cloth'
+                includeGroup 'dev.architectury'
+            }
+        }
+        maven {
+            url = 'https://maven2.bai.lol'
+            content {
+                includeGroup 'mcp.mobius.waila'
+                includeGroup 'lol.bai'
+            }
+        }
+        maven {
+            name = 'TerraformersMC'
+            url = 'https://maven.terraformersmc.com/'
+            content {
+                includeGroup 'dev.emi'
+            }
+        }
+        maven {
+            name = 'cursemaven'
+            url = 'https://www.cursemaven.com'
+            content {
+                includeGroup 'curse.maven'
+            }
+        }
+        maven { // for TOP
+            url = 'https://maven.k-4u.nl/'
+            content {
+                includeGroup 'mcjty.theoneprobe'
+            }
+        }
+        maven {
+            url = 'https://maven.theillusivec4.top/'
+            content {
+                includeGroup 'top.theillusivec4.curios'
+            }
+        }
+        maven {
+            url = 'https://maven.blamejared.com/'
+            content {
+                includeGroup 'mezz.jei'
+            }
+        }
+        mavenLocal() {
+            content {
+                includeModule('org.appliedenergistics', 'guideme')
+            }
+        }
+        maven {
+            name = 'GuideME Snapshots'
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+            content {
+                includeModule('org.appliedenergistics', 'guideme')
+            }
+        }
+        maven {
+            name = 'Fabric'
+            url = 'https://maven.fabricmc.net/'
+            content {
+                includeGroup 'net.fabricmc'
+                includeGroupByRegex 'net\\.fabricmc\\..*'
+            }
+        }
+        mavenCentral()
+    }
+}
+
+rootProject.name = 'ae2'
+
+// Multiloader layout:
+//   :common   loader-agnostic code + the platform SPI, compiled against vanilla only (NeoForm)
+//   :neoforge NeoForge implementation (ModDevGradle)
+//   :fabric   Fabric implementation (Loom)
+include 'common'
+include 'neoforge'
+include 'fabric'

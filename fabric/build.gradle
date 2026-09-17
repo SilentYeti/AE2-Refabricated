@@ -1,0 +1,84 @@
+/*
+ * :fabric -- Fabric implementation of the platform SPI.
+ *
+ * Minecraft is unobfuscated from 26.x onward, so Loom resolves intermediary 0.0.0, there is no mapping
+ * set to declare, and dependencies use plain `implementation` rather than `modImplementation`. The
+ * classes this compiles against are the same official Mojang names :common and :neoforge see.
+ */
+plugins {
+    id 'net.fabricmc.fabric-loom'
+}
+
+base {
+    archivesName = "ae2-refabricated-fabric"
+}
+
+// Declared here rather than inherited: under PREFER_PROJECT a project that declares any repository
+// stops seeing the settings ones, and Loom always declares some.
+repositories {
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    mavenLocal()
+    mavenCentral()
+}
+
+final commonMain = project(':common').sourceSets.main
+
+dependencies {
+    minecraft "com.mojang:minecraft:${project.minecraft_version}"
+
+    implementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+    compileOnly project(':common')
+    compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+}
+
+sourceSets {
+    main {
+        compileClasspath += commonMain.output
+        runtimeClasspath += commonMain.output
+    }
+}
+
+tasks.named('compileJava') { dependsOn ':common:classes' }
+
+loom {
+    runs {
+        client {
+            client()
+            runDir = 'run'
+            property 'appeng.tests', 'true'
+            property 'guideme.ae2.guide.sources', rootProject.file('guidebook').absolutePath
+        }
+        server {
+            server()
+            runDir = 'run-server'
+            programArgs '--nogui'
+        }
+    }
+}
+
+// The loader-agnostic classes and the shared assets/data ship inside this jar, exactly as they do in
+// the NeoForge one -- :common is never published as a standalone artifact.
+tasks.named('jar', Jar) {
+    from(commonMain.output)
+    from(rootProject.file('guidebook')) {
+        into 'assets/ae2/ae2guide'
+    }
+    exclude '/.cache'
+}
+
+processResources {
+    final props = [
+            version               : project.version,
+            minecraft_version     : project.minecraft_version,
+            fabric_loader_version : project.fabric_loader_version,
+    ]
+    inputs.properties props
+    filesMatching('fabric.mod.json') {
+        expand props
+    }
+}

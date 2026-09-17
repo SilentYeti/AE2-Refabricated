@@ -1,0 +1,22 @@
+/*
+ * :common -- loader-agnostic code and the platform SPI.
+ *
+ * Compiled against vanilla Minecraft only, via ModDevGradle's NeoForm mode. Nothing here may import
+ * net.neoforged.* or any loader-specific API; anything that needs one goes behind an interface in
+ * appeng.platform and is implemented in :neoforge and :fabric.
+ *
+ * Because Minecraft is unobfuscated from 26.x onward, the class and member names this compiles
+ * against are byte-for-byte the ones both loaders see, so no remapping is involved.
+ */
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+neoForge.enable {
+    // Vanilla-only: no NeoForge on the classpath at all.
+    neoFormVersion = project.neoform_version
+}
+
+dependencies {
+    compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
+}
