@@ -17,6 +17,8 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.me.storage.ExternalStorageFacade;
+import appeng.neoforge.resources.NeoForgeFluids;
+import appeng.neoforge.resources.NeoForgeItems;
 
 public abstract class HandlerStrategy<C, S> {
     private final AEKeyType keyType;
@@ -58,7 +60,7 @@ public abstract class HandlerStrategy<C, S> {
                 var insertAmount = Ints.saturatedCast(amount);
 
                 try (var tx = Transaction.open(null)) {
-                    var inserted = handler.insert(itemKey.toResource(), insertAmount, tx);
+                    var inserted = handler.insert(NeoForgeItems.toResource(itemKey), insertAmount, tx);
                     if (!mode.isSimulate()) {
                         tx.commit();
                     }
@@ -97,7 +99,7 @@ public abstract class HandlerStrategy<C, S> {
                 var insertAmount = Ints.saturatedCast(amount);
 
                 try (var tx = Transaction.open(null)) {
-                    var inserted = handler.insert(fluidKey.toResource(), insertAmount, tx);
+                    var inserted = handler.insert(NeoForgeFluids.toResource(fluidKey), insertAmount, tx);
                     if (!mode.isSimulate()) {
                         tx.commit();
                     }
@@ -111,7 +113,7 @@ public abstract class HandlerStrategy<C, S> {
         @Override
         public FluidStack getStack(AEKey what, long amount) {
             if (what instanceof AEFluidKey fluidKey) {
-                return fluidKey.toStack(Ints.saturatedCast(amount));
+                return NeoForgeFluids.toStack(fluidKey, Ints.saturatedCast(amount));
             }
             return null;
         }

@@ -29,11 +29,11 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.ValueInput;
 
-import appeng.core.AppEng;
+import appeng.api.ids.AEConstants;
 import appeng.core.localization.GuiText;
 
 final class AEFluidKeys extends AEKeyType {
-    private static final Identifier ID = AppEng.makeId("f");
+    private static final Identifier ID = AEConstants.makeId("f");
 
     static final AEFluidKeys INSTANCE = new AEFluidKeys();
 

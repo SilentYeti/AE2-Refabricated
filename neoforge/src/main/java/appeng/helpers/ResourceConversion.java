@@ -10,6 +10,8 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
+import appeng.neoforge.resources.NeoForgeFluids;
+import appeng.neoforge.resources.NeoForgeItems;
 
 // Consider moving to API?
 public interface ResourceConversion<V extends Resource> {
@@ -41,12 +43,12 @@ public interface ResourceConversion<V extends Resource> {
 
         @Override
         public FluidResource getVariant(AEKey key) {
-            return key instanceof AEFluidKey fluidKey ? fluidKey.toResource() : FluidResource.EMPTY;
+            return key instanceof AEFluidKey fluidKey ? NeoForgeFluids.toResource(fluidKey) : FluidResource.EMPTY;
         }
 
         @Override
         public AEKey getKey(FluidResource variant) {
-            return AEFluidKey.of(variant);
+            return NeoForgeFluids.key(variant);
         }
 
         @Override
@@ -63,13 +65,13 @@ public interface ResourceConversion<V extends Resource> {
 
         @Override
         public ItemResource getVariant(AEKey key) {
-            return key instanceof AEItemKey itemKey ? itemKey.toResource() : ItemResource.EMPTY;
+            return key instanceof AEItemKey itemKey ? NeoForgeItems.toResource(itemKey) : ItemResource.EMPTY;
         }
 
         @Nullable
         @Override
         public AEItemKey getKey(ItemResource variant) {
-            return AEItemKey.of(variant);
+            return NeoForgeItems.key(variant);
         }
 
         @Override

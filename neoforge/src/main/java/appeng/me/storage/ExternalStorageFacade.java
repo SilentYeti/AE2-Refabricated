@@ -23,6 +23,8 @@ import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.MEStorage;
 import appeng.core.localization.GuiText;
+import appeng.neoforge.resources.NeoForgeFluids;
+import appeng.neoforge.resources.NeoForgeItems;
 
 /**
  * Adapts external platform storage to behave like an {@link MEStorage}.
@@ -209,12 +211,12 @@ public abstract class ExternalStorageFacade implements MEStorage {
 
         @Override
         protected @org.jspecify.annotations.Nullable AEItemKey toKey(ItemResource resource) {
-            return AEItemKey.of(resource);
+            return NeoForgeItems.key(resource);
         }
 
         @Override
         protected @org.jspecify.annotations.Nullable ItemResource toResource(AEKey key) {
-            return (key instanceof AEItemKey itemKey) ? itemKey.toResource() : null;
+            return (key instanceof AEItemKey itemKey) ? NeoForgeItems.toResource(itemKey) : null;
         }
     }
 
@@ -230,12 +232,12 @@ public abstract class ExternalStorageFacade implements MEStorage {
 
         @Override
         protected @org.jspecify.annotations.Nullable AEFluidKey toKey(FluidResource resource) {
-            return AEFluidKey.of(resource);
+            return NeoForgeFluids.key(resource);
         }
 
         @Override
         protected @org.jspecify.annotations.Nullable FluidResource toResource(AEKey key) {
-            return (key instanceof AEFluidKey fluidKey) ? fluidKey.toResource() : null;
+            return (key instanceof AEFluidKey fluidKey) ? NeoForgeFluids.toResource(fluidKey) : null;
         }
     }
 }

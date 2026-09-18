@@ -17,6 +17,7 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
+import appeng.neoforge.resources.NeoForgeFluids;
 import appeng.util.GenericContainerHelper;
 import appeng.util.fluid.FluidSoundHelper;
 
@@ -41,7 +42,7 @@ class FluidContainerItemStrategy implements ContainerItemStrategy<AEFluidKey, Re
     @Override
     public long extract(ResourceHandler<FluidResource> context, AEFluidKey what, long amount, Actionable mode) {
         try (var tx = Transaction.open(null)) {
-            var extracted = context.extract(what.toResource(), Ints.saturatedCast(amount), tx);
+            var extracted = context.extract(NeoForgeFluids.toResource(what), Ints.saturatedCast(amount), tx);
             if (mode == Actionable.MODULATE) {
                 tx.commit();
             }
@@ -52,7 +53,7 @@ class FluidContainerItemStrategy implements ContainerItemStrategy<AEFluidKey, Re
     @Override
     public long insert(ResourceHandler<FluidResource> context, AEFluidKey what, long amount, Actionable mode) {
         try (var tx = Transaction.open(null)) {
-            var inserted = context.insert(what.toResource(), Ints.saturatedCast(amount), tx);
+            var inserted = context.insert(NeoForgeFluids.toResource(what), Ints.saturatedCast(amount), tx);
             if (mode == Actionable.MODULATE) {
                 tx.commit();
             }
@@ -75,7 +76,7 @@ class FluidContainerItemStrategy implements ContainerItemStrategy<AEFluidKey, Re
         try (var tx = Transaction.open(null)) {
             var stack = ResourceHandlerUtil.extractFirst(context, r -> true, Integer.MAX_VALUE, tx);
             if (stack != null) {
-                return new GenericStack(AEFluidKey.of(stack.resource()), stack.amount());
+                return new GenericStack(NeoForgeFluids.key(stack.resource()), stack.amount());
             }
         }
         return null;

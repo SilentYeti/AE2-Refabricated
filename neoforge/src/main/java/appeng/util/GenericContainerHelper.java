@@ -6,6 +6,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.transfer.fluid.FluidUtil;
 
 import appeng.api.stacks.GenericStack;
+import appeng.neoforge.resources.NeoForgeFluids;
 
 /**
  * Allows generalized extraction from item-based containers such as buckets or tanks.
@@ -20,7 +21,7 @@ public final class GenericContainerHelper {
             return null;
         }
 
-        return GenericStack.fromFluidStack(FluidUtil.getFirstStackContained(stack));
+        return NeoForgeFluids.genericStack(FluidUtil.getFirstStackContained(stack));
     }
 
 }

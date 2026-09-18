@@ -27,7 +27,6 @@ import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.storage.AEKeyFilter;
 import appeng.core.AELog;
@@ -77,15 +76,6 @@ public final class AEItemKey extends AEKey {
         }
 
         return new AEItemKey(stack.copy());
-    }
-
-    @Nullable
-    public static AEItemKey of(ItemResource resource) {
-        if (resource.isEmpty()) {
-            return null;
-        }
-
-        return new AEItemKey(resource.toStack());
     }
 
     public static boolean matches(AEKey what, ItemStack itemStack) {
@@ -147,10 +137,6 @@ public final class AEItemKey extends AEKey {
      */
     public ItemStack getReadOnlyStack() {
         return stack;
-    }
-
-    public ItemResource toResource() {
-        return ItemResource.of(stack);
     }
 
     public ItemStack toStack() {

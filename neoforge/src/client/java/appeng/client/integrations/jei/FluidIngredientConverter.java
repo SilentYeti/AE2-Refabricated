@@ -12,6 +12,7 @@ import mezz.jei.api.neoforge.NeoForgeTypes;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
 import appeng.client.api.integrations.jei.IngredientConverter;
+import appeng.neoforge.resources.NeoForgeFluids;
 
 public class FluidIngredientConverter implements IngredientConverter<FluidStack> {
     @Override
@@ -23,7 +24,7 @@ public class FluidIngredientConverter implements IngredientConverter<FluidStack>
     @Override
     public FluidStack getIngredientFromStack(GenericStack stack) {
         if (stack.what() instanceof AEFluidKey fluidKey) {
-            return fluidKey.toStack(Math.max(1, Ints.saturatedCast(stack.amount())));
+            return NeoForgeFluids.toStack(fluidKey, Math.max(1, Ints.saturatedCast(stack.amount())));
         } else {
             return null;
         }
@@ -32,6 +33,6 @@ public class FluidIngredientConverter implements IngredientConverter<FluidStack>
     @Nullable
     @Override
     public GenericStack getStackFromIngredient(FluidStack ingredient) {
-        return GenericStack.fromFluidStack(ingredient);
+        return NeoForgeFluids.genericStack(ingredient);
     }
 }

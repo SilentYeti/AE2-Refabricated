@@ -57,7 +57,6 @@ import appeng.api.networking.IGridNodeListener;
 import appeng.api.networking.events.GridPowerStorageStateChanged;
 import appeng.api.networking.events.GridPowerStorageStateChanged.PowerEventType;
 import appeng.api.networking.security.IActionSource;
-import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
@@ -88,6 +87,7 @@ import appeng.menu.MenuOpener;
 import appeng.menu.implementations.MEChestMenu;
 import appeng.menu.locator.MenuLocators;
 import appeng.menu.me.items.BasicCellChestMenu;
+import appeng.neoforge.resources.NeoForgeFluids;
 import appeng.util.InsertionOnlyResourceHandlerWithJournal;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.CombinedInternalInventory;
@@ -643,7 +643,7 @@ public class MEChestBlockEntity extends AENetworkedPoweredBlockEntity
 
             MEChestBlockEntity.this.updateHandler();
             if (canAcceptLiquids()) {
-                var what = AEFluidKey.of(resource);
+                var what = NeoForgeFluids.key(resource);
                 var inserted = pushToNetwork(what, maxAmount, Actionable.SIMULATE);
                 if (inserted > 0) {
                     updateSnapshots(transaction);

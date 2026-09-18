@@ -18,6 +18,7 @@ import net.minecraft.world.level.storage.TagValueInput;
 import net.minecraft.world.level.storage.TagValueOutput;
 import net.neoforged.neoforge.fluids.FluidStack;
 
+import appeng.neoforge.resources.NeoForgeFluids;
 import appeng.util.BootstrapMinecraft;
 import appeng.util.CodecTestUtil;
 
@@ -59,7 +60,7 @@ class AEKeyTest {
 
         var stack = new FluidStack(Fluids.LAVA, 1);
         stack.set(DataComponents.MAX_STACK_SIZE, 99);
-        var ik = AEFluidKey.of(stack);
+        var ik = NeoForgeFluids.key(stack);
         testKeyTypeRoundtrip(ik, JsonOps.INSTANCE, expected);
     }
 

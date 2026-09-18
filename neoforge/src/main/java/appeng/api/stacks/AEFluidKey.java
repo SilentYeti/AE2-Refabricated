@@ -1,6 +1,7 @@
 package appeng.api.stacks;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.google.common.base.Preconditions;
 import com.mojang.serialization.Codec;
@@ -11,11 +12,14 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
@@ -24,12 +28,20 @@ import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.fluids.FluidStack;
-import net.neoforged.neoforge.transfer.fluid.FluidResource;
 
 import appeng.api.storage.AEKeyFilter;
 import appeng.core.AELog;
+import appeng.platform.FluidPlatform;
 
+/**
+ * Identifies a fluid, optionally carrying data components.
+ * <p>
+ * This used to wrap NeoForge's {@code FluidStack} with its amount pinned to 1, which is the same information as a
+ * {@link Holder} plus a {@link DataComponentPatch} -- both vanilla types. Holding those directly is what lets the key
+ * be shared between loaders; the two things vanilla genuinely cannot answer about a fluid, its display name and its
+ * default components, go through {@link FluidPlatform}. Conversion to and from a loader's own fluid types lives on that
+ * loader's side.
+ */
 public final class AEFluidKey extends AEKey {
     public static final MapCodec<AEFluidKey> MAP_CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
@@ -37,47 +49,39 @@ public final class AEFluidKey extends AEKey {
                             holder -> holder.is(Fluids.EMPTY.builtInRegistryHolder())
                                     ? DataResult.error(() -> "Fluid must not be minecraft:empty")
                                     : DataResult.success(holder))
-                            .fieldOf("id").forGetter(key -> key.stack.typeHolder()),
+                            .fieldOf("id").forGetter(key -> key.fluid),
                     DataComponentPatch.CODEC.optionalFieldOf("components", DataComponentPatch.EMPTY)
-                            .forGetter(key -> key.stack.getComponentsPatch()))
-                    .apply(instance, (fluidHolder,
-                            dataComponentPatch) -> new AEFluidKey(new FluidStack(fluidHolder, 1, dataComponentPatch))));
+                            .forGetter(key -> key.components))
+                    .apply(instance, AEFluidKey::new));
     public static final Codec<AEFluidKey> CODEC = MAP_CODEC.codec();
 
     public static final int AMOUNT_BUCKET = 1000;
     public static final int AMOUNT_BLOCK = 1000;
 
-    private final FluidStack stack;
+    private final Holder<Fluid> fluid;
+    private final DataComponentPatch components;
     private final int hashCode;
 
-    private AEFluidKey(FluidStack stack) {
-        Preconditions.checkArgument(!stack.isEmpty(), "stack was empty");
-        this.stack = stack;
-        this.hashCode = FluidStack.hashFluidAndComponents(stack);
+    private AEFluidKey(Holder<Fluid> fluid, DataComponentPatch components) {
+        Preconditions.checkArgument(!fluid.is(Fluids.EMPTY.builtInRegistryHolder()), "fluid was empty");
+        this.fluid = fluid;
+        this.components = components;
+        this.hashCode = Objects.hash(fluid.value(), components);
     }
 
     public static AEFluidKey of(Fluid fluid) {
-        return of(new FluidStack(fluid, 1));
+        return of(fluid.builtInRegistryHolder(), DataComponentPatch.EMPTY);
     }
 
+    /**
+     * The general constructor, and the one a loader's own conversion helpers go through.
+     */
     @Nullable
-    public static AEFluidKey of(FluidStack fluidVariant) {
-        if (fluidVariant.isEmpty()) {
+    public static AEFluidKey of(Holder<Fluid> fluid, DataComponentPatch components) {
+        if (fluid.is(Fluids.EMPTY.builtInRegistryHolder())) {
             return null;
         }
-        return new AEFluidKey(fluidVariant.copyWithAmount(1));
-    }
-
-    @Nullable
-    public static AEFluidKey of(FluidResource resource) {
-        if (resource.isEmpty()) {
-            return null;
-        }
-        return new AEFluidKey(resource.toStack(1));
-    }
-
-    public static boolean matches(AEKey what, FluidStack fluid) {
-        return what instanceof AEFluidKey fluidKey && fluidKey.matches(fluid);
+        return new AEFluidKey(fluid, components);
     }
 
     public static boolean is(AEKey what) {
@@ -88,10 +92,6 @@ public final class AEFluidKey extends AEKey {
         return AEFluidKey::is;
     }
 
-    public boolean matches(FluidStack variant) {
-        return FluidStack.isSameFluidSameComponents(this.stack, variant);
-    }
-
     @Override
     public AEKeyType getType() {
         return AEKeyType.fluids();
@@ -99,7 +99,7 @@ public final class AEFluidKey extends AEKey {
 
     @Override
     public AEFluidKey dropSecondary() {
-        return of(new FluidStack(getFluid(), 1));
+        return new AEFluidKey(fluid, DataComponentPatch.EMPTY);
     }
 
     @Override
@@ -110,7 +110,8 @@ public final class AEFluidKey extends AEKey {
             return false;
         AEFluidKey aeFluidKey = (AEFluidKey) o;
         // The hash code comparison is a fast-fail cheap check
-        return hashCode == aeFluidKey.hashCode && FluidStack.isSameFluidSameComponents(this.stack, aeFluidKey.stack);
+        return hashCode == aeFluidKey.hashCode && fluid.value() == aeFluidKey.fluid.value()
+                && components.equals(aeFluidKey.components);
     }
 
     @Override
@@ -149,47 +150,60 @@ public final class AEFluidKey extends AEKey {
 
     @Override
     protected Component computeDisplayName() {
-        return stack.getHoverName();
+        return FluidPlatform.get().getDisplayName(fluid, components);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public boolean isTagged(TagKey<?> tag) {
         // This will just return false for incorrectly cast tags
-        return stack.is((TagKey<Fluid>) tag);
+        return fluid.is((TagKey<Fluid>) tag);
     }
 
     @Override
     public <T> @Nullable T get(DataComponentType<T> type) {
-        return stack.get(type);
+        return FluidPlatform.get().getComponent(fluid, components, type);
     }
 
     @Override
     public boolean hasComponents() {
-        return !stack.isComponentsPatchEmpty();
-    }
-
-    public FluidResource toResource() {
-        return FluidResource.of(stack);
-    }
-
-    public FluidStack toStack(int amount) {
-        return stack.copyWithAmount(amount);
+        return !components.isEmpty();
     }
 
     public Fluid getFluid() {
-        return stack.getFluid();
+        return fluid.value();
+    }
+
+    /**
+     * The fluid as a registry holder, for a loader converting this to its own fluid type.
+     */
+    public Holder<Fluid> getFluidHolder() {
+        return fluid;
+    }
+
+    /**
+     * The data components, for a loader converting this to its own fluid type.
+     */
+    public DataComponentPatch getComponents() {
+        return components;
     }
 
     @Override
     public void writeToPacket(RegistryFriendlyByteBuf data) {
-        FluidStack.STREAM_CODEC.encode(data, stack);
+        STREAM_CODEC.encode(data, this);
     }
 
     public static AEFluidKey fromPacket(RegistryFriendlyByteBuf data) {
-        var stack = FluidStack.STREAM_CODEC.decode(data);
-        return new AEFluidKey(stack);
+        return STREAM_CODEC.decode(data);
     }
+
+    private static final net.minecraft.network.codec.StreamCodec<RegistryFriendlyByteBuf, AEFluidKey> STREAM_CODEC = net.minecraft.network.codec.StreamCodec
+            .composite(
+                    ByteBufCodecs.holderRegistry(Registries.FLUID),
+                    key -> key.fluid,
+                    DataComponentPatch.STREAM_CODEC,
+                    key -> key.components,
+                    AEFluidKey::new);
 
     public static boolean is(@Nullable GenericStack stack) {
         return stack != null && stack.what() instanceof AEFluidKey;
@@ -200,6 +214,6 @@ public final class AEFluidKey extends AEKey {
         var id = BuiltInRegistries.FLUID.getKey(getFluid());
         String idString = id != BuiltInRegistries.FLUID.getDefaultKey() ? id.toString()
                 : getFluid().getClass().getName() + "(unregistered)";
-        return stack.getComponentsPatch().isEmpty() ? idString : idString + " (+components)";
+        return components.isEmpty() ? idString : idString + " (+components)";
     }
 }

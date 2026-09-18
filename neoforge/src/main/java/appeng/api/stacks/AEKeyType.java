@@ -42,9 +42,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.storage.ValueInput;
 
+import appeng.api.ids.AEConstants;
 import appeng.api.storage.AEKeyFilter;
 import appeng.core.AELog;
-import appeng.core.AppEng;
 import appeng.util.ReadableNumberConverter;
 
 /**
@@ -53,7 +53,7 @@ import appeng.util.ReadableNumberConverter;
  */
 public abstract class AEKeyType {
     public static final ResourceKey<Registry<AEKeyType>> REGISTRY_KEY = ResourceKey
-            .createRegistryKey(AppEng.makeId("keytypes"));
+            .createRegistryKey(AEConstants.makeId("keytypes"));
     public static final Codec<AEKeyType> CODEC = Codec
             .lazyInitialized(() -> AEKeyTypesInternal.getRegistry().byNameCodec());
     public static final StreamCodec<RegistryFriendlyByteBuf, AEKeyType> STREAM_CODEC = ByteBufCodecs

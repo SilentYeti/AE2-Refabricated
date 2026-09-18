@@ -9,7 +9,6 @@ import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Registry;
-import net.neoforged.neoforge.registries.callback.BakeCallback;
 
 /**
  * Manages the registry used to synchronize key spaces to the client.
@@ -22,6 +21,8 @@ public final class AEKeyTypesInternal {
     @Nullable
     private static Set<AEKeyType> allTypes;
 
+    private static int cachedSize = -1;
+
     private AEKeyTypesInternal() {
     }
 
@@ -33,21 +34,32 @@ public final class AEKeyTypesInternal {
     public static void setRegistry(Registry<AEKeyType> registry) {
         Preconditions.checkState(AEKeyTypesInternal.registry == null);
         AEKeyTypesInternal.registry = registry;
-        registry.addCallback((BakeCallback<AEKeyType>) (ignored -> {
+    }
+
+    /**
+     * The set is cached because callers iterate it on hot paths, and rebuilt whenever the registry has grown since it
+     * was built.
+     * <p>
+     * This used to hang off NeoForge's {@code BakeCallback}, which has no Fabric counterpart. Comparing the size is
+     * both loader-agnostic and a little stronger: it picks up a key type registered after the registry was baked, which
+     * the callback would have missed.
+     */
+    public static Set<AEKeyType> getAllTypes() {
+        var registry = getRegistry();
+        if (allTypes == null || cachedSize != registry.size()) {
             var types = new HashSet<AEKeyType>();
             for (var aeKeyType : registry) {
                 types.add(aeKeyType);
             }
             allTypes = Set.copyOf(types);
-        }));
-    }
-
-    public static Set<AEKeyType> getAllTypes() {
-        Preconditions.checkState(allTypes != null, "AE2 isn't initialized yet.");
+            cachedSize = registry.size();
+        }
         return allTypes;
     }
 
     public static void register(AEKeyType keyType) {
         Registry.register(getRegistry(), keyType.getId(), keyType);
+        // Registering never shrinks the registry, but drop the cache anyway so a replaced entry is not served stale
+        allTypes = null;
     }
 }
