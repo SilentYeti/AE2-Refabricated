@@ -30,7 +30,9 @@ import net.neoforged.neoforge.transfer.EmptyResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
-final class EmptyUpgradeInventory implements IUpgradeInventory {
+import appeng.neoforge.resources.ResourceHandlerProvider;
+
+final class EmptyUpgradeInventory implements IUpgradeInventory, ResourceHandlerProvider {
     public static final EmptyUpgradeInventory INSTANCE = new EmptyUpgradeInventory();
 
     @Override

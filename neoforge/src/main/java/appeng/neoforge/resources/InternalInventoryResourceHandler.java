@@ -21,7 +21,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-package appeng.api.inventories;
+package appeng.neoforge.resources;
 
 import org.jetbrains.annotations.Nullable;
 
@@ -33,6 +33,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
+import appeng.api.inventories.InternalInventory;
 import appeng.core.definitions.AEItems;
 
 class InternalInventoryResourceHandler extends SnapshotJournal<InternalInventoryResourceHandler.Snapshot>

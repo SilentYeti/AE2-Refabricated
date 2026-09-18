@@ -28,11 +28,13 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.BaseInternalInventory;
 import appeng.api.inventories.InternalInventory;
+import appeng.neoforge.resources.NeoForgeInventories;
+import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Exposes several internal inventories as one larger internal inventory.
  */
-public class CombinedInternalInventory extends BaseInternalInventory {
+public class CombinedInternalInventory extends BaseInternalInventory implements ResourceHandlerProvider {
     private final InternalInventory[] inventories; // the handlers
     private final int[] baseIndex; // index-offsets of the different handlers
     private final int slotCount; // number of total slots
@@ -137,13 +139,18 @@ public class CombinedInternalInventory extends BaseInternalInventory {
         handler.sendChangeNotification(targetSlot);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    protected ResourceHandler<ItemResource> createResourceHandler() {
+    public ResourceHandler<ItemResource> toResourceHandler() {
+        // Through the base class's slot, so the combined handler keeps its identity like any other adapter
+        return getOrCreatePlatformAdapter(this::createResourceHandler);
+    }
+
+    @SuppressWarnings("unchecked")
+    private ResourceHandler<ItemResource> createResourceHandler() {
         List<ResourceHandler<ItemResource>> parts = new ArrayList<>(this.inventories.length);
 
         for (InternalInventory inventory : this.inventories) {
-            parts.add(inventory.toResourceHandler());
+            parts.add(NeoForgeInventories.resourceHandler(inventory));
         }
 
         return new CombinedResourceHandler<>(parts.toArray(ResourceHandler[]::new));

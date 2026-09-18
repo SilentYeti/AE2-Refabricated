@@ -27,12 +27,15 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
+import appeng.neoforge.resources.NeoForgeInventories;
+import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Wraps another {@link InternalInventory} in such a way that the underlying inventory is queried from a supplier, which
  * allows it to be changed at any time.
  */
-public class SupplierInternalInventory<T extends InternalInventory> implements InternalInventory {
+public class SupplierInternalInventory<T extends InternalInventory>
+        implements InternalInventory, ResourceHandlerProvider {
     private final Supplier<T> delegate;
 
     public SupplierInternalInventory(Supplier<T> delegate) {
@@ -50,7 +53,7 @@ public class SupplierInternalInventory<T extends InternalInventory> implements I
 
     @Override
     public ResourceHandler<ItemResource> toResourceHandler() {
-        return getDelegate().toResourceHandler();
+        return NeoForgeInventories.resourceHandler(getDelegate());
     }
 
     @Override

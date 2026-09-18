@@ -23,26 +23,34 @@
 
 package appeng.api.inventories;
 
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
+import java.util.function.Supplier;
+
+import org.jetbrains.annotations.ApiStatus;
 
 /**
  * Implementation aid for {@link InternalInventory} that ensures the platorm adapter maintains its referential equality
  * over time.
+ * <p>
+ * The adapter itself is the loader's type ({@code ResourceHandler<ItemResource>} on NeoForge), so it is created and
+ * named by the loader module; this class only owns the slot that keeps it, so that the same inventory hands out the
+ * same adapter for as long as it lives. Loaders cache the objects they get back from a capability lookup by identity.
  */
 public abstract class BaseInternalInventory implements InternalInventory {
 
-    private ResourceHandler<ItemResource> platformWrapper;
+    private Object platformAdapter;
 
-    @Override
-    public final ResourceHandler<ItemResource> toResourceHandler() {
-        if (platformWrapper == null) {
-            platformWrapper = createResourceHandler();
+    /**
+     * Returns the loader's adapter for this inventory, creating it on first use.
+     * <p>
+     * Only one loader runs at a time and only its module calls this, so the slot only ever holds that loader's adapter
+     * type and the unchecked cast below cannot fail.
+     */
+    @ApiStatus.Internal
+    @SuppressWarnings("unchecked")
+    public final <T> T getOrCreatePlatformAdapter(Supplier<T> factory) {
+        if (platformAdapter == null) {
+            platformAdapter = factory.get();
         }
-        return platformWrapper;
-    }
-
-    protected ResourceHandler<ItemResource> createResourceHandler() {
-        return new InternalInventoryResourceHandler(this);
+        return (T) platformAdapter;
     }
 }

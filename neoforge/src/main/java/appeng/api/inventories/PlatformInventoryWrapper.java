@@ -28,13 +28,15 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import appeng.neoforge.resources.ResourceHandlerProvider;
+
 /**
  * Wraps an inventory implementing ResourceHandler such that it can be used as an {@link InternalInventory}.
  * 
  * @deprecated We need to find a better abstraction of this since we use InternalInventory for UIs too, which still need
  *             direct mutable ItemStack access
  */
-public class PlatformInventoryWrapper implements InternalInventory {
+public class PlatformInventoryWrapper implements InternalInventory, ResourceHandlerProvider {
     private final ResourceHandler<ItemResource> handler;
 
     public PlatformInventoryWrapper(ResourceHandler<ItemResource> handler) {

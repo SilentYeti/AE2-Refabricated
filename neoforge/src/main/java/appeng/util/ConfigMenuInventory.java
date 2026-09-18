@@ -17,13 +17,14 @@ import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.helpers.externalstorage.GenericStackInv;
 import appeng.items.misc.WrappedGenericStack;
+import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Wraps this configuration inventory as an {@link ItemStack} based inventory for use in a menu. It will automatically
  * convert appropriately from {@link ItemStack}s set by the player to the internal key-based representation with the
  * help of a matching {@link AEKeyType}.
  */
-public class ConfigMenuInventory implements InternalInventory {
+public class ConfigMenuInventory implements InternalInventory, ResourceHandlerProvider {
     private final GenericStackInv inv;
 
     public ConfigMenuInventory(GenericStackInv inv) {

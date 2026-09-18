@@ -25,11 +25,12 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 
 import appeng.api.inventories.InternalInventory;
+import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Exposes the main player inventory and hotbar as an {@link InternalInventory}.
  */
-public class PlayerInternalInventory implements InternalInventory {
+public class PlayerInternalInventory implements InternalInventory, ResourceHandlerProvider {
     private final Inventory inventory;
 
     public PlayerInternalInventory(Inventory inventory) {

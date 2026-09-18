@@ -27,11 +27,12 @@ import net.neoforged.neoforge.transfer.item.CarriedSlotWrapper;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
+import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Exposes the carried item stored in a menu as an {@link InternalInventory}.
  */
-public class CarriedItemInventory implements InternalInventory {
+public class CarriedItemInventory implements InternalInventory, ResourceHandlerProvider {
     private final AbstractContainerMenu menu;
 
     public CarriedItemInventory(AbstractContainerMenu menu) {

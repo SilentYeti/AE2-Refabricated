@@ -34,6 +34,7 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.blockentity.AEBaseBlockEntity;
+import appeng.neoforge.resources.NeoForgeInventories;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 
@@ -87,7 +88,7 @@ public class ItemGenBlockEntity extends AEBaseBlockEntity implements InternalInv
     }
 
     public ResourceHandler<ItemResource> getItemHandler() {
-        return inv.toResourceHandler();
+        return NeoForgeInventories.resourceHandler(inv);
     }
 
     public void setItem(Item item) {

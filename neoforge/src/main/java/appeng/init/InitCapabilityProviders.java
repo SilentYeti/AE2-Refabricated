@@ -29,6 +29,7 @@ import appeng.core.definitions.ItemDefinition;
 import appeng.helpers.externalstorage.GenericStackFluidHandler;
 import appeng.helpers.externalstorage.GenericStackItemHandler;
 import appeng.items.tools.powered.powersink.PoweredItemCapabilities;
+import appeng.neoforge.resources.NeoForgeInventories;
 import appeng.parts.crafting.PatternProviderPart;
 import appeng.parts.encoding.PatternEncodingTerminalPart;
 import appeng.parts.misc.InterfacePart;
@@ -145,7 +146,7 @@ public final class InitCapabilityProviders {
         // (unlike the base class it derives from)
         event.registerBlockEntity(Capabilities.Item.BLOCK, AEBlockEntities.CONDENSER.get(),
                 (blockEntity, context) -> {
-                    return blockEntity.getExternalInv().toResourceHandler();
+                    return NeoForgeInventories.resourceHandler(blockEntity.getExternalInv());
                 });
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, AEBlockEntities.CONDENSER.get(),
                 ((blockEntity, context) -> {
@@ -223,7 +224,7 @@ public final class InitCapabilityProviders {
 
     private static void registerPartCapabilities(RegisterPartCapabilitiesEvent event) {
         event.register(Capabilities.Item.BLOCK,
-                (part, direction) -> part.getLogic().getBlankPatternInv().toResourceHandler(),
+                (part, direction) -> NeoForgeInventories.resourceHandler(part.getLogic().getBlankPatternInv()),
                 PatternEncodingTerminalPart.class);
         event.register(AECapabilities.GENERIC_INTERNAL_INV, (part, context) -> part.getLogic().getReturnInv(),
                 PatternProviderPart.class);

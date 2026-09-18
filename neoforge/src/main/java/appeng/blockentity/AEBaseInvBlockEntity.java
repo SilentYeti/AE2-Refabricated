@@ -35,6 +35,7 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
 import appeng.items.misc.WrappedGenericStack;
+import appeng.neoforge.resources.NeoForgeInventories;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 
@@ -112,14 +113,14 @@ public abstract class AEBaseInvBlockEntity extends AEBaseBlockEntity implements 
     @Nullable
     public ResourceHandler<ItemResource> getExposedItemHandler(@Nullable Direction side) {
         if (side == null) {
-            return getInternalInventory().toResourceHandler();
+            return NeoForgeInventories.resourceHandler(getInternalInventory());
         } else {
             var exposed = getExposedInventoryForSide(side);
             // If the inventory has 0 slots, it's probably a dummy.
             // Return null to avoid pipe connections to it.
             // isEmpty checks for stacks, use size to only check the slot count.
             // noinspection SizeReplaceableByIsEmpty
-            return exposed.size() == 0 ? null : exposed.toResourceHandler();
+            return exposed.size() == 0 ? null : NeoForgeInventories.resourceHandler(exposed);
         }
     }
 
