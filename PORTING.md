@@ -103,7 +103,7 @@ Reach for these before inventing something; each is in the tree with a comment e
 | a helper is a thin wrapper over something vanilla already has | reimplement it in `:common` | `AEStreamCodecs` for `NeoForgeStreamCodecs`, `AERecipeType` for `RecipeType.simple` |
 | two classes name each other across the boundary | invert it — the leaf owns the constant, the table points at the leaf | recipe classes own their `RecipeType`; `AERecipeTypes` collects them |
 | data is in a loader's format | translate it while assembling the other jar, and fail the build on anything unrecognised | `neoforge:conditions` → `fabric:load_conditions` |
-| an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches, and the classes with special answers implement a loader-side interface. A test pins every answer | `NeoForgeInventories` + `ResourceHandlerProvider`, pinned by `NeoForgeInventoriesTest` |
+| an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches on the concrete type. A test pins every answer. Leave the loader-side interface for the classes that really are the loader's, and for addons | `NeoForgeInventories`, pinned by `NeoForgeInventoriesTest`; `ResourceHandlerProvider` for `PlatformInventoryWrapper` |
 | a class caches a loader object by identity | keep the cache, but as an opaque slot the loader fills | `BaseInternalInventory.getOrCreatePlatformAdapter` |
 | a Fabric seam has no reachable caller yet | throw `UnsupportedOperationException` naming the stage, and write the intended design in the javadoc. Returning "nothing" would look like working content that silently does nothing | `FabricMenuPlatform`, `FabricItemTransferPlatform` |
 | a static initializer registers AE2's own loader-specific defaults | the SPI supplies them; keep the call in the static initializer so the ordering guarantee survives | `StackWorldBehaviorsPlatform` |
@@ -288,12 +288,44 @@ The hinge: `InternalInventory` and `BaseInternalInventory` are reached by 663 an
       items and fluids for import, export and placement -- an empty registry does not throw, it silently
       transfers nothing, so `FabricStackWorldBehaviors` must be filled in *before* the buses and planes
       arrive there
-- [ ] `InitCapabilityProviders` equivalent on Fabric
-- [ ] Part capabilities (`RegisterPartCapabilitiesEventInternal`)
+- [x] The inventories with their own NeoForge adapter off `ResourceHandlerProvider` -- **6 more in
+      `:common`**. `NeoForgeInventories` recognises each by its concrete type instead, and the inventories
+      only expose what the adapter is built from: the menu, the player inventory, the delegate, the
+      sub-inventories. `PlatformInventoryWrapper` keeps the interface because it genuinely is NeoForge's --
+      it wraps a `ResourceHandler` to begin with -- and so does an addon's own inventory.
+      `NeoForgeInventoriesTest` needed no edit: it was already written against `NeoForgeInventories`, which
+      is the point of pinning the helper rather than the classes
+- [ ] `InitCapabilityProviders` equivalent on Fabric -- **gated on stage 6, not on this stage.** Every
+      registration in it names an AE2 block entity or part, and `AECommonBlockEntities` does not exist yet:
+      there is nothing on Fabric to hang a provider on. The lookup side is finished and answers null, which
+      is what NeoForge answers where no provider exists, so nothing is wrong in the meantime
+- [ ] Part capabilities (`RegisterPartCapabilitiesEventInternal`) -- **also gated on stage 6.** The
+      loader-agnostic shape is clear: AE2 owns the registry (host types, and providers keyed by
+      `AEBlockCapability` and part class), each loader drains it into its own lookup system, and
+      `RegisterPartCapabilitiesEvent` stays in `:neoforge` as the mod-bus event addons post into, delegating
+      to it. But the registry's own signatures are in terms of `IPart` and `IPartHost`, which are still in
+      `:neoforge`, so the `:common` half of that seam cannot be written yet. Do it when the parts API crosses
+
+With those two gated, **stage 3 is done as far as it can go without stage 6**, and `capabilities` has
+gone from the largest blocker to the third: of the files that still name it, the ones that are not already
+in `appeng/neoforge/` are blocked on `neoforge.transfer` as well, or are item and entity capabilities
+(`P2PTunnelAttunement`, `FluidContainerItemStrategy`, `CuriosIntegration`) whose Fabric counterpart is
+`ContainerItemContext` -- stage 4, not a block lookup. `transfer` is now the biggest single blocker and the
+head of the greedy order, so that is where to go next.
 
 ## Stage 4 — Transfer
 
-- [ ] Item storage → `Storage<ItemVariant>`
+`fabric-transfer-api-v1` is already on the classpath -- `:fabric` depends on the whole of `fabric-api`, and
+8.0.12 resolves for 26.2 -- and it has a counterpart for everything the NeoForge side uses:
+`Storage<ItemVariant>` / `Storage<FluidVariant>` for `ResourceHandler`, `ItemStorage.SIDED` /
+`FluidStorage.SIDED` (they are `BlockApiLookup`s, so they go through `AEBlockCapability` like any other),
+`CombinedStorage`, `PlayerInventoryStorage`, `SnapshotParticipant`, and `ContainerItemContext` for the item
+capabilities. So the shape of `FabricInventories.storage(InternalInventory)` is the shape
+`NeoForgeInventories.resourceHandler(InternalInventory)` already has, case for case.
+
+- [ ] Item storage → `Storage<ItemVariant>` — `FabricInventories.storage`, mirroring
+      `NeoForgeInventories.resourceHandler`'s dispatch, and `FabricItemTransferPlatform.findExternal` over
+      `ItemStorage.SIDED`
 - [ ] Fluid storage → `Storage<FluidVariant>`
 - [ ] Transactions: NeoForge `SnapshotJournal` → Fabric `SnapshotParticipant`
 - [ ] Forge Energy interop → `teamreborn:energy:5.0.0`
