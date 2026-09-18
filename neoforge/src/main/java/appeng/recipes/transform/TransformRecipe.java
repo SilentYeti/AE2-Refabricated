@@ -18,17 +18,17 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
+import appeng.api.ids.AEConstants;
 import appeng.blockentity.qnb.QuantumBridgeBlockEntity;
-import appeng.core.AppEng;
 import appeng.core.definitions.AEItems;
-import appeng.recipes.AERecipeTypes;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 
 public final class TransformRecipe extends MechanicsRecipe<TransformRecipeInput> {
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final Identifier TYPE_ID = AppEng.makeId("transform");
+    public static final Identifier TYPE_ID = AEConstants.makeId("transform");
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final RecipeType<TransformRecipe> TYPE = AERecipeTypes.TRANSFORM;
+    public static final RecipeType<TransformRecipe> TYPE = AERecipeType.simple(TYPE_ID);
 
     public static final MapCodec<TransformRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> {
         return builder.group(

@@ -29,6 +29,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
@@ -39,7 +40,8 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 import appeng.api.ids.AEBlockIds;
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 import appeng.util.AEStreamCodecs;
 
@@ -54,6 +56,10 @@ public class InscriberRecipe extends MechanicsRecipe<RecipeInput> {
                 default -> InscriberProcessType.INSCRIBE;
                 case "press" -> InscriberProcessType.PRESS;
             });
+
+    public static final Identifier TYPE_ID = AEConstants.makeId("inscriber");
+
+    public static final RecipeType<InscriberRecipe> TYPE = AERecipeType.simple(TYPE_ID);
 
     public static final MapCodec<InscriberRecipe> CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder
@@ -105,7 +111,7 @@ public class InscriberRecipe extends MechanicsRecipe<RecipeInput> {
 
     @Override
     public RecipeType<InscriberRecipe> getType() {
-        return AERecipeTypes.INSCRIBER;
+        return TYPE;
     }
 
     @Override

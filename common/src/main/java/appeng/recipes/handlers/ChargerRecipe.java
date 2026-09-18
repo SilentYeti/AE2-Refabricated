@@ -19,15 +19,15 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
 import appeng.api.ids.AEBlockIds;
-import appeng.core.AppEng;
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 
 public class ChargerRecipe extends MechanicsRecipe<RecipeInput> {
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final Identifier TYPE_ID = AppEng.makeId("charger");
+    public static final Identifier TYPE_ID = AEConstants.makeId("charger");
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final RecipeType<ChargerRecipe> TYPE = AERecipeTypes.CHARGER;
+    public static final RecipeType<ChargerRecipe> TYPE = AERecipeType.simple(TYPE_ID);
 
     private final Ingredient ingredient;
     private final ItemStackTemplate result;

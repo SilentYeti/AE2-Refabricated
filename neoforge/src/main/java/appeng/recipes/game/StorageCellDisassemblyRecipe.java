@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -17,13 +18,18 @@ import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.SingleRecipeInput;
 
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 
 /**
  * Used to handle disassembly of the (Portable) Storage Cells.
  */
 public class StorageCellDisassemblyRecipe extends MechanicsRecipe<SingleRecipeInput> {
+    public static final Identifier TYPE_ID = AEConstants.makeId("storage_cell_disassembly");
+
+    public static final RecipeType<StorageCellDisassemblyRecipe> TYPE = AERecipeType.simple(TYPE_ID);
+
     public static final MapCodec<StorageCellDisassemblyRecipe> CODEC = RecordCodecBuilder.mapCodec((builder) -> builder
             .group(
                     BuiltInRegistries.ITEM.byNameCodec().fieldOf("cell")
@@ -76,7 +82,7 @@ public class StorageCellDisassemblyRecipe extends MechanicsRecipe<SingleRecipeIn
     public static List<ItemStack> getDisassemblyResult(ServerLevel level, Item cell) {
         var recipeManager = level.recipeAccess();
 
-        for (var holder : recipeManager.recipeMap().byType(AERecipeTypes.CELL_DISASSEMBLY)) {
+        for (var holder : recipeManager.recipeMap().byType(TYPE)) {
             if (holder.value().storageCell == cell) {
                 return holder.value().cellDisassemblyItems().stream().map(ItemStackTemplate::create).toList();
             }
@@ -92,6 +98,6 @@ public class StorageCellDisassemblyRecipe extends MechanicsRecipe<SingleRecipeIn
 
     @Override
     public RecipeType<StorageCellDisassemblyRecipe> getType() {
-        return AERecipeTypes.CELL_DISASSEMBLY;
+        return TYPE;
     }
 }

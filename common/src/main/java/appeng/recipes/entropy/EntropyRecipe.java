@@ -35,6 +35,7 @@ import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.RecipeInput;
 import net.minecraft.world.item.crafting.RecipeSerializer;
@@ -46,7 +47,8 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 import appeng.util.AEStreamCodecs;
 
@@ -54,6 +56,10 @@ import appeng.util.AEStreamCodecs;
  * A special recipe used for the {@code EntropyManipulatorItem}.
  */
 public class EntropyRecipe extends MechanicsRecipe<RecipeInput> {
+
+    public static final Identifier TYPE_ID = AEConstants.makeId("entropy");
+
+    public static final RecipeType<EntropyRecipe> TYPE = AERecipeType.simple(TYPE_ID);
 
     public static final MapCodec<EntropyRecipe> CODEC = RecordCodecBuilder.mapCodec(builder -> builder.group(
             EntropyMode.CODEC.fieldOf("mode").forGetter(EntropyRecipe::getMode),
@@ -88,7 +94,7 @@ public class EntropyRecipe extends MechanicsRecipe<RecipeInput> {
 
     @Override
     public RecipeType<EntropyRecipe> getType() {
-        return AERecipeTypes.ENTROPY;
+        return TYPE;
     }
 
     public EntropyMode getMode() {

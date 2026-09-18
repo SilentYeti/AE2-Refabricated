@@ -9,6 +9,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -19,13 +20,18 @@ import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 import net.minecraft.world.level.block.Block;
 
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 
 /**
  * Used to handle upgrading and removal of upgrades for crafting units (in-world).
  */
 public class CraftingUnitTransformRecipe extends MechanicsRecipe<RecipeInput> {
+    public static final Identifier TYPE_ID = AEConstants.makeId("crafting_unit_transform");
+
+    public static final RecipeType<CraftingUnitTransformRecipe> TYPE = AERecipeType.simple(TYPE_ID);
+
     public static final MapCodec<CraftingUnitTransformRecipe> CODEC = RecordCodecBuilder.mapCodec((builder) -> builder
             .group(
                     BuiltInRegistries.BLOCK.byNameCodec().fieldOf("upgraded_block")
@@ -69,7 +75,7 @@ public class CraftingUnitTransformRecipe extends MechanicsRecipe<RecipeInput> {
     public static ItemStack getRemovedUpgrade(ServerLevel level, Block upgradedBlock) {
         var recipeManager = level.recipeAccess();
 
-        for (var holder : recipeManager.recipeMap().byType(AERecipeTypes.CRAFTING_UNIT_TRANSFORM)) {
+        for (var holder : recipeManager.recipeMap().byType(TYPE)) {
             if (holder.value().upgradedBlock == upgradedBlock) {
                 return holder.value().upgradeItem.getDefaultInstance();
             }
@@ -82,7 +88,7 @@ public class CraftingUnitTransformRecipe extends MechanicsRecipe<RecipeInput> {
      * Search for the resulting upgraded block when upgrading a crafting unit with the given upgrade item.
      */
     public static Block getUpgradedBlock(ServerLevel level, ItemStack upgradeItem) {
-        for (var holder : level.recipeAccess().recipeMap().byType(AERecipeTypes.CRAFTING_UNIT_TRANSFORM)) {
+        for (var holder : level.recipeAccess().recipeMap().byType(TYPE)) {
             if (upgradeItem.is(holder.value().getUpgradeItem())) {
                 return holder.value().upgradedBlock;
             }
@@ -103,6 +109,6 @@ public class CraftingUnitTransformRecipe extends MechanicsRecipe<RecipeInput> {
 
     @Override
     public RecipeType<CraftingUnitTransformRecipe> getType() {
-        return AERecipeTypes.CRAFTING_UNIT_TRANSFORM;
+        return TYPE;
     }
 }

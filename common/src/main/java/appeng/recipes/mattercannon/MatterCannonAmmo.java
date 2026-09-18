@@ -26,6 +26,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -37,9 +38,9 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
-import appeng.core.AppEng;
-import appeng.core.definitions.AEItems;
-import appeng.recipes.AERecipeTypes;
+import appeng.api.ids.AEConstants;
+import appeng.api.ids.AEItemIds;
+import appeng.recipes.AERecipeType;
 import appeng.recipes.MechanicsRecipe;
 
 /**
@@ -47,10 +48,10 @@ import appeng.recipes.MechanicsRecipe;
  */
 public class MatterCannonAmmo extends MechanicsRecipe<RecipeInput> {
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final Identifier TYPE_ID = AppEng.makeId("matter_cannon");
+    public static final Identifier TYPE_ID = AEConstants.makeId("matter_cannon");
 
     @Deprecated(forRemoval = true, since = "1.21.1")
-    public static final RecipeType<MatterCannonAmmo> TYPE = AERecipeTypes.MATTER_CANNON_AMMO;
+    public static final RecipeType<MatterCannonAmmo> TYPE = AERecipeType.simple(TYPE_ID);
 
     public static final MapCodec<MatterCannonAmmo> CODEC = RecordCodecBuilder.mapCodec((builder) -> {
         return builder.group(
@@ -92,7 +93,7 @@ public class MatterCannonAmmo extends MechanicsRecipe<RecipeInput> {
     public List<RecipeDisplay> display() {
         return List.of(
                 new MatterCannonAmmoDisplay(ammo.display(), weight,
-                        new SlotDisplay.ItemSlotDisplay(AEItems.MATTER_CANNON.asItem())));
+                        new SlotDisplay.ItemSlotDisplay(BuiltInRegistries.ITEM.getValue(AEItemIds.MATTER_CANNON))));
     }
 
     public Ingredient getAmmo() {

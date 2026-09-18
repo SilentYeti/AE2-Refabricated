@@ -8,7 +8,6 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
 
-import appeng.api.ids.AEConstants;
 import appeng.recipes.entropy.EntropyRecipe;
 import appeng.recipes.game.CraftingUnitTransformRecipe;
 import appeng.recipes.game.StorageCellDisassemblyRecipe;
@@ -35,21 +34,28 @@ public final class AERecipeTypes {
         return Collections.unmodifiableMap(ALL);
     }
 
-    public static final RecipeType<TransformRecipe> TRANSFORM = register("transform");
-    public static final RecipeType<EntropyRecipe> ENTROPY = register("entropy");
-    public static final RecipeType<InscriberRecipe> INSCRIBER = register("inscriber");
-    public static final RecipeType<ChargerRecipe> CHARGER = register("charger");
-    public static final RecipeType<MatterCannonAmmo> MATTER_CANNON_AMMO = register("matter_cannon");
-    public static final RecipeType<QuartzCuttingRecipe> QUARTZ_CUTTING = register("quartz_cutting");
+    public static final RecipeType<TransformRecipe> TRANSFORM = register(TransformRecipe.TYPE_ID, TransformRecipe.TYPE);
+    public static final RecipeType<EntropyRecipe> ENTROPY = register(EntropyRecipe.TYPE_ID, EntropyRecipe.TYPE);
+    public static final RecipeType<InscriberRecipe> INSCRIBER = register(InscriberRecipe.TYPE_ID, InscriberRecipe.TYPE);
+    public static final RecipeType<ChargerRecipe> CHARGER = register(ChargerRecipe.TYPE_ID, ChargerRecipe.TYPE);
+    public static final RecipeType<MatterCannonAmmo> MATTER_CANNON_AMMO = register(MatterCannonAmmo.TYPE_ID,
+            MatterCannonAmmo.TYPE);
+    public static final RecipeType<QuartzCuttingRecipe> QUARTZ_CUTTING = register(QuartzCuttingRecipe.TYPE_ID,
+            QuartzCuttingRecipe.TYPE);
     public static final RecipeType<CraftingUnitTransformRecipe> CRAFTING_UNIT_TRANSFORM = register(
-            "crafting_unit_transform");
+            CraftingUnitTransformRecipe.TYPE_ID, CraftingUnitTransformRecipe.TYPE);
     public static final RecipeType<StorageCellDisassemblyRecipe> CELL_DISASSEMBLY = register(
-            "storage_cell_disassembly");
+            StorageCellDisassemblyRecipe.TYPE_ID, StorageCellDisassemblyRecipe.TYPE);
 
-    private static <T extends Recipe<?>> RecipeType<T> register(String id) {
-        var key = AEConstants.makeId(id);
-        RecipeType<T> type = RecipeType.simple(key);
-        ALL.put(key, type);
+    /**
+     * Records a type the recipe class already created.
+     * <p>
+     * The types are declared on the recipe classes rather than here so that they do not have to name this one -- that
+     * was a cycle, and it kept the whole package on the NeoForge side of the build. This is still where anything
+     * outside the package should look one up.
+     */
+    private static <T extends Recipe<?>> RecipeType<T> register(Identifier id, RecipeType<T> type) {
+        ALL.put(id, type);
         return type;
     }
 }

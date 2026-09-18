@@ -81,7 +81,9 @@ Reach for these before inventing something; each is in the tree with a comment e
 | an API takes an AT-widened type | define a narrow interface in `:common` and adapt per loader | `CreativeTabSink` for `CreativeModeTab.Output` |
 | loader-agnostic code needs state that only an event can set | the state moves to `:common`, the event handler stays with its loader | `WrenchDisassembly` / `WrenchHook` |
 | `:common` needs something only a loader can answer | add to the platform SPI — vanilla-typed signatures only | `AEPlatform`, `MenuPlatform` |
-| a helper is a thin wrapper over something vanilla already has | reimplement it in `:common` | `AEStreamCodecs` for `NeoForgeStreamCodecs` |
+| a helper is a thin wrapper over something vanilla already has | reimplement it in `:common` | `AEStreamCodecs` for `NeoForgeStreamCodecs`, `AERecipeType` for `RecipeType.simple` |
+| two classes name each other across the boundary | invert it — the leaf owns the constant, the table points at the leaf | recipe classes own their `RecipeType`; `AERecipeTypes` collects them |
+| data is in a loader's format | translate it while assembling the other jar, and fail the build on anything unrecognised | `neoforge:conditions` → `fabric:load_conditions` |
 | content cannot be registered on Fabric yet | declare it in an `AECommon*` table, or explain it in `notYetPortable()` | `AECommonItems`, `AECommonBlocks` |
 
 ## Discipline
@@ -123,12 +125,17 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       `DeferredRegister`s, registered through `AppEngBase`'s existing `RegisterEvent` path, so their
       shape is already loader-agnostic. `EntropyRecipe`, `InscriberRecipe` and `ChargerRecipe` have
       lost their last tie to `:neoforge`.
-      The cycle is the remaining problem: `AERecipeTypes` names the recipe classes and they name it
-      back, so they can only move together, and any one with its own blocker drags the rest back.
-      Those blockers, individually small: `TransformRecipe` needs the quantum bridge,
-      ~~`MatterCannonAmmo` needs NeoForge's recipe conditions~~ **(done)**, `QuartzCuttingRecipe` and
-      `TransformLogic` want `neoforge.common` and the event bus. Clear those and the whole package
-      crosses at once.
+      **The cycle is broken and 7 more files crossed**, four of them real recipe classes: Entropy,
+      Charger, Inscriber and MatterCannon, with their builders. The recipe classes own their
+      `RecipeType` now and `AERecipeTypes` collects them, instead of the two naming each other.
+      Two things had to be emulated on the way. `RecipeType.simple` turned out to be a NeoForge
+      addition to the vanilla interface — invisible, since calling it needs no import — so
+      `AERecipeType.simple` is the same three lines somewhere both loaders can reach. And display
+      icons that named `AEItems`/`AEBlocks` now resolve from the item registry by id, which is the
+      right place to ask anyway.
+      Still in `:neoforge`: `AERecipeTypes` and `AERecipeSerializers` themselves (they name classes
+      that have not crossed), `TransformRecipe` (quantum bridge), `QuartzCuttingRecipe` and
+      `TransformLogic` (`neoforge.common`, the event bus), and the upgrade/facade recipes.
 - [x] **Recipe load conditions.** AE2 gates 67 matter-cannon recipes on "this tag is not empty", so
       they only load when another mod supplies the tag. Both halves are handled now:
       *Data* — `fabric/build.gradle` translates `neoforge:conditions` into Fabric's
