@@ -1,8 +1,6 @@
 package appeng.datagen.providers.tags;
 
 import java.util.HashSet;
-import java.util.IdentityHashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import net.minecraft.core.HolderLookup;
@@ -11,7 +9,6 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceKey;
 
 import appeng.api.ids.AEComponents;
 import appeng.core.AppEng;
@@ -33,11 +30,6 @@ public class DataComponentTypeTagProvider extends TagsProvider<DataComponentType
 
     @Override
     protected void addTags(HolderLookup.Provider registries) {
-
-        Map<DataComponentType<?>, ResourceKey<DataComponentType<?>>> componentKeys = new IdentityHashMap<>();
-        for (var entry : AEComponents.DR.getEntries()) {
-            componentKeys.put(entry.get(), entry.getKey());
-        }
 
         addExportedComponentCategory("Filter", AEComponents.EXPORTED_CONFIG_INV);
         addExportedComponentCategory("Patterns", AEComponents.EXPORTED_PATTERNS);

@@ -44,12 +44,16 @@ public class AppEngFabric implements ModInitializer {
                 platform.loader(), platform.isDevelopmentEnvironment(), platform.isPhysicalClient());
         // Blocks first: their BlockItems have to exist before the creative tab is populated, and the
         // stair, slab and wall variants copy the block state of the block they are cut from.
+        // Components before the items: an item's default components name component types, and a stack carrying one
+        // cannot be read back before its type is in the registry.
+        FabricComponents.register();
         FabricBlocks.register();
         FabricItems.register();
         FabricRecipes.register();
-        LOG.info("AE2 Fabric: registered {} blocks, {} items, {} recipe types, plus the creative tab",
+        LOG.info("AE2 Fabric: registered {} blocks, {} items, {} recipe types, {} component types, plus the "
+                + "creative tab",
                 FabricBlocks.registered().size(), FabricItems.registered().size(),
-                FabricRecipes.registeredCount());
+                FabricRecipes.registeredCount(), FabricComponents.registeredCount());
         LOG.warn("AE2 on Fabric is still partial: {} more items and {} more blocks need the grid, menu, "
                 + "energy or storage seams before they can be registered, and no parts or networks exist yet.",
                 AECommonItems.notYetPortable().size(), AECommonBlocks.notYetPortable().size());

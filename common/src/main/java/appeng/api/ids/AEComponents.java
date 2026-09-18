@@ -1,5 +1,7 @@
 package appeng.api.ids;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -17,10 +19,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.ItemContainerContents;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 import appeng.api.components.ExportedUpgrades;
 import appeng.api.config.FuzzyMode;
@@ -30,8 +32,6 @@ import appeng.api.stacks.GenericStack;
 import appeng.api.stacks.WrappedStacks;
 import appeng.api.util.AEColor;
 import appeng.block.crafting.PushDirection;
-import appeng.core.AppEng;
-import appeng.core.definitions.AEItems;
 import appeng.core.definitions.AEMissingContent;
 import appeng.crafting.pattern.EncodedCraftingPattern;
 import appeng.crafting.pattern.EncodedProcessingPattern;
@@ -40,9 +40,18 @@ import appeng.crafting.pattern.EncodedStonecuttingPattern;
 import appeng.items.storage.SpatialPlotInfo;
 
 public final class AEComponents {
+    /**
+     * Every component type declared here, in declaration order, for whichever loader is registering them.
+     * <p>
+     * A plain table rather than a {@code DeferredRegister}, because that is NeoForge's and this class has to be
+     * reachable from {@code :common} -- nearly everything AE2 stores on an item stack names a constant here.
+     */
+    private static final Map<Identifier, DataComponentType<?>> ALL = new LinkedHashMap<>();
+
     @ApiStatus.Internal
-    public static final DeferredRegister<DataComponentType<?>> DR = DeferredRegister
-            .create(Registries.DATA_COMPONENT_TYPE, AppEng.MOD_ID);
+    public static Map<Identifier, DataComponentType<?>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     private AEComponents() {
     }
@@ -164,7 +173,7 @@ public final class AEComponents {
                     .networkSynchronized(ItemContainerContents.STREAM_CODEC));
 
     /**
-     * The unique ID of a pair of {@link appeng.core.definitions.AEItems#QUANTUM_ENTANGLED_SINGULARITY}.
+     * The unique ID of a pair of {@code AEItems#QUANTUM_ENTANGLED_SINGULARITY}.
      */
     public static final DataComponentType<Long> ENTANGLED_SINGULARITY_ID = register("entangled_singularity_id",
             builder -> builder.persistent(Codec.LONG).networkSynchronized(ByteBufCodecs.VAR_LONG));
@@ -185,7 +194,7 @@ public final class AEComponents {
     /**
      * An encoded crafting pattern.
      *
-     * @see AEItems#CRAFTING_PATTERN
+     * @see <code>AEItems#CRAFTING_PATTERN</code>
      */
     public static final DataComponentType<EncodedCraftingPattern> ENCODED_CRAFTING_PATTERN = register(
             "encoded_crafting_pattern",
@@ -195,7 +204,7 @@ public final class AEComponents {
     /**
      * An encoded processing pattern.
      *
-     * @see AEItems#PROCESSING_PATTERN
+     * @see <code>AEItems#PROCESSING_PATTERN</code>
      */
     public static final DataComponentType<EncodedProcessingPattern> ENCODED_PROCESSING_PATTERN = register(
             "encoded_processing_pattern",
@@ -205,7 +214,7 @@ public final class AEComponents {
     /**
      * An encoded stonecutting pattern.
      *
-     * @see AEItems#STONECUTTING_PATTERN
+     * @see <code>AEItems#STONECUTTING_PATTERN</code>
      */
     public static final DataComponentType<EncodedStonecuttingPattern> ENCODED_STONECUTTING_PATTERN = register(
             "encoded_stonecutting_pattern",
@@ -215,7 +224,7 @@ public final class AEComponents {
     /**
      * An encoded smithing table pattern.
      *
-     * @see AEItems#SMITHING_TABLE_PATTERN
+     * @see <code>AEItems#SMITHING_TABLE_PATTERN</code>
      */
     public static final DataComponentType<EncodedSmithingTablePattern> ENCODED_SMITHING_TABLE_PATTERN = register(
             "encoded_smithing_table_pattern",
@@ -315,7 +324,7 @@ public final class AEComponents {
      * with this class. Registration still happens only here.
      */
     private static <T> DataComponentType<T> register(String name, DataComponentType<T> componentType) {
-        DR.register(name, () -> componentType);
+        ALL.put(AEConstants.makeId(name), componentType);
         return componentType;
     }
 }

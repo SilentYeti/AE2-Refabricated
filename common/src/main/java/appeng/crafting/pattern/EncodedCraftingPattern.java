@@ -13,7 +13,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 import appeng.util.AECodecs;
 
 public record EncodedCraftingPattern(
@@ -53,7 +53,7 @@ public record EncodedCraftingPattern(
                     EncodedCraftingPattern::new);
 
     public boolean containsMissingContent() {
-        return AEItems.MISSING_CONTENT.is(result) || inputs.stream().anyMatch(AEItems.MISSING_CONTENT::is);
+        return AEMissingContent.is(result) || inputs.stream().anyMatch(AEMissingContent::is);
     }
 
     @Override

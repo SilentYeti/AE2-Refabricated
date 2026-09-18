@@ -12,7 +12,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 import appeng.api.stacks.GenericStack;
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 
 public record EncodedProcessingPattern(
         List<GenericStack> sparseInputs,
@@ -39,6 +39,6 @@ public record EncodedProcessingPattern(
 
     public boolean containsMissingContent() {
         return Stream.concat(sparseInputs.stream(), sparseOutputs.stream())
-                .anyMatch(stack -> stack != null && AEItems.MISSING_CONTENT.is(stack.what()));
+                .anyMatch(stack -> stack != null && AEMissingContent.is(stack.what()));
     }
 }

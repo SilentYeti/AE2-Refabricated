@@ -19,8 +19,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
-import appeng.api.ids.AEComponents;
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 
 public final class AECodecs {
     private static final Logger LOG = LoggerFactory.getLogger(AECodecs.class);
@@ -50,13 +49,13 @@ public final class AECodecs {
         @Override
         public <T> DataResult<Pair<ItemStack, T>> apply(DynamicOps<T> ops, T input, DataResult<Pair<ItemStack, T>> a) {
             if (a instanceof DataResult.Error<Pair<ItemStack, T>> error) {
-                var missingContent = AEItems.MISSING_CONTENT.stack();
+                var missingContent = AEMissingContent.stack();
                 var convert = Dynamic.convert(ops, NbtOps.INSTANCE, input);
                 if (convert instanceof CompoundTag compoundTag) {
-                    missingContent.set(AEComponents.MISSING_CONTENT_ITEMSTACK_DATA, CustomData.of(compoundTag));
+                    missingContent.set(AEMissingContent.ITEMSTACK_DATA, CustomData.of(compoundTag));
                 }
                 LOG.error("Failed to deserialize ItemStack: {}", error.message());
-                missingContent.set(AEComponents.MISSING_CONTENT_ERROR, error.message());
+                missingContent.set(AEMissingContent.ERROR, error.message());
 
                 return DataResult.success(
                         Pair.of(missingContent, input),
@@ -72,17 +71,17 @@ public final class AECodecs {
             // When the serialization result failed, we write a missing content item instead
             // this one will NOT be recoverable
             if (t instanceof DataResult.Error<T> error) {
-                var missingContent = AEItems.MISSING_CONTENT.stack();
+                var missingContent = AEMissingContent.stack();
                 LOG.error("Failed to serialize ItemStack {}: {}", input, error.message());
-                missingContent.set(AEComponents.MISSING_CONTENT_ERROR, error.message());
+                missingContent.set(AEMissingContent.ERROR, error.message());
 
                 return ItemStack.CODEC.encodeStart(ops, missingContent).setLifecycle(t.lifecycle());
             }
 
             // When the input is a MISSING_CONTENT item and has the original data attached,
             // we write that back.
-            if (AEItems.MISSING_CONTENT.is(input)) {
-                var originalData = input.get(AEComponents.MISSING_CONTENT_ITEMSTACK_DATA);
+            if (AEMissingContent.is(input)) {
+                var originalData = input.get(AEMissingContent.ITEMSTACK_DATA);
                 if (originalData != null) {
                     return DataResult.success(Dynamic.convert(NbtOps.INSTANCE, ops, originalData.copyTag()),
                             t.lifecycle());

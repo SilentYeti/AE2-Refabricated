@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 
 public record EncodedSmithingTablePattern(
         ItemStack template,
@@ -47,10 +47,10 @@ public record EncodedSmithingTablePattern(
                     EncodedSmithingTablePattern::new);
 
     public boolean containsMissingContent() {
-        return AEItems.MISSING_CONTENT.is(template)
-                || AEItems.MISSING_CONTENT.is(base)
-                || AEItems.MISSING_CONTENT.is(addition)
-                || AEItems.MISSING_CONTENT.is(resultItem);
+        return AEMissingContent.is(template)
+                || AEMissingContent.is(base)
+                || AEMissingContent.is(addition)
+                || AEMissingContent.is(resultItem);
     }
 
     @Override

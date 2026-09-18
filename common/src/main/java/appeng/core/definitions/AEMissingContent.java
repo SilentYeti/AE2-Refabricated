@@ -16,6 +16,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.CustomData;
 
 import appeng.api.ids.AEItemIds;
+import appeng.api.stacks.AEItemKey;
+import appeng.api.stacks.AEKey;
 
 /**
  * The {@code ae2:missing_content} item and the data components it carries.
@@ -59,6 +61,14 @@ public final class AEMissingContent {
 
     public static boolean is(ItemStack stack) {
         return stack.is(item());
+    }
+
+    /**
+     * Whether a key stands for missing content. The same answer {@code AEItems.MISSING_CONTENT.is(key)} gives, for
+     * callers that cannot reach the item table.
+     */
+    public static boolean is(AEKey key) {
+        return key instanceof AEItemKey itemKey && itemKey.getItem() == item();
     }
 
     /**

@@ -39,7 +39,9 @@ import appeng.api.ids.AEItemIds;
 import appeng.api.util.AEColor;
 import appeng.core.ConventionTags;
 import appeng.items.materials.MaterialItem;
+import appeng.items.materials.NamePressItem;
 import appeng.items.materials.StorageComponentItem;
+import appeng.items.misc.MissingContentItem;
 import appeng.items.misc.PaintBallItem;
 import appeng.items.tools.fluix.FluixAxeItem;
 import appeng.items.tools.fluix.FluixHoeItem;
@@ -133,6 +135,9 @@ public final class AECommonItems {
         /// MISC
         ///
         item("Blank Pattern", AEItemIds.BLANK_PATTERN, MaterialItem::new);
+        // Used to represent missing content if a mod got uninstalled
+        item("Missing Content", AEItemIds.MISSING_CONTENT, MissingContentItem::new);
+
         coloredItems("Paint Ball", AEItemIds.COLORED_PAINT_BALL, (p, color) -> new PaintBallItem(p, color, false));
         coloredItems("Lumen Paint Ball", AEItemIds.COLORED_LUMEN_PAINT_BALL, (p, color) -> new PaintBallItem(p, color, true));
 
@@ -155,6 +160,7 @@ public final class AECommonItems {
         item("Printed Logic Circuit", AEItemIds.LOGIC_PROCESSOR_PRINT, MaterialItem::new);
         item("Inscriber Silicon Press", AEItemIds.SILICON_PRESS, MaterialItem::new);
         item("Printed Silicon", AEItemIds.SILICON_PRINT, MaterialItem::new);
+        item("Inscriber Name Press", AEItemIds.NAME_PRESS, NamePressItem::new);
         item("Logic Processor", AEItemIds.LOGIC_PROCESSOR, MaterialItem::new);
         item("Calculation Processor", AEItemIds.CALCULATION_PROCESSOR, MaterialItem::new);
         item("Engineering Processor", AEItemIds.ENGINEERING_PROCESSOR, MaterialItem::new);
@@ -197,7 +203,6 @@ public final class AECommonItems {
                         "the ae2:meteorite_compass item model type: MeteoriteCompassModel needs NeoForge's "
                                 + "quad transform API and the client CompassManager, and the vanilla item "
                                 + "model registry is private so Fabric cannot register the type"),
-                Map.entry("MISSING_CONTENT", "MissingContentItem: needs AEComponents"),
                 Map.entry("WRAPPED_GENERIC_STACK", "WrappedGenericStack: needs AEKey and ContainerItemStrategies"),
                 Map.entry("REDSTONE_CARD", "Upgrades.createUpgradeCardItem -> UpgradeCardItem -> IPartHost"),
                 Map.entry("CAPACITY_CARD", "Upgrades.createUpgradeCardItem -> UpgradeCardItem -> IPartHost"),
@@ -209,7 +214,6 @@ public final class AECommonItems {
                 Map.entry("EQUAL_DISTRIBUTION_CARD", "Upgrades.createUpgradeCardItem -> UpgradeCardItem -> IPartHost"),
                 Map.entry("ENERGY_CARD", "EnergyCardItem extends UpgradeCardItem -> IPartHost"),
                 Map.entry("GUIDE", "GuideItem: needs guideme.GuidesCommon"),
-                Map.entry("NAME_PRESS", "NamePressItem: needs AEComponents"),
                 Map.entry("FACADE", "FacadeItem: needs the parts API"),
                 Map.entry("MEMORY_CARD", "MemoryCardItem: needs AEComponents and the parts API"),
                 Map.entry("NETWORK_TOOL", "NetworkToolItem: opens a menu"),

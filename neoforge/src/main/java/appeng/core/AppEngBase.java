@@ -133,7 +133,6 @@ public abstract class AppEngBase implements AppEng {
         AEBlocks.DR.register(modEventBus);
         AEItems.DR.register(modEventBus);
         AEBlockEntities.DR.register(modEventBus);
-        AEComponents.DR.register(modEventBus);
         AEEntities.DR.register(modEventBus);
         InitStructures.register(modEventBus);
         AEAttachmentTypes.register(modEventBus);
@@ -146,7 +145,10 @@ public abstract class AppEngBase implements AppEng {
         modEventBus.addListener(InitCapabilityProviders::register);
         modEventBus.addListener(EventPriority.LOWEST, InitCapabilityProviders::registerGenericAdapters);
         modEventBus.addListener((RegisterEvent event) -> {
-            if (event.getRegistryKey() == Registries.RECIPE_TYPE) {
+            if (event.getRegistryKey() == Registries.DATA_COMPONENT_TYPE) {
+                AEComponents.all()
+                        .forEach((id, type) -> event.register(Registries.DATA_COMPONENT_TYPE, id, () -> type));
+            } else if (event.getRegistryKey() == Registries.RECIPE_TYPE) {
                 // Plain tables rather than DeferredRegisters, because :common has to be able to name
                 // these types and serializers; see AERecipeTypes.
                 AERecipeTypes.all().forEach((id, type) -> event.register(Registries.RECIPE_TYPE, id, () -> type));

@@ -11,7 +11,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Recipe;
 
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 
 public record EncodedStonecuttingPattern(
         ItemStack input,
@@ -39,7 +39,7 @@ public record EncodedStonecuttingPattern(
                     EncodedStonecuttingPattern::new);
 
     public boolean containsMissingContent() {
-        return AEItems.MISSING_CONTENT.is(input) || AEItems.MISSING_CONTENT.is(output);
+        return AEMissingContent.is(input) || AEMissingContent.is(output);
     }
 
     @Override

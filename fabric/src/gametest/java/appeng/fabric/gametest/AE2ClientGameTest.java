@@ -31,6 +31,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 
+import appeng.api.ids.AEComponents;
 import appeng.api.ids.AECreativeTabIds;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
@@ -73,6 +74,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         assertItemsRegistered(context);
         assertBlocksRegistered(context);
         assertRecipeTypesRegistered(context);
+        assertComponentTypesRegistered(context);
         assertCreativeTabRegistered(context);
         assertItemModelsResolved(context);
 
@@ -109,6 +111,26 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         }
 
         LOG.info("AE2 game test: passed");
+    }
+
+    /**
+     * Data component types. Every one of them, since AEComponents is a single table both loaders read -- so unlike the
+     * items, a missing entry here is a registration failure rather than something not ported yet.
+     * <p>
+     * Worth asserting because nothing else would notice: an unregistered component type does not throw when an item
+     * sets it, it throws later, when a stack carrying it is written to disk or to the network.
+     */
+    private static void assertComponentTypesRegistered(ClientGameTestContext context) {
+        var missing = new ArrayList<Identifier>();
+        AEComponents.all().keySet().forEach(id -> {
+            if (!BuiltInRegistries.DATA_COMPONENT_TYPE.containsKey(id)) {
+                missing.add(id);
+            }
+        });
+        if (!missing.isEmpty()) {
+            throw new AssertionError("AE2 data component types not registered: " + missing);
+        }
+        LOG.info("AE2 game test: {} data component types registered", AEComponents.all().size());
     }
 
     /**
