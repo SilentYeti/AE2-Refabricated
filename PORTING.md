@@ -89,6 +89,32 @@ cross ahead of the grid it fronts, and a seam that removes a coupling from the m
 often moves nothing on its own. That is progress anyway. The number to watch is the count of files
 in the cycle that still bounce on a *loader* package; relocation happens when it reaches zero.
 
+**The report's "order of attack" is a set cover, not a ranking.** Its cumulative numbers answer "if I
+fixed these groups, in this order" — which is not the same question as "what is holding the most
+back". Two other numbers, straight out of `parity_report.analyse()`, are more useful when choosing:
+
+```python
+import sys; sys.path.insert(0, "tools")
+import parity_report as pr, collections
+_, _, profile, invisible = pr.analyse()
+need, alone = collections.Counter(), collections.Counter()
+for bs, n in profile.items():
+    for g in bs: need[g] += n
+    if len(bs) == 1: alone[next(iter(bs))] += n
+```
+
+`need` counts the files a group has to be cleared for; `alone` counts the files it would free *by
+itself*. As of the component seam: **123 files need exactly one group cleared** (`model` 35,
+`transfer` 25, `capabilities` 12, `network` 11), and **~220 need seven or more** — that second
+group is the grid, the block entities and the client, and no single seam touches it. Aim at the
+first group; the second falls out of stages 6 and 7 or not at all.
+
+Also worth keeping in view: the same run counts **309 files blocked with no loader import at all**,
+more than any single import group. Those are the invisible axes, and until the component seam nothing
+had been done about any of them. A bounced file's error is where to start — most say `cannot find
+symbol` because something *else* bounced, but the ones naming a vanilla member are real, and the
+`CustomData.contains` row below is what dealing with one looks like.
+
 ## Patterns that already work
 
 Reach for these before inventing something; each is in the tree with a comment explaining itself.
@@ -104,6 +130,7 @@ Reach for these before inventing something; each is in the tree with a comment e
 | two classes name each other across the boundary | invert it — the leaf owns the constant, the table points at the leaf | recipe classes own their `RecipeType`; `AERecipeTypes` collects them |
 | data is in a loader's format | translate it while assembling the other jar, and fail the build on anything unrecognised | `neoforge:conditions` → `fabric:load_conditions` |
 | an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches on the concrete type. A test pins every answer. Leave the loader-side interface for the classes that really are the loader's, and for addons | `NeoForgeInventories`, pinned by `NeoForgeInventoriesTest`; `ResourceHandlerProvider` for `PlatformInventoryWrapper` |
+| a loader patches a convenience method onto a vanilla class | call the vanilla long way round, and pin on the loader's side that the two agree | `CustomData.contains` → `copyTag().contains`, pinned by `CustomDataTest` |
 | a class caches a loader object by identity | keep the cache, but as an opaque slot the loader fills | `BaseInternalInventory.getOrCreatePlatformAdapter` |
 | a Fabric seam has no reachable caller yet | throw `UnsupportedOperationException` naming the stage, and write the intended design in the javadoc. Returning "nothing" would look like working content that silently does nothing | `FabricMenuPlatform`, `FabricItemTransferPlatform` |
 | a static initializer registers AE2's own loader-specific defaults | the SPI supplies them; keep the call in the static initializer so the ordering guarantee survives | `StackWorldBehaviorsPlatform` |
@@ -241,9 +268,26 @@ delete exclusion lines as later stages unblock them.
       (the same fix as the recipe types): `AEMissingContent` owns the missing-content item and its
       three components, `WrappedStacks` owns carrying a `GenericStack` inside an `ItemStack`, and
       `AEComponents` merely registers both, so registration is still in one place
-- [ ] `AEComponents` itself — still in `:neoforge`. It uses `DeferredRegister` (one import, and the
-      types are already built eagerly, so it converts to an ordered table exactly like the recipes
-      did), but it names `AEItems` and the four `Encoded*Pattern` classes, which are stage 6
+- [x] `AEComponents` itself — **in `:common`, and all 35 component types register on Fabric.**
+      Three of the four things holding it there were not real: a `DeferredRegister`, two javadoc links
+      to `AEItems`, and the four `Encoded*Pattern` records, which named `AEItems` only for
+      `AEItems.MISSING_CONTENT.is`. `AEMissingContent` already owned that item and only wanted an
+      `is(AEKey)` next to its `is(ItemStack)`; with it, the records and `AECodecs` stop naming
+      `AEItems` and `AEComponents` at all — `AECodecs` was hand-rolling what
+      `AEMissingContent.replacement` already does — and the cycle is gone. It is an ordered table now,
+      the same shape as `AERecipeTypes`, through `AppEngBase`'s `RegisterEvent` path on NeoForge and
+      `FabricComponents` on Fabric. **The ids are unchanged**, which matters more than it looks: a
+      component type under a different id makes every saved stack carrying it unreadable.
+      **18 files crossed**, among them the whole `IConfigManager`/`Setting` API and the menu field
+      sync. Asserted in the client gametest, because an unregistered component type does not throw
+      when an item sets it — it throws later, when a stack carrying it is written out
+- [x] The two `notYetPortable` entries that named only components: **`NAME_PRESS` and
+      `MISSING_CONTENT`, 139 items to 141.** The missing-content item needed one more thing, and it is
+      the first of the *invisible* couplings to be dealt with rather than measured:
+      `CustomData.contains` is NeoForge's addition to the vanilla class, so it asks the copied tag
+      instead. The branch already re-checked that on the copy, so the dead re-check goes with it, and
+      `CustomDataTest` pins that the two are the same question — on the NeoForge side, since that is
+      where the patched class is. `MEMORY_CARD`, the third, also needs the parts API
 - [ ] `ContainerItemStrategies` — stage 3, it is a capability lookup
 - [ ] Register the key types on Fabric, and the `FabricFluids` counterpart to `NeoForgeFluids`
       (needed by stage 4, not before)
