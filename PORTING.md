@@ -200,12 +200,34 @@ delete exclusion lines as later stages unblock them.
 
 ## Stage 2 — Components and the key/storage API
 
-- [ ] `AEComponents`
-- [ ] `AEKey`, `AEItemKey`, `AEFluidKey`, `GenericStack`
-- [ ] `ContainerItemStrategies`
+- [x] `AEKey`, `AEItemKey`, `AEFluidKey`, `GenericStack` — **the whole `appeng/api/stacks` package is
+      in `:common`**, plus `AEKeyFilter`/`NoOpKeyFilter` that it pulled along.
+      `AEFluidKey` was the substantive one: it stored a NeoForge `FluidStack` with the amount pinned
+      to 1, which is the same information as a `Holder<Fluid>` plus a `DataComponentPatch`, both
+      vanilla. It holds those now — not a compromise shape, since Fabric's `FluidVariant` is exactly
+      that pair, so each loader hands the two values over rather than translating. The two things
+      vanilla genuinely cannot answer about a fluid, its display name and its default components,
+      go through a `FluidPlatform` seam so NeoForge behaviour is preserved rather than approximated.
+      Conversions to each loader's resource types moved to that loader: `NeoForgeFluids`,
+      `NeoForgeItems`. `AEKeyTypesInternal` dropped NeoForge's `BakeCallback` for a registry-size
+      comparison, which is slightly stronger — it sees a key type registered *after* the bake.
+      **The NBT and JSON format is unchanged**, covered by the existing codec roundtrip tests, so
+      saved worlds are unaffected. The packet format dropped an amount that was always 1.
+      Two AE2-internal cycles had to be cut, both by moving ownership rather than adding a seam
+      (the same fix as the recipe types): `AEMissingContent` owns the missing-content item and its
+      three components, `WrappedStacks` owns carrying a `GenericStack` inside an `ItemStack`, and
+      `AEComponents` merely registers both, so registration is still in one place
+- [ ] `AEComponents` itself — still in `:neoforge`. It uses `DeferredRegister` (one import, and the
+      types are already built eagerly, so it converts to an ordered table exactly like the recipes
+      did), but it names `AEItems` and the four `Encoded*Pattern` classes, which are stage 6
+- [ ] `ContainerItemStrategies` — stage 3, it is a capability lookup
+- [ ] Register the key types on Fabric, and the `FabricFluids` counterpart to `NeoForgeFluids`
+      (needed by stage 4, not before)
 - [ ] Clear the `notYetPortable` entries naming components and the storage API (~20)
 
-**Done when:** storage cells and view cells register and the gametest sees them.
+**Done when:** storage cells and view cells register and the gametest sees them. That is **23 of the
+58 unregistered items** — 10 `BasicStorageCell`, 10 `PortableCellItem`, 3 spatial — which is why this
+stage is worth more than its file count suggests.
 
 ## Stage 3 — Capabilities → `fabric-api-lookup-api-v1`
 
