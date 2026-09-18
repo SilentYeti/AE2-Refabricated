@@ -59,10 +59,11 @@ def move(src, from_root, to_root):
 
 def compile_common():
     """Returns (ok, {relative path: first error line})."""
-    gradlew = "gradlew.bat" if os.name == "nt" else "./gradlew"
+    # Absolute path: Windows does not always resolve a bare "gradlew.bat" against the working directory.
+    gradlew = os.path.abspath("gradlew.bat" if os.name == "nt" else "gradlew")
     result = subprocess.run(
         [gradlew, ":common:compileJava", "--no-daemon", "-q", "--console=plain"],
-        capture_output=True, text=True, shell=os.name == "nt")
+        capture_output=True, text=True)
     if result.returncode == 0:
         return True, {}
     # javac reports paths with the platform separator; the pattern below expects forward slashes.
@@ -75,6 +76,14 @@ def compile_common():
         sys.exit("`:common:compileJava` failed without naming a file in :common -- see above. "
                  "Something other than the move is broken; nothing was left moved.")
     return False, failures
+
+
+def restore(moved):
+    """Puts every file this run moved into :common back where it came from."""
+    for path in moved:
+        if os.path.exists(path):
+            move(path, COMMON, NEOFORGE)
+    prune_empty_dirs(COMMON)
 
 
 def prune_empty_dirs(root):
@@ -107,6 +116,35 @@ def main():
     moved = [move(f, NEOFORGE, COMMON) for f in files]
     prune_empty_dirs(NEOFORGE)
 
+    try:
+        kept, bounced = settle(moved)
+    except BaseException:
+        # Every way out of settle() other than returning -- a compile failure it cannot attribute, no progress, no
+        # convergence, Ctrl-C -- used to exit with the tree half-moved while saying nothing had moved.
+        restore(moved)
+        print("\naborted: every file this run moved has been put back", file=sys.stderr)
+        raise
+
+    if args.dry_run:
+        restore(moved)
+        print("\n(dry run: everything put back)")
+
+    print(f"\nstayed in :common : {len(kept)}")
+    for rel in sorted(kept):
+        print(f"  {rel}")
+    print(f"\nbounced back      : {len(bounced)}")
+    for rel, reason in sorted(bounced.items()):
+        print(f"  {rel}\n      {reason}")
+
+    if not args.dry_run and kept:
+        print("\nNow run the rest of the loop before committing:")
+        print("  ./gradlew :neoforge:test          # nothing regressed")
+        print("  ./gradlew build                   # all three modules")
+        print("  ./gradlew :fabric:runClientGametest")
+
+
+def settle(moved):
+    """Compiles, bouncing failing files back, until :common compiles. Returns (kept, bounced)."""
     bounced = {}
     for round_no in range(1, MAX_ROUNDS + 1):
         ok, failures = compile_common()
@@ -130,25 +168,7 @@ def main():
 
     prune_empty_dirs(COMMON)
     kept = [m[len(COMMON) + 1:] for m in moved if os.path.exists(m)]
-
-    if args.dry_run:
-        for rel in kept:
-            move(os.path.join(COMMON, rel), COMMON, NEOFORGE)
-        prune_empty_dirs(COMMON)
-        print("\n(dry run: everything put back)")
-
-    print(f"\nstayed in :common : {len(kept)}")
-    for rel in sorted(kept):
-        print(f"  {rel}")
-    print(f"\nbounced back      : {len(bounced)}")
-    for rel, reason in sorted(bounced.items()):
-        print(f"  {rel}\n      {reason}")
-
-    if not args.dry_run and kept:
-        print("\nNow run the rest of the loop before committing:")
-        print("  ./gradlew :neoforge:test          # nothing regressed")
-        print("  ./gradlew build                   # all three modules")
-        print("  ./gradlew :fabric:runClientGametest")
+    return kept, bounced
 
 
 if __name__ == "__main__":
