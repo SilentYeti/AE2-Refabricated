@@ -82,6 +82,13 @@ The tail of its output is the other half of the answer: every bounced file with 
 that stopped it. Aggregating those errors (`package X does not exist`, grouped and counted) ranks
 the loader APIs still holding files back, which is how to choose the next seam.
 
+**Expect moves in bursts, and measure couplings instead.** Most of `:neoforge` is one cycle, and
+upstream's API is not the clean layer it looks like: `GridHelper`, `PartHelper`, `StorageHelper` and
+`PatternDetailsHelper` are facades that call straight into the implementation. So the API cannot
+cross ahead of the grid it fronts, and a seam that removes a coupling from the middle of the cycle
+often moves nothing on its own. That is progress anyway. The number to watch is the count of files
+in the cycle that still bounce on a *loader* package; relocation happens when it reaches zero.
+
 ## Patterns that already work
 
 Reach for these before inventing something; each is in the tree with a comment explaining itself.
@@ -247,11 +254,22 @@ stage is worth more than its file count suggests.
 
 The hinge: `InternalInventory` and `BaseInternalInventory` are reached by 663 and 648 files.
 
-- [ ] AE2-side lookup surface in `:common`, registered per loader. `AECapabilities` is five of AE2's
-      own `BlockCapability`s, and parts also hold NeoForge `BlockCapabilityCache`s for speed, so the
-      seam has to cover cached lookups as well as one-off ones. Fabric's counterparts are
-      `BlockApiLookup` and `BlockApiCache`. `AECapabilities` is public API: changing its field types
-      breaks NeoForge addons that name them, which the key-API change already accepted as a cost
+- [x] AE2-side lookup surface in `:common` — **`AEBlockCapability`**, a handle (id, API type, sided or
+      not) with `find` and `createCache`, resolved through `BlockCapabilityPlatform`. `AECapabilities`
+      holds handles now. On NeoForge a handle resolves to the *identical* `BlockCapability` the field
+      used to hold — NeoForge interns by name — so registration and lookup still meet, pinned by
+      `NeoForgeCapabilitiesTest`. `NeoForgeCapabilities.of(handle)` is what registration code passes to
+      NeoForge; `.handle(cap)` wraps a NeoForge capability (the P2P tunnels do this with NeoForge's own
+      item/fluid/energy ones). Fabric is implemented for real on `BlockApiLookup`/`BlockApiCache`: with
+      no providers yet, lookups answer null, as NeoForge does where none exists. Registering AE2's own
+      providers on Fabric waits on the block entities (stage 6)
+- [x] `IManagedGridNode` off `ValueIOSerializable` — it redeclared both methods and nothing used the
+      supertype
+- [x] `GenericInternalInventory` into `:common`. Its transaction hook moved to the NeoForge-side
+      `TransactionalGenericInventory`, which `GenericStackInv` already satisfies through
+      `SnapshotJournal`. A generic inventory from another mod that is not transactional is left
+      unexposed to NeoForge's transfer API, with a warning, rather than wrapped in a handler that could
+      not roll back an aborted transaction
 - [x] `InternalInventory` / `BaseInternalInventory` off `neoforge.capabilities` — **in `:common`**.
       `toResourceHandler()` came off the interface: `NeoForgeInventories.resourceHandler(inv)` gives
       the answer each implementation used to give, the special-case ones via `ResourceHandlerProvider`,
