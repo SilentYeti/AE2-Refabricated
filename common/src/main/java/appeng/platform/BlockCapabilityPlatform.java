@@ -59,8 +59,16 @@ public interface BlockCapabilityPlatform {
         return instance;
     }
 
+    /**
+     * Loads through this interface's own class loader, not the thread's context loader, which is what
+     * {@code ServiceLoader.load(Class)} would use. Under a mod loader the context loader is not reliably the one that
+     * loaded AE2: when it is not, the implementation gets defined a second time by the wrong loader and its first
+     * reference back into AE2 fails with a {@code LinkageError} -- depending only on which thread happened to touch
+     * this first.
+     */
     final class Holder0 {
-        private static final BlockCapabilityPlatform INSTANCE = ServiceLoader.load(BlockCapabilityPlatform.class)
+        private static final BlockCapabilityPlatform INSTANCE = ServiceLoader
+                .load(BlockCapabilityPlatform.class, BlockCapabilityPlatform.class.getClassLoader())
                 .findFirst()
                 .orElse(null);
 
