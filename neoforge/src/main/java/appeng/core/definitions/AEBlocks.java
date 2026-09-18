@@ -290,9 +290,9 @@ public final class AEBlocks {
             }
         });
 
-        var itemDef = new ItemDefinition<>(englishName, deferredItem);
+        var itemDef = new ItemDefinition<>(englishName, id, deferredItem);
         MainCreativeTab.add(itemDef);
-        BlockDefinition<T> definition = new BlockDefinition<>(englishName, deferredBlock, itemDef);
+        BlockDefinition<T> definition = new BlockDefinition<>(englishName, id, deferredBlock, itemDef);
 
         BLOCKS.add(definition);
 

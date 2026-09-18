@@ -19,6 +19,7 @@
 package appeng.core.definitions;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
@@ -26,7 +27,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.block.Block;
-import net.neoforged.neoforge.registries.DeferredBlock;
 
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
@@ -34,11 +34,16 @@ import appeng.api.stacks.GenericStack;
 public class BlockDefinition<T extends Block> implements ItemLike {
     private final String englishName;
     private final ItemDefinition<BlockItem> item;
-    private final DeferredBlock<T> block;
+    private final Identifier id;
+    private final Supplier<T> block;
 
-    public BlockDefinition(String englishName, DeferredBlock<T> block, ItemDefinition<BlockItem> item) {
+    /**
+     * The id and a supplier of the block, for the same reason {@link ItemDefinition} takes them that way.
+     */
+    public BlockDefinition(String englishName, Identifier id, Supplier<T> block, ItemDefinition<BlockItem> item) {
         this.englishName = englishName;
         this.item = Objects.requireNonNull(item, "item");
+        this.id = Objects.requireNonNull(id, "id");
         this.block = Objects.requireNonNull(block, "block");
     }
 
@@ -47,7 +52,7 @@ public class BlockDefinition<T extends Block> implements ItemLike {
     }
 
     public Identifier id() {
-        return block.getId();
+        return id;
     }
 
     public final T block() {

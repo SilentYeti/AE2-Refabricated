@@ -327,7 +327,7 @@ public final class AEItems {
             @Nullable ResourceKey<CreativeModeTab> group) {
 
         Preconditions.checkArgument(id.getNamespace().equals(AppEng.MOD_ID), "Can only register for AE2");
-        var definition = new ItemDefinition<>(name, DR.registerItem(id.getPath(), factory));
+        var definition = new ItemDefinition<>(name, id, DR.registerItem(id.getPath(), factory));
 
         if (Objects.equals(group, AECreativeTabIds.MAIN)) {
             MainCreativeTab.add(definition);

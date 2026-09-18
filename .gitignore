@@ -61,3 +61,4 @@ Thumbs.db
 */run-server/
 */run-gametest/
 */logs/
+tools/__pycache__/

@@ -23,13 +23,13 @@ import java.util.function.Supplier;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.level.ItemLike;
-import net.neoforged.neoforge.registries.DeferredItem;
 
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
@@ -38,10 +38,17 @@ import appeng.util.helpers.ItemComparisonHelper;
 
 public class ItemDefinition<T extends Item> implements ItemLike, Supplier<T> {
     private final String englishName;
-    private final DeferredItem<T> item;
+    private final Identifier id;
+    private final Supplier<T> item;
 
-    public ItemDefinition(String englishName, DeferredItem<T> item) {
+    /**
+     * The id and a supplier of the item, rather than one of the loader's deferred-registry handles: those are the same
+     * two things behind one type, and naming the type here would put every definitions table -- and the hundreds of
+     * files that reach one -- on a single loader's side of the build.
+     */
+    public ItemDefinition(String englishName, Identifier id, Supplier<T> item) {
         this.englishName = englishName;
+        this.id = id;
         this.item = item;
     }
 
@@ -50,7 +57,7 @@ public class ItemDefinition<T extends Item> implements ItemLike, Supplier<T> {
     }
 
     public Identifier id() {
-        return this.item.getId();
+        return this.id;
     }
 
     public ItemStack stack() {
@@ -58,7 +65,7 @@ public class ItemDefinition<T extends Item> implements ItemLike, Supplier<T> {
     }
 
     public ItemStack stack(int stackSize) {
-        return new ItemStack((ItemLike) item, stackSize);
+        return new ItemStack(asItem(), stackSize);
     }
 
     public ItemStackTemplate template() {
@@ -66,7 +73,7 @@ public class ItemDefinition<T extends Item> implements ItemLike, Supplier<T> {
     }
 
     public ItemStackTemplate template(int stackSize) {
-        return new ItemStackTemplate(item, stackSize);
+        return new ItemStackTemplate(asItem(), stackSize);
     }
 
     public ItemStackTemplate template(Consumer<DataComponentPatch.Builder> customizer) {
@@ -76,15 +83,15 @@ public class ItemDefinition<T extends Item> implements ItemLike, Supplier<T> {
     public ItemStackTemplate template(int stackSize, Consumer<DataComponentPatch.Builder> customizer) {
         var patch = DataComponentPatch.builder();
         customizer.accept(patch);
-        return new ItemStackTemplate(item, stackSize, patch.build());
+        return new ItemStackTemplate(holder(), stackSize, patch.build());
     }
 
     public GenericStack genericStack(long stackSize) {
-        return new GenericStack(AEItemKey.of(item), stackSize);
+        return new GenericStack(AEItemKey.of(asItem()), stackSize);
     }
 
     public Holder<Item> holder() {
-        return item;
+        return BuiltInRegistries.ITEM.wrapAsHolder(asItem());
     }
 
     public Component getName() {
