@@ -20,23 +20,30 @@ package appeng.util.inv;
 
 import com.google.common.base.Preconditions;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.CarriedSlotWrapper;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Exposes the carried item stored in a menu as an {@link InternalInventory}.
  */
-public class CarriedItemInventory implements InternalInventory, ResourceHandlerProvider {
+public class CarriedItemInventory implements InternalInventory {
     private final AbstractContainerMenu menu;
 
     public CarriedItemInventory(AbstractContainerMenu menu) {
         this.menu = menu;
+    }
+
+    /**
+     * The menu whose carried item this exposes. A loader adapts the carried slot from the menu itself, not through this
+     * inventory.
+     */
+    @ApiStatus.Internal
+    public AbstractContainerMenu getMenu() {
+        return menu;
     }
 
     @Override
@@ -54,10 +61,5 @@ public class CarriedItemInventory implements InternalInventory, ResourceHandlerP
     public void setItemDirect(int slotIndex, ItemStack stack) {
         Preconditions.checkArgument(slotIndex == 0);
         menu.setCarried(stack);
-    }
-
-    @Override
-    public ResourceHandler<ItemResource> toResourceHandler() {
-        return CarriedSlotWrapper.of(menu);
     }
 }

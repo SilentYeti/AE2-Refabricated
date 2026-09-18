@@ -18,23 +18,29 @@
 
 package appeng.util.inv;
 
+import org.jetbrains.annotations.ApiStatus;
+
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
-import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Exposes the main player inventory and hotbar as an {@link InternalInventory}.
  */
-public class PlayerInternalInventory implements InternalInventory, ResourceHandlerProvider {
+public class PlayerInternalInventory implements InternalInventory {
     private final Inventory inventory;
 
     public PlayerInternalInventory(Inventory inventory) {
         this.inventory = inventory;
+    }
+
+    /**
+     * The player inventory this exposes. A loader wraps the vanilla inventory directly, not through this one.
+     */
+    @ApiStatus.Internal
+    public Inventory getPlayerInventory() {
+        return inventory;
     }
 
     @Override
@@ -53,10 +59,5 @@ public class PlayerInternalInventory implements InternalInventory, ResourceHandl
         if (!stack.isEmpty()) {
             inventory.getItem(slotIndex).setPopTime(5);
         }
-    }
-
-    @Override
-    public ResourceHandler<ItemResource> toResourceHandler() {
-        return PlayerInventoryWrapper.of(inventory);
     }
 }

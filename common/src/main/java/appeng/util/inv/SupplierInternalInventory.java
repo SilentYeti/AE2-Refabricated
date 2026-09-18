@@ -23,37 +23,27 @@ import java.util.function.Supplier;
 
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.neoforge.resources.NeoForgeInventories;
-import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Wraps another {@link InternalInventory} in such a way that the underlying inventory is queried from a supplier, which
  * allows it to be changed at any time.
  */
-public class SupplierInternalInventory<T extends InternalInventory>
-        implements InternalInventory, ResourceHandlerProvider {
+public class SupplierInternalInventory<T extends InternalInventory> implements InternalInventory {
     private final Supplier<T> delegate;
 
     public SupplierInternalInventory(Supplier<T> delegate) {
         this.delegate = delegate;
     }
 
-    protected final T getDelegate() {
+    public final T getDelegate() {
         return this.delegate.get();
     }
 
     @Override
     public boolean isEmpty() {
         return getDelegate().isEmpty();
-    }
-
-    @Override
-    public ResourceHandler<ItemResource> toResourceHandler() {
-        return NeoForgeInventories.resourceHandler(getDelegate());
     }
 
     @Override

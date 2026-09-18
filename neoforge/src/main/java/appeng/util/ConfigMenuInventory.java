@@ -8,8 +8,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.transfer.ResourceHandler;
-import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
 import appeng.api.stacks.AEItemKey;
@@ -17,14 +15,13 @@ import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.helpers.externalstorage.GenericStackInv;
 import appeng.items.misc.WrappedGenericStack;
-import appeng.neoforge.resources.ResourceHandlerProvider;
 
 /**
  * Wraps this configuration inventory as an {@link ItemStack} based inventory for use in a menu. It will automatically
  * convert appropriately from {@link ItemStack}s set by the player to the internal key-based representation with the
  * help of a matching {@link AEKeyType}.
  */
-public class ConfigMenuInventory implements InternalInventory, ResourceHandlerProvider {
+public class ConfigMenuInventory implements InternalInventory {
     private final GenericStackInv inv;
 
     public ConfigMenuInventory(GenericStackInv inv) {
@@ -33,11 +30,6 @@ public class ConfigMenuInventory implements InternalInventory, ResourceHandlerPr
 
     public GenericStackInv getDelegate() {
         return inv;
-    }
-
-    @Override
-    public ResourceHandler<ItemResource> toResourceHandler() {
-        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -18,24 +18,35 @@
 
 package appeng.neoforge.resources;
 
+import net.neoforged.neoforge.transfer.CombinedResourceHandler;
 import net.neoforged.neoforge.transfer.EmptyResourceHandler;
 import net.neoforged.neoforge.transfer.ResourceHandler;
+import net.neoforged.neoforge.transfer.item.CarriedSlotWrapper;
 import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 
 import appeng.api.inventories.BaseInternalInventory;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.upgrades.UpgradeInventories;
+import appeng.util.ConfigMenuInventory;
+import appeng.util.inv.CarriedItemInventory;
+import appeng.util.inv.CombinedInternalInventory;
+import appeng.util.inv.PlayerInternalInventory;
+import appeng.util.inv.SupplierInternalInventory;
 
 /**
  * Exposes AE2's {@link InternalInventory} to NeoForge's transfer API.
  * <p>
  * This is what {@code InternalInventory.toResourceHandler()} did before the interface moved to {@code :common}, and it
- * gives the same answer in every case:
- * <ul>
- * <li>an inventory that knows its own adapter ({@link ResourceHandlerProvider}) supplies it;</li>
- * <li>the shared empty inventory is NeoForge's empty handler;</li>
- * <li>a {@link BaseInternalInventory} gets the generic wrapper, created once and then handed out every time -- NeoForge
- * caches capability results by identity, so this has to be the same object on each call.</li>
- * </ul>
+ * gives the same answer in every case. Every inventory whose answer was special is recognised here by its own type,
+ * which is what lets those inventories themselves be loader-agnostic: only the answer is NeoForge's, not the inventory.
+ * {@link ResourceHandlerProvider} remains for the inventories that genuinely are NeoForge's --
+ * {@link appeng.api.inventories.PlatformInventoryWrapper} wraps a handler to begin with -- and for an addon that wants
+ * to supply its own.
+ * <p>
+ * Adapters are handed out by identity wherever the old implementation did, because NeoForge caches capability results
+ * by identity: a {@link BaseInternalInventory} keeps its adapter in the slot the base class provides, and the
+ * inventories that are not one are wrapped afresh, which is what they did before.
  */
 public final class NeoForgeInventories {
     private NeoForgeInventories() {
@@ -45,8 +56,27 @@ public final class NeoForgeInventories {
         if (inventory instanceof ResourceHandlerProvider provider) {
             return provider.toResourceHandler();
         }
-        if (inventory == InternalInventory.empty()) {
+        if (inventory == InternalInventory.empty() || inventory == UpgradeInventories.empty()) {
             return EmptyResourceHandler.instance();
+        }
+        if (inventory instanceof ConfigMenuInventory) {
+            // A menu-facing view that converts between item stacks and AE keys. Exposing it would let another mod
+            // write filter entries through the item API, so it refused before the move as well.
+            throw new UnsupportedOperationException();
+        }
+        if (inventory instanceof CarriedItemInventory carried) {
+            return CarriedSlotWrapper.of(carried.getMenu());
+        }
+        if (inventory instanceof PlayerInternalInventory player) {
+            return PlayerInventoryWrapper.of(player.getPlayerInventory());
+        }
+        if (inventory instanceof SupplierInternalInventory<?> supplier) {
+            // Whatever it delegates to right now -- the point of the class is that this can change
+            return resourceHandler(supplier.getDelegate());
+        }
+        if (inventory instanceof CombinedInternalInventory combined) {
+            // In the base class's slot, so the combined handler keeps its identity like any other adapter
+            return combined.getOrCreatePlatformAdapter(() -> combine(combined));
         }
         if (inventory instanceof BaseInternalInventory base) {
             return base.getOrCreatePlatformAdapter(() -> new InternalInventoryResourceHandler(base));
@@ -55,5 +85,13 @@ public final class NeoForgeInventories {
         // before the move it had to supply its own adapter, and the generic wrapper is what that adapter would
         // have been. It is only uncached, which costs NeoForge an identity check, not correctness.
         return new InternalInventoryResourceHandler(inventory);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static ResourceHandler<ItemResource> combine(CombinedInternalInventory combined) {
+        var parts = combined.getSubInventories().stream()
+                .map(NeoForgeInventories::resourceHandler)
+                .toArray(ResourceHandler[]::new);
+        return new CombinedResourceHandler<>(parts);
     }
 }
