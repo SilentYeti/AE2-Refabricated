@@ -27,6 +27,8 @@ import java.util.function.Supplier;
 
 import org.jetbrains.annotations.ApiStatus;
 
+import appeng.platform.PlatformAdapterSlot;
+
 /**
  * Implementation aid for {@link InternalInventory} that ensures the platorm adapter maintains its referential equality
  * over time.
@@ -37,20 +39,13 @@ import org.jetbrains.annotations.ApiStatus;
  */
 public abstract class BaseInternalInventory implements InternalInventory {
 
-    private Object platformAdapter;
+    private final PlatformAdapterSlot platformAdapter = new PlatformAdapterSlot();
 
     /**
      * Returns the loader's adapter for this inventory, creating it on first use.
-     * <p>
-     * Only one loader runs at a time and only its module calls this, so the slot only ever holds that loader's adapter
-     * type and the unchecked cast below cannot fail.
      */
     @ApiStatus.Internal
-    @SuppressWarnings("unchecked")
     public final <T> T getOrCreatePlatformAdapter(Supplier<T> factory) {
-        if (platformAdapter == null) {
-            platformAdapter = factory.get();
-        }
-        return (T) platformAdapter;
+        return platformAdapter.getOrCreate(factory);
     }
 }

@@ -18,25 +18,21 @@
 
 package appeng.neoforge.resources;
 
-import net.neoforged.neoforge.transfer.transaction.TransactionContext;
-
 import appeng.api.behaviors.GenericInternalInventory;
 
 /**
- * A {@link GenericInternalInventory} that can take part in a NeoForge transfer transaction, which is what lets it be
- * exposed as NeoForge's item and fluid handlers: the handler snapshots it before each change, and an aborted
- * transaction rolls the change back.
+ * A {@link GenericInternalInventory} that keeps its own NeoForge transaction journal, and so may be exposed as
+ * NeoForge's item and fluid handlers: the handler snapshots it before each change, and an aborted transaction rolls the
+ * change back.
  * <p>
- * This hook used to be {@code GenericInternalInventory.updateSnapshots}, on the API interface itself, which is the one
- * thing that kept the interface out of {@code :common}. Every inventory AE2 exposes this way is a
- * {@code GenericStackInv}, which already has the method through NeoForge's {@code SnapshotJournal}.
+ * This hook used to be {@code GenericInternalInventory.updateSnapshots}, on the API interface itself, which was the one
+ * thing keeping that interface out of {@code :common}. It is now an extension point rather than something AE2 uses:
+ * every generic inventory AE2 exposes is a {@code GenericStackInv}, and {@link NeoForgeGenericInventories#journal}
+ * keeps the journal for those on the loader's side, which is what let {@code GenericStackInv} stop being a
+ * {@code SnapshotJournal} itself. This is here for an addon whose own generic inventory is transactional.
  * <p>
- * A generic inventory that does not implement this is not exposed to NeoForge's transfer API at all, rather than being
- * wrapped in a handler whose changes an aborted transaction could not undo.
+ * A generic inventory that is neither is not exposed to NeoForge's transfer API at all, rather than being wrapped in a
+ * handler whose changes an aborted transaction could not undo.
  */
-public interface TransactionalGenericInventory extends GenericInternalInventory {
-    /**
-     * Saves the inventory's state in the transaction, right before modifying it.
-     */
-    void updateSnapshots(TransactionContext transaction);
+public interface TransactionalGenericInventory extends GenericInternalInventory, TransactionJournal {
 }

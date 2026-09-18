@@ -2,7 +2,7 @@ package appeng.init;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Function;
+import java.util.function.BiFunction;
 
 import net.minecraft.core.Direction;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -33,8 +33,9 @@ import appeng.helpers.externalstorage.GenericStackFluidHandler;
 import appeng.helpers.externalstorage.GenericStackItemHandler;
 import appeng.items.tools.powered.powersink.PoweredItemCapabilities;
 import appeng.neoforge.NeoForgeCapabilities;
+import appeng.neoforge.resources.NeoForgeGenericInventories;
 import appeng.neoforge.resources.NeoForgeInventories;
-import appeng.neoforge.resources.TransactionalGenericInventory;
+import appeng.neoforge.resources.TransactionJournal;
 import appeng.parts.crafting.PatternProviderPart;
 import appeng.parts.encoding.PatternEncodingTerminalPart;
 import appeng.parts.misc.InterfacePart;
@@ -111,20 +112,22 @@ public final class InitCapabilityProviders {
     private static <T> void registerGenericInvAdapter(RegisterCapabilitiesEvent event,
             Block block,
             BlockCapability<T, Direction> capability,
-            Function<TransactionalGenericInventory, T> adapter) {
+            BiFunction<GenericInternalInventory, TransactionJournal, T> adapter) {
         event.registerBlock(
                 capability,
                 (level, pos, state, blockEntity, context) -> {
                     var genericInv = level.getCapability(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
                             pos, state,
                             blockEntity, context);
-                    if (genericInv instanceof TransactionalGenericInventory transactional) {
-                        return adapter.apply(transactional);
+                    if (genericInv == null) {
+                        return null;
                     }
-                    if (genericInv != null) {
+                    var journal = NeoForgeGenericInventories.journal(genericInv);
+                    if (journal == null) {
                         warnNotTransactional(genericInv);
+                        return null;
                     }
-                    return null;
+                    return adapter.apply(genericInv, journal);
                 },
                 block);
     }
@@ -132,12 +135,13 @@ public final class InitCapabilityProviders {
     private static final Set<Class<?>> WARNED_NOT_TRANSACTIONAL = ConcurrentHashMap.newKeySet();
 
     /**
-     * Every inventory AE2 itself exposes is transactional. One that is not can only come from another mod, and is left
-     * unexposed rather than wrapped in a handler that could not undo an aborted transaction.
+     * Every generic inventory AE2 itself exposes is a {@code GenericStackInv}, which {@link NeoForgeGenericInventories}
+     * keeps a journal for. One it cannot be given a journal for can only come from another mod, and is left unexposed
+     * rather than wrapped in a handler that could not undo an aborted transaction.
      */
     private static void warnNotTransactional(GenericInternalInventory inventory) {
         if (WARNED_NOT_TRANSACTIONAL.add(inventory.getClass())) {
-            AELog.warn("{} is a GenericInternalInventory but not a TransactionalGenericInventory, so it is not exposed "
+            AELog.warn("{} is a GenericInternalInventory that cannot take part in a transaction, so it is not exposed "
                     + "as a NeoForge item or fluid handler: an aborted transfer could not be rolled back. Implement "
                     + "TransactionalGenericInventory to expose it.", inventory.getClass().getName());
         }

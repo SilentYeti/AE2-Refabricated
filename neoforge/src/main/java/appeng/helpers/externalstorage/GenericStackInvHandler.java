@@ -7,24 +7,28 @@ import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.resource.Resource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
+import appeng.api.behaviors.GenericInternalInventory;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.helpers.ResourceConversion;
-import appeng.neoforge.resources.TransactionalGenericInventory;
+import appeng.neoforge.resources.TransactionJournal;
 
 /**
  * Adapts a {@link GenericStackInv} as {@link ResourceHandler} of the appropriate type.
  */
 public class GenericStackInvHandler<V extends Resource> implements ResourceHandler<V> {
     private final ResourceConversion<V> conversion;
-    private final TransactionalGenericInventory inv;
+    private final GenericInternalInventory inv;
+    private final TransactionJournal journal;
     private final AEKeyType channel;
 
     public GenericStackInvHandler(ResourceConversion<V> conversion, AEKeyType channel,
-            TransactionalGenericInventory inv) {
+            GenericInternalInventory inv,
+            TransactionJournal journal) {
         this.conversion = conversion;
         this.channel = channel;
         this.inv = inv;
+        this.journal = journal;
     }
 
     /**
@@ -123,7 +127,7 @@ public class GenericStackInvHandler<V extends Resource> implements ResourceHandl
             int inserted = (int) Math.min(amount, inv.getMaxAmount(key) - getAmountAsLong(index));
 
             if (inserted > 0) {
-                inv.updateSnapshots(transaction);
+                journal.updateSnapshots(transaction);
                 inv.beginBatch();
                 inv.setStack(index, new GenericStack(key, getAmountAsLong(index) + inserted));
                 inv.endBatchSuppressed();
@@ -143,7 +147,7 @@ public class GenericStackInvHandler<V extends Resource> implements ResourceHandl
         int actuallyExtracted = Ints.saturatedCast(Math.min(inv.getAmount(index), maxAmount));
 
         if (actuallyExtracted > 0) {
-            inv.updateSnapshots(transaction);
+            journal.updateSnapshots(transaction);
             var remainder = inv.getAmount(index) - actuallyExtracted;
             inv.beginBatch();
             if (remainder <= 0) {

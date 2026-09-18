@@ -23,19 +23,21 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
 
+import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 
 import it.unimi.dsi.fastutil.objects.Reference2LongArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 
+import appeng.api.behaviors.GenericInternalInventory;
 import appeng.api.behaviors.GenericSlotCapacities;
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
@@ -48,12 +50,12 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeySlotFilter;
 import appeng.api.storage.MEStorage;
 import appeng.core.AELog;
-import appeng.neoforge.resources.TransactionalGenericInventory;
+import appeng.platform.PlatformAdapterSlot;
 import appeng.util.ConfigMenuInventory;
 
-public class GenericStackInv extends SnapshotJournal<GenericStack[]>
-        implements MEStorage, TransactionalGenericInventory {
+public class GenericStackInv implements MEStorage, GenericInternalInventory {
     protected final GenericStack[] stacks;
+    private final PlatformAdapterSlot platformJournal = new PlatformAdapterSlot();
     private final Runnable listener;
     private boolean suppressOnChange;
     private boolean onChangeSuppressed;
@@ -469,20 +471,49 @@ public class GenericStackInv extends SnapshotJournal<GenericStack[]>
         this.description = description;
     }
 
-    @Override
-    protected GenericStack[] createSnapshot() {
+    // --- the three halves of a transaction, for the loader's journal over this inventory ---
+    //
+    // The journal itself is the loader's type and lives in its module; these are the operations it needs, which are
+    // the bodies the NeoForge SnapshotJournal this class used to extend had.
+
+    /**
+     * The contents, one entry per slot in slot order, for a journal to keep as a snapshot.
+     */
+    @ApiStatus.Internal
+    public GenericStack[] copySlots() {
         return stacks.clone();
     }
 
-    @Override
-    protected void revertToSnapshot(GenericStack[] snapshot) {
+    /**
+     * Puts back a snapshot from {@link #copySlots()} when a transaction is rolled back.
+     * <p>
+     * Writes the slots directly and does not notify: a rollback restores the state the listener was last told about, so
+     * there is nothing to tell it.
+     */
+    @ApiStatus.Internal
+    public void restoreSlots(GenericStack[] snapshot) {
+        Preconditions.checkArgument(snapshot.length == stacks.length, "snapshot is not this inventory's size");
         System.arraycopy(snapshot, 0, this.stacks, 0, this.stacks.length);
     }
 
-    @Override
-    protected void onRootCommit(GenericStack[] originalState) {
-        if (!Arrays.equals(this.stacks, originalState)) {
+    /**
+     * Notifies the listener if the contents differ from a snapshot, which is what a committed transaction does: every
+     * change inside it was made with notifications suppressed, so one notification stands for all of them, and none at
+     * all if the transaction happened to put everything back itself.
+     */
+    @ApiStatus.Internal
+    public void onCommitted(GenericStack[] snapshot) {
+        if (!Arrays.equals(this.stacks, snapshot)) {
             onChange();
         }
+    }
+
+    /**
+     * Returns the loader's transaction journal over this inventory, creating it on first use. It has to be the same
+     * object for the whole of a transaction, or a rollback would not reach every change.
+     */
+    @ApiStatus.Internal
+    public <T> T getOrCreatePlatformJournal(Supplier<T> factory) {
+        return platformJournal.getOrCreate(factory);
     }
 }

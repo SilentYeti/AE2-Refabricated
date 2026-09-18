@@ -5,13 +5,13 @@ import net.neoforged.neoforge.transfer.item.ItemResource;
 import appeng.api.behaviors.GenericInternalInventory;
 import appeng.api.stacks.AEKeyType;
 import appeng.helpers.ResourceConversion;
-import appeng.neoforge.resources.TransactionalGenericInventory;
+import appeng.neoforge.resources.TransactionJournal;
 
 /**
  * Exposes a {@link GenericInternalInventory} as the platforms external item storage interface.
  */
 public class GenericStackItemHandler extends GenericStackInvHandler<ItemResource> {
-    public GenericStackItemHandler(TransactionalGenericInventory inv) {
-        super(ResourceConversion.ITEM, AEKeyType.items(), inv);
+    public GenericStackItemHandler(GenericInternalInventory inv, TransactionJournal journal) {
+        super(ResourceConversion.ITEM, AEKeyType.items(), inv, journal);
     }
 }
