@@ -115,6 +115,39 @@ had been done about any of them. A bounced file's error is where to start — mo
 symbol` because something *else* bounced, but the ones naming a vanilla member are real, and the
 `CustomData.contains` row below is what dealing with one looks like.
 
+**Where it now stands: one blob, and its exits are countable.** Of the 736 files in `:neoforge/src/main`
+that still bounce, **626 import at least one other file that also bounces** — they have no reason of
+their own. Classify the rest by whether their own first error names a loader package, and only about
+45 do; strip out the ones that are *supposed* to be loader-specific (`appeng/neoforge/**`,
+`appeng/mixins/**`, the codechicken quad pipeline, and jade/wthit/rei, which are out of scope) and
+what is left is a short list of real seams:
+
+| file | needs |
+|---|---|
+| `AEItems` / `AEBlocks` / `AEBlockEntities` / `AEEntities` / `AEAttachmentTypes` | `DeferredRegister` → an ordered table, as `AEComponents` and `AERecipeTypes` did |
+| `DeferredBlockEntityType` | a `Supplier`, exactly as `ItemDefinition` now takes |
+| `ServerboundPacket` | `neoforge.network.handling` — stage 5 |
+| `P2PTunnelAttunement(Internal)` | item capabilities → `ContainerItemContext` — stage 4 |
+| `RegisterPartCapabilitiesEvent(Internal)` | the mod event bus — stage 6, design in stage 3 above |
+| `AppEngServer`, `NeoForgePlatform`, `Integrations`, `CompatLayerHelper` | `fml` |
+| `InsertionOnlyResourceHandler(WithJournal)` | `neoforge.transfer` — stage 4 |
+| `FluidSoundHelper` | `neoforge.common.SoundActions` |
+| `AppEngCraftingSlot` | `neoforge.common` |
+| `KitOutPlayerEvent`, `CubeBuilder` | an event, and the client quad API |
+
+Reproduce that classification from a `--all` run's log: for each bounced file, check whether any
+`appeng.*` it imports is also in the bounced set. If one is, the file has no reason of its own and
+tells you nothing; if none is, its error is real.
+
+**So the question has changed.** It is no longer "which loader API is in the way" — after the model
+data seam the biggest one by reach is gone, and the remaining list above is short and stage-assigned.
+It is now **the item and block tables**. `ItemDefinition`, `BlockDefinition` and
+`ColoredItemDefinition` are in `:common`, so nothing stops `AEItems` from becoming an ordered table
+like `AEComponents` — but if it does, it registers on Fabric too, and `AECommonItems` is then a subset
+of a table that no longer needs a subset. **That is a design decision, not a refactor**: the
+two-table arrangement is what the ratchet is built on. Decide it deliberately before touching
+`AEItems`.
+
 ## Patterns that already work
 
 Reach for these before inventing something; each is in the tree with a comment explaining itself.
@@ -395,6 +428,25 @@ which should fall out here without individual attention.
       no ticket-controller equivalent
 
 ## Stage 7 — Client (311 files)
+
+- [x] **Model data, done early and on purpose.** `net.neoforged.neoforge.model` was the largest
+      blocker in the tree by reach — 270 files needed it cleared — because it was on `IPart` and on
+      every block entity that draws something, and through them on the parts API, the grid node, the
+      cable bus and the pathfinding, none of which render anything. AE2 declares `AEModelProperty` and
+      `AEModelData` in `:common` now, with the same surface NeoForge's `ModelData` had, and
+      `NeoForgeModelData` is the single NeoForge property that carries one. The boundary is nine
+      places: the one `BlockEntity.getModelData` override and eight `level.getModelData(pos)` reads.
+      Nothing was lost — `ModelData` defines no equality, so the separate properties were never
+      compared, and AE2 never asked it for its property set. Two properties turned out to be written
+      and never read (`SKIP_CACHE`, `SPIN`) and are gone. `NeoForgeModelDataTest` pins the wrapping,
+      since nothing else automated looks at rendering. **The group is gone from the report entirely
+      and 79 files stopped being blocked by a loader import.** Fabric's counterpart is its
+      block-entity render data; write it when block entities register there
+- [ ] `requestModelDataUpdate()` is the other half and is *not* done. It is a NeoForge method on
+      vanilla `BlockEntity`, called from seven places, two of them on a plain `BlockEntity`
+      reference — so it is one of the invisible couplings, and it wants a one-method SPI taking the
+      block entity
+
 
 Last on purpose: most loader-bound, least useful before the server side works.
 
