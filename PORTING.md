@@ -28,9 +28,8 @@ the log.
 Everything below is measured, not remembered. Re-run the report rather than trusting these.
 
 ```
-:common 258   :neoforge/main 833   :neoforge/client 311
-blocked by an import 615   blocked invisibly 218
-gametest: 139 items + 49 blocks registered, 139 models resolved, 0 recipes, creative tab present
+:common 270   :neoforge/main 821   :neoforge/client 311
+gametest: 139 items + 49 blocks registered, 139 models resolved, 148 recipes, creative tab present
 ```
 
 ## Discipline
@@ -61,7 +60,11 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
 - [ ] Block entity types
 - [ ] Entity types
 - [ ] Data component types (`AEComponents`) — named by 3 `notYetPortable` entries
-- [ ] Recipe types and serializers
+- [ ] Recipe types and serializers — 12 recipe support classes are in `:common`; `AERecipeTypes`
+      itself is blocked only by `DeferredRegister`, but the recipe classes depend on it, so the two
+      have to move together. `EntropyRecipe` needs only a javadoc import dropped; `InscriberRecipe`
+      and `ChargerRecipe` need one display icon each resolving from the registry instead of
+      `AEBlocks`; `TransformRecipe` genuinely needs the quantum bridge
 - [ ] Structures (`StructurePieceType`, `StructureType`)
 - [ ] Attachment types → `fabric-data-attachment-api-v1`
 - [ ] Register the 8 custom item-model element types (`ae2:color`, `ae2:storage_cell_state`,
@@ -69,8 +72,16 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       `ae2:color_applicator`, `ae2:portable_cell_color`) — 48 item models currently fail to parse
       on Fabric without them
 
-**Done when:** `processResources` in `fabric/build.gradle` drops `exclude 'data/**'` and the
-gametest reports a non-zero recipe count.
+**Partly done.** The blanket `exclude 'data/**'` is gone and **148 AE2 recipes load**, asserted as a
+floor by the gametest. The data pack now ships a directory at a time, because the kinds of data fail
+differently: an unparseable *recipe* is logged and skipped, whereas tags, worldgen and the dynamic
+registries go through `RegistryDataLoader` where one dangling reference is fatal and world creation
+aborts. Verified by lifting them: it crashes on `ae2:meteorite_compass` and on the vanilla
+`enchantable/*` tags AE2 contributes to.
+
+Each remaining `exclude` line in `fabric/build.gradle` names what has to register before it can go.
+
+**Done when:** every exclusion is gone and the recipe floor reaches AE2's full count.
 
 ## Stage 2 — Components and the key/storage API
 

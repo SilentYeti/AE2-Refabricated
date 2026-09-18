@@ -46,6 +46,12 @@ import appeng.core.definitions.AECommonItems;
 public class AE2ClientGameTest implements FabricClientGameTest {
     private static final Logger LOG = LoggerFactory.getLogger("AE2GameTest");
 
+    /**
+     * A floor, not a target: recipes naming an unregistered serializer skip themselves, so this rises as the port
+     * proceeds. Raise it when it does, so a regression cannot hide under it.
+     */
+    private static final int MIN_RECIPES = 148;
+
     /** One of each kind of item that made it across: a tool, a material, a print, a component. */
     private static final List<String> HOTBAR_SHOWCASE = List.of(
             "ae2:certus_quartz_axe",
@@ -81,6 +87,14 @@ public class AE2ClientGameTest implements FabricClientGameTest {
                 }
                 return count;
             });
+            // Asserted, not just logged: the recipes reach the client through the data pack, and the
+            // data pack is shipped a directory at a time as content registers. A drop here means a
+            // directory stopped being shipped, or the content its files name stopped registering --
+            // both of which are otherwise silent, because an unparseable recipe is only logged.
+            if (recipeCount < MIN_RECIPES) {
+                throw new AssertionError("expected at least " + MIN_RECIPES + " ae2 recipes to load, found "
+                        + recipeCount + "; check the data pack exclusions in fabric/build.gradle");
+            }
             LOG.info("AE2 game test: world loaded, {} ae2 recipes available", recipeCount);
 
             // Put real AE2 stacks in the hotbar so the screenshot shows the item models actually

@@ -121,14 +121,29 @@ processResources {
         expand props
     }
 
-    // AE2's data pack is not shippable on Fabric yet. Its tag files, worldgen and dynamic registry
-    // entries name blocks and items that only :neoforge registers, and a missing tag reference is not
-    // skipped -- it fails registry loading outright, which aborts world creation. The assets are a
-    // different story and are needed: the item model definitions under assets/ae2/items are datagen
-    // output, so without them even the items Fabric does register have no model.
+    // AE2's data pack ships in pieces, because the kinds of data fail differently when they name
+    // content Fabric has not registered yet.
     //
-    // Drop this exclusion once AE2's blocks and the rest of its items register on Fabric.
-    exclude 'data/**'
+    // Recipes are forgiving: an unparseable one is logged and skipped, so shipping them costs nothing
+    // and 148 of AE2's recipes work today. The rest name recipe serializers that are not registered
+    // yet and skip themselves until they are.
+    //
+    // Everything below is not forgiving. Tags, worldgen and the dynamic registries are loaded through
+    // RegistryDataLoader, where one dangling reference is fatal -- "Failed to load registries due to
+    // errors" -- and world creation aborts. Verified rather than assumed: lifting these crashes the
+    // client gametest on ae2:meteorite_compass, which AECommonItems lists as not yet portable, and on
+    // the vanilla enchantable/* tags AE2 contributes to.
+    //
+    // Drop each line as the content it names registers.
+    exclude 'data/minecraft/**'      // contributions to vanilla tags
+    exclude 'data/ae2/tags/**'
+    exclude 'data/ae2/worldgen/**'
+    exclude 'data/ae2/dimension_type/**'
+    exclude 'data/ae2/damage_type/**'
+    exclude 'data/ae2/loot_table/**'  // names blocks that are not registered
+    exclude 'data/ae2/advancement/**'
+    exclude 'data/ae2/trade_set/**'
+    exclude 'data/ae2/villager_trade/**'
 
     // Only ever produced by the NeoForge datagen run
     exclude '.cache/**'
