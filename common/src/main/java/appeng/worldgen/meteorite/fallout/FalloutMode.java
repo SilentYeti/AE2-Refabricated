@@ -26,7 +26,8 @@ import net.minecraft.core.Holder;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
-import net.neoforged.neoforge.common.Tags;
+
+import appeng.core.ConventionTags;
 
 public enum FalloutMode {
 
@@ -43,7 +44,7 @@ public enum FalloutMode {
     /**
      * For sandy terrain
      */
-    SAND(Tags.Biomes.IS_SANDY, BiomeTags.IS_BEACH),
+    SAND(ConventionTags.IS_SANDY, BiomeTags.IS_BEACH),
 
     /**
      * For terracotta (mesa)
@@ -53,7 +54,7 @@ public enum FalloutMode {
     /**
      * Icy/snowy terrain
      */
-    ICE_SNOW(Tags.Biomes.IS_COLD);
+    ICE_SNOW(ConventionTags.IS_COLD);
 
     private final List<TagKey<Biome>> biomeTags;
 

@@ -38,13 +38,13 @@ import net.minecraft.world.level.levelgen.structure.StructureSet;
 import net.minecraft.world.level.levelgen.structure.StructureType;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePiecesBuilder;
 
-import appeng.core.AppEng;
+import appeng.api.ids.AEConstants;
 import appeng.core.ConventionTags;
 import appeng.worldgen.meteorite.fallout.FalloutMode;
 
 public class MeteoriteStructure extends Structure {
 
-    public static final Identifier ID = AppEng.makeId("meteorite");
+    public static final Identifier ID = AEConstants.makeId("meteorite");
     public static final ResourceKey<StructureSet> STRUCTURE_SET_KEY = ResourceKey
             .create(Registries.STRUCTURE_SET, ID);
 
@@ -54,7 +54,7 @@ public class MeteoriteStructure extends Structure {
             .create(Registries.STRUCTURE, ID);
 
     public static final TagKey<Biome> BIOME_TAG_KEY = TagKey.create(Registries.BIOME,
-            AppEng.makeId("has_meteorites"));
+            AEConstants.makeId("has_meteorites"));
 
     public static StructureType<MeteoriteStructure> TYPE = () -> MeteoriteStructure.CODEC;
 

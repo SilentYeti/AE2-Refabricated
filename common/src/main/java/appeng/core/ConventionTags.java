@@ -157,6 +157,18 @@ public final class ConventionTags {
     public static final TagKey<Biome> METEORITE_OCEAN = biomeTag("c:is_ocean");
 
     /**
+     * The biome convention tags the meteorite fallout picks its material from.
+     * <p>
+     * NeoForge declares these on {@code Tags.Biomes} and Fabric on {@code ConventionalBiomeTags}, but both are the same
+     * {@code c:} tags -- that is what a convention tag is for -- so naming them here costs a line each and keeps the
+     * fallout loader-agnostic.
+     */
+    public static final TagKey<Biome> IS_SANDY = biomeTag("c:is_sandy");
+    public static final TagKey<Biome> IS_COLD = biomeTag("c:is_cold");
+    public static final TagKey<Biome> IS_SNOWY = biomeTag("c:is_snowy");
+    public static final TagKey<Biome> IS_PLAINS = biomeTag("c:is_plains");
+
+    /**
      * Used to identify items that act as wrenches.
      */
     public static final TagKey<Item> WRENCH = tag("c:tools/wrench");

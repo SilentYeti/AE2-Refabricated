@@ -156,9 +156,22 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       Confirmed working in game: matter-cannon recipe errors fell from 68 to 4, and the 4 that remain
       are the ones whose tags vanilla does populate (iron, gold, copper) plus the one unconditional
       recipe — exactly the set that *should* still try to load.
-- [ ] Structures (`StructurePieceType`, `StructureType`) — the whole `appeng/worldgen` package
-      bounces on `neoforge.common` and AE2's own worldgen types. Not blocked by anything subtle,
-      just untouched
+- [x] Structures (`StructurePieceType`, `StructureType`) — **6 of the 9 `appeng/worldgen` files
+      crossed; the remaining 3 are a stage 6 cycle.**
+      The package's *only* tie to NeoForge was `net.neoforged.neoforge.common.Tags`, in two files,
+      for four biome tags. Those turn out to be plain `c:` convention tags — NeoForge's
+      `Tags.Biomes` and Fabric's `ConventionalBiomeTags` are two names for the same tag IDs — so
+      naming them on AE2's own `ConventionTags` (which already had `c:is_ocean` and the
+      `biomeTag` helper) removes the import outright rather than abstracting over it. Verified
+      that `fabric-convention-tags-v2` ships all four data files, since a missing one would not
+      error, it would silently make every meteorite fall back to `DEFAULT` fallout.
+      Across: `PlacedMeteoriteSettings`, `MeteoriteSpawner`, and all four `Fallout*` classes.
+      Still in `:neoforge`: `MeteoritePlacer`, `MeteoriteStructure` and `MeteoriteStructurePiece`,
+      as one cycle — the piece calls `ServerCompassService`, which needs `AEBlocks` and
+      `MysteriousCubeBlockEntity`. **Block entities, so stage 6**, same gate as the block entity
+      types above. Nothing loader-specific is left in any of the three; `MeteoriteStructure` lost
+      its last one (`AppEng.makeId` → `AEConstants.makeId`) on the way.
+      Registration of the `StructureType`/`StructurePieceType` on Fabric waits on that same cycle
 - [ ] Attachment types → `fabric-data-attachment-api-v1`. Exactly one attachment,
       `AEAttachmentTypes.HOLDING_CTRL`, a per-player boolean. Both loaders have the concept under
       different APIs, so it wants a two-method seam (`isHoldingCtrl` / `setHoldingCtrl`) rather than
@@ -166,16 +179,24 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       which is close to crossing, so building the seam now would leave it with nothing to serve —
       do it alongside stage 5
 
-**Partly done.** The blanket `exclude 'data/**'` is gone and **148 AE2 recipes load**, asserted as a
-floor by the gametest. The data pack now ships a directory at a time, because the kinds of data fail
-differently: an unparseable *recipe* is logged and skipped, whereas tags, worldgen and the dynamic
-registries go through `RegistryDataLoader` where one dangling reference is fatal and world creation
-aborts. Verified by lifting them: it crashes on `ae2:meteorite_compass` and on the vanilla
-`enchantable/*` tags AE2 contributes to.
+**As far as it goes on its own.** Every item above is either done or refiled with a reason: block
+entity types to stage 6, entity and attachment types to stage 5, data components to stage 2, and the
+recipe classes that have not crossed to whichever stage owns what they name. Nothing in stage 1 is
+still waiting on stage 1 — picking this up means starting at stage 2, not finishing here.
+
+The blanket `exclude 'data/**'` is gone and the data pack ships a directory at a time, because the
+kinds of data fail differently: an unparseable *recipe* is logged and skipped, whereas tags, worldgen
+and the dynamic registries go through `RegistryDataLoader` where one dangling reference is fatal and
+world creation aborts. Verified by lifting them: it crashes on `ae2:meteorite_compass` and on the
+vanilla `enchantable/*` tags AE2 contributes to.
 
 Each remaining `exclude` line in `fabric/build.gradle` names what has to register before it can go.
+The gametest asserts the recipe count as a floor rather than an equality, so it ratchets up as
+serializers land; `AE2ClientGameTest` holds the current number.
 
-**Done when:** every exclusion is gone and the recipe floor reaches AE2's full count.
+**Done when:** every exclusion is gone and the recipe floor reaches AE2's full count — which cannot
+happen until the stages those exclusions name are done. Treat stage 1 as closed and come back to
+delete exclusion lines as later stages unblock them.
 
 ## Stage 2 — Components and the key/storage API
 
