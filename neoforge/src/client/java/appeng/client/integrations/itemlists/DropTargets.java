@@ -11,6 +11,7 @@ import net.minecraft.world.item.ItemStack;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.GenericStack;
 import appeng.client.gui.AEBaseScreen;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.slot.FakeSlot;
 
 public final class DropTargets {
@@ -51,7 +52,7 @@ public final class DropTargets {
             if (genericStack.what() instanceof AEItemKey itemKey) {
                 return itemKey.toStack(Ints.saturatedCast(Math.max(1, genericStack.amount())));
             } else {
-                return GenericStack.wrapInItemStack(genericStack.what(), Math.max(1, genericStack.amount()));
+                return WrappedGenericStack.wrap(genericStack.what(), Math.max(1, genericStack.amount()));
             }
         }
 

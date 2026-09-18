@@ -32,13 +32,13 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.config.Settings;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.GenericStack;
 import appeng.client.gui.style.ScreenStyle;
 import appeng.client.gui.widgets.ActionButton;
 import appeng.client.gui.widgets.SettingToggleButton;
 import appeng.client.gui.widgets.ToggleButton;
 import appeng.core.definitions.AEItems;
 import appeng.core.localization.GuiText;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.implementations.CellWorkbenchMenu;
 import appeng.util.Icon;
 
@@ -89,7 +89,7 @@ public class CellWorkbenchScreen extends UpgradeableScreen<CellWorkbenchMenu> {
         }
 
         AEKey what;
-        var genericStack = GenericStack.unwrapItemStack(stack);
+        var genericStack = WrappedGenericStack.unwrap(stack);
         if (genericStack != null) {
             what = genericStack.what();
         } else {

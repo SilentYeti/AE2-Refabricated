@@ -9,6 +9,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentPatch;
@@ -29,9 +31,9 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import appeng.api.storage.AEKeyFilter;
-import appeng.core.AELog;
 
 public final class AEItemKey extends AEKey {
+    private static final Logger LOG = LoggerFactory.getLogger(AEItemKey.class);
 
     public static final MapCodec<AEItemKey> MAP_CODEC = RecordCodecBuilder.mapCodec(
             builder -> builder.group(
@@ -200,7 +202,7 @@ public final class AEItemKey extends AEKey {
     public void addDrops(long amount, List<ItemStack> drops, Level level, BlockPos pos) {
         while (amount > 0) {
             if (drops.size() > 1000) {
-                AELog.warn("Tried dropping an excessive amount of items, ignoring %s %ss", amount, stack.getItem());
+                LOG.warn("Tried dropping an excessive amount of items, ignoring {} {}s", amount, stack.getItem());
                 break;
             }
 
@@ -229,7 +231,7 @@ public final class AEItemKey extends AEKey {
 
     @Override
     public boolean hasComponents() {
-        return !stack.isComponentsPatchEmpty();
+        return !stack.getComponentsPatch().isEmpty();
     }
 
     /**
@@ -258,6 +260,6 @@ public final class AEItemKey extends AEKey {
         var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         String idString = id != BuiltInRegistries.ITEM.getDefaultKey() ? id.toString()
                 : stack.getItem().getClass().getName() + "(unregistered)";
-        return stack.isComponentsPatchEmpty() ? idString : idString + " (with patches)";
+        return stack.getComponentsPatch().isEmpty() ? idString : idString + " (with patches)";
     }
 }

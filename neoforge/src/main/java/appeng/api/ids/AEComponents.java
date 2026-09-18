@@ -27,10 +27,12 @@ import appeng.api.config.FuzzyMode;
 import appeng.api.implementations.items.MemoryCardColors;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
+import appeng.api.stacks.WrappedStacks;
 import appeng.api.util.AEColor;
 import appeng.block.crafting.PushDirection;
 import appeng.core.AppEng;
 import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 import appeng.crafting.pattern.EncodedCraftingPattern;
 import appeng.crafting.pattern.EncodedProcessingPattern;
 import appeng.crafting.pattern.EncodedSmithingTablePattern;
@@ -277,7 +279,7 @@ public final class AEComponents {
      * The generic stack wrapped in a {@link AEItems#WRAPPED_GENERIC_STACK}
      */
     public static final DataComponentType<GenericStack> WRAPPED_STACK = register("wrapped_stack",
-            builder -> builder.persistent(GenericStack.CODEC).networkSynchronized(GenericStack.STREAM_CODEC));
+            WrappedStacks.COMPONENT);
 
     /**
      * A crafting inventory.
@@ -289,21 +291,30 @@ public final class AEComponents {
     public static final DataComponentType<SpatialPlotInfo> SPATIAL_PLOT_INFO = register("spatial_plot_info",
             builder -> builder.persistent(SpatialPlotInfo.CODEC).networkSynchronized(SpatialPlotInfo.STREAM_CODEC));
 
+    /*
+     * The missing-content components are built by AEMissingContent, which owns that feature, and only registered here.
+     * The key API needs them and this class names the key API, so defining them here would be a cycle.
+     */
     public static final DataComponentType<CustomData> MISSING_CONTENT_ITEMSTACK_DATA = register(
-            "missing_content_itemstack_data",
-            builder -> builder.persistent(CustomData.CODEC).networkSynchronized(CustomData.STREAM_CODEC));
+            "missing_content_itemstack_data", AEMissingContent.ITEMSTACK_DATA);
 
     public static final DataComponentType<CustomData> MISSING_CONTENT_AEKEY_DATA = register(
-            "missing_content_aekey_data",
-            builder -> builder.persistent(CustomData.CODEC).networkSynchronized(CustomData.STREAM_CODEC));
+            "missing_content_aekey_data", AEMissingContent.AEKEY_DATA);
 
     public static final DataComponentType<String> MISSING_CONTENT_ERROR = register("missing_content_error",
-            builder -> builder.persistent(Codec.STRING).networkSynchronized(ByteBufCodecs.STRING_UTF8));
+            AEMissingContent.ERROR);
 
     private static <T> DataComponentType<T> register(String name, Consumer<DataComponentType.Builder<T>> customizer) {
         var builder = DataComponentType.<T>builder();
         customizer.accept(builder);
-        var componentType = builder.build();
+        return register(name, builder.build());
+    }
+
+    /**
+     * Registers a component type built elsewhere, for features that have to own their own components to avoid a cycle
+     * with this class. Registration still happens only here.
+     */
+    private static <T> DataComponentType<T> register(String name, DataComponentType<T> componentType) {
         DR.register(name, () -> componentType);
         return componentType;
     }

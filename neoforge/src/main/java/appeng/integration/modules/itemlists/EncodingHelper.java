@@ -28,6 +28,7 @@ import appeng.api.stacks.GenericStack;
 import appeng.core.network.ServerboundPacket;
 import appeng.core.network.serverbound.InventoryActionPacket;
 import appeng.helpers.InventoryAction;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.me.common.GridInventoryEntry;
 import appeng.menu.me.common.MEStorageMenu;
 import appeng.menu.me.items.PatternEncodingTermMenu;
@@ -81,7 +82,7 @@ public final class EncodingHelper {
 
         for (int i = 0; i < slots.length; i++) {
             var slot = slots[i];
-            var stack = (i < encodedInputs.size()) ? GenericStack.wrapInItemStack(encodedInputs.get(i))
+            var stack = (i < encodedInputs.size()) ? WrappedGenericStack.wrapOrEmpty(encodedInputs.get(i))
                     : ItemStack.EMPTY;
             ServerboundPacket message = new InventoryActionPacket(
                     InventoryAction.SET_FILTER, slot.index, stack);
@@ -165,7 +166,7 @@ public final class EncodingHelper {
                 if (bestIngredient instanceof AEItemKey itemKey) {
                     encodedInputs.set(slot, itemKey.toStack());
                 } else {
-                    encodedInputs.set(slot, GenericStack.wrapInItemStack(bestIngredient, 1));
+                    encodedInputs.set(slot, WrappedGenericStack.wrap(bestIngredient, 1));
                 }
             }
         }

@@ -37,7 +37,7 @@ import appeng.api.config.Actionable;
 import appeng.api.ids.AEComponents;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.GenericStack;
-import appeng.core.definitions.AEItems;
+import appeng.api.stacks.WrappedStacks;
 import appeng.core.definitions.CreativeTabSink;
 import appeng.items.AEBaseItem;
 
@@ -51,16 +51,31 @@ public class WrappedGenericStack extends AEBaseItem {
 
     public static ItemStack wrap(GenericStack stack) {
         Objects.requireNonNull(stack, "stack");
-        var item = AEItems.WRAPPED_GENERIC_STACK.asItem();
-        var result = new ItemStack(item);
-        result.set(AEComponents.WRAPPED_STACK, stack);
-        return result;
+        return WrappedStacks.wrap(stack);
+    }
+
+    /**
+     * Null-tolerant counterpart to {@link #wrap(GenericStack)}: an absent stack becomes {@link ItemStack#EMPTY}.
+     * <p>
+     * This is what {@code GenericStack.wrapInItemStack(GenericStack)} did, and callers that went through it rely on the
+     * empty stack rather than an exception.
+     */
+    public static ItemStack wrapOrEmpty(@Nullable GenericStack stack) {
+        return WrappedStacks.wrapOrEmpty(stack);
+    }
+
+    public static boolean isWrapped(ItemStack stack) {
+        return WrappedStacks.isWrapped(stack);
+    }
+
+    @Nullable
+    public static GenericStack unwrap(ItemStack stack) {
+        return WrappedStacks.unwrap(stack);
     }
 
     public static ItemStack wrap(AEKey what, long amount) {
         Objects.requireNonNull(what, "what");
-
-        return wrap(new GenericStack(what, amount));
+        return WrappedStacks.wrap(what, amount);
     }
 
     public WrappedGenericStack(Properties properties) {

@@ -34,6 +34,7 @@ import appeng.api.stacks.GenericStack;
 import appeng.api.storage.ISubMenuHost;
 import appeng.core.network.ServerboundPacket;
 import appeng.core.network.serverbound.ConfirmAutoCraftPacket;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.AEBaseMenu;
 import appeng.menu.ISubMenu;
 import appeng.menu.MenuOpener;
@@ -96,7 +97,7 @@ public class CraftAmountMenu extends AEBaseMenu implements ISubMenu {
 
     private void setWhatToCraft(AEKey whatToCraft, int initialAmount) {
         this.whatToCraft = Objects.requireNonNull(whatToCraft, "whatToCraft");
-        this.craftingItem.set(GenericStack.wrapInItemStack(whatToCraft, initialAmount));
+        this.craftingItem.set(WrappedGenericStack.wrap(whatToCraft, initialAmount));
     }
 
     /**
@@ -158,6 +159,6 @@ public class CraftAmountMenu extends AEBaseMenu implements ISubMenu {
 
     @Nullable
     public GenericStack getWhatToCraft() {
-        return GenericStack.unwrapItemStack(craftingItem.getItem());
+        return WrappedGenericStack.unwrap(craftingItem.getItem());
     }
 }

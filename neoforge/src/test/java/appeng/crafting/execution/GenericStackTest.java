@@ -83,20 +83,20 @@ class GenericStackTest {
         void wrapWater() {
             var water = new GenericStack(AEFluidKey.of(Fluids.WATER), Long.MAX_VALUE);
 
-            ItemStack wrapped = GenericStack.wrapInItemStack(water);
+            ItemStack wrapped = WrappedGenericStack.wrapOrEmpty(water);
             assertValidWrapped(wrapped);
 
-            assertEquals(water, GenericStack.unwrapItemStack(wrapped));
+            assertEquals(water, WrappedGenericStack.unwrap(wrapped));
         }
 
         @Test
         void wrapItemAmountOfZero() {
             var zeroCobble = new GenericStack(AEItemKey.of(Items.COBBLESTONE), 0);
 
-            ItemStack wrapped = GenericStack.wrapInItemStack(zeroCobble);
+            ItemStack wrapped = WrappedGenericStack.wrapOrEmpty(zeroCobble);
             assertValidWrapped(wrapped);
 
-            assertEquals(zeroCobble, GenericStack.unwrapItemStack(wrapped));
+            assertEquals(zeroCobble, WrappedGenericStack.unwrap(wrapped));
         }
 
         private void assertValidWrapped(ItemStack wrapped) {

@@ -96,6 +96,7 @@ import appeng.core.network.ServerboundPacket;
 import appeng.core.network.serverbound.InventoryActionPacket;
 import appeng.core.network.serverbound.SwapSlotsPacket;
 import appeng.helpers.InventoryAction;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.items.tools.GuideItem;
 import appeng.menu.AEBaseMenu;
 import appeng.menu.SlotSemantic;
@@ -299,7 +300,7 @@ public abstract class AEBaseScreen<T extends AEBaseMenu> extends AbstractContain
         // See if we should offer the left-/right-click differentiation for setting a different filter
         var emptyingAction = ContainerItemStrategies.getEmptyingAction(carried);
         if (emptyingAction != null) {
-            var wrappedStack = GenericStack.wrapInItemStack(new GenericStack(emptyingAction.what(), 1));
+            var wrappedStack = WrappedGenericStack.wrapOrEmpty(new GenericStack(emptyingAction.what(), 1));
             if (configInv.isItemValid(slot.getSlotIndex(), wrappedStack)) {
                 return emptyingAction;
             }
@@ -643,7 +644,7 @@ public abstract class AEBaseScreen<T extends AEBaseMenu> extends AbstractContain
         }
 
         // Prevent cloning of wrapped itemstacks
-        if (clickType == ContainerInput.CLONE && slot != null && GenericStack.isWrapped(slot.getItem())) {
+        if (clickType == ContainerInput.CLONE && slot != null && WrappedGenericStack.isWrapped(slot.getItem())) {
             return;
         }
 

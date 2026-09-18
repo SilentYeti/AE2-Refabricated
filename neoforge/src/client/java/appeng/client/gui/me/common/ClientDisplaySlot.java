@@ -5,6 +5,7 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.stacks.GenericStack;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.slot.ClientReadOnlySlot;
 
 /**
@@ -14,7 +15,7 @@ public class ClientDisplaySlot extends ClientReadOnlySlot {
     private final ItemStack item;
 
     public ClientDisplaySlot(@Nullable GenericStack stack) {
-        item = GenericStack.wrapInItemStack(stack);
+        item = WrappedGenericStack.wrapOrEmpty(stack);
     }
 
     @Override

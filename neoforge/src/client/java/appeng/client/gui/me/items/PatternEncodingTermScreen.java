@@ -47,6 +47,7 @@ import appeng.core.localization.Tooltips;
 import appeng.core.network.ServerboundPacket;
 import appeng.core.network.serverbound.InventoryActionPacket;
 import appeng.helpers.InventoryAction;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.SlotSemantics;
 import appeng.menu.me.items.PatternEncodingTermMenu;
 import appeng.parts.encoding.EncodingMode;
@@ -108,7 +109,7 @@ public class PatternEncodingTermScreen<C extends PatternEncodingTermMenu> extend
                             newStack -> {
                                 ServerboundPacket message = new InventoryActionPacket(
                                         InventoryAction.SET_FILTER, slot.index,
-                                        GenericStack.wrapInItemStack(newStack));
+                                        WrappedGenericStack.wrapOrEmpty(newStack));
                                 ClientPacketDistributor.sendToServer(message);
                             });
                     switchToScreen(screen);

@@ -26,10 +26,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 
 import appeng.api.stacks.AmountFormat;
-import appeng.api.stacks.GenericStack;
 import appeng.client.api.AEKeyRendering;
 import appeng.client.gui.me.common.StackSizeRenderer;
 import appeng.crafting.pattern.EncodedPatternItem;
+import appeng.items.misc.WrappedGenericStack;
 
 public final class GuiGraphicsHooks {
     // Prevents recursion in the hook below
@@ -62,7 +62,7 @@ public final class GuiGraphicsHooks {
             }
         }
 
-        var unwrapped = GenericStack.unwrapItemStack(stack);
+        var unwrapped = WrappedGenericStack.unwrap(stack);
         if (unwrapped != null) {
             AEKeyRendering.drawInGui(
                     minecraft,

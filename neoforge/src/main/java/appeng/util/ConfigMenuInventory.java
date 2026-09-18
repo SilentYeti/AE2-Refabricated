@@ -16,6 +16,7 @@ import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.helpers.externalstorage.GenericStackInv;
+import appeng.items.misc.WrappedGenericStack;
 
 /**
  * Wraps this configuration inventory as an {@link ItemStack} based inventory for use in a menu. It will automatically
@@ -74,7 +75,7 @@ public class ConfigMenuInventory implements InternalInventory {
             }
         }
 
-        return GenericStack.wrapInItemStack(stack);
+        return WrappedGenericStack.wrapOrEmpty(stack);
     }
 
     @Override
@@ -96,7 +97,7 @@ public class ConfigMenuInventory implements InternalInventory {
         }
 
         // Item Stacks that contain a wrapped GenericStack will automatically be unwrapped
-        var unwrapped = GenericStack.unwrapItemStack(stack);
+        var unwrapped = WrappedGenericStack.unwrap(stack);
         if (unwrapped != null) {
             if (unwrapped.what() instanceof AEItemKey itemKey) {
                 // Let the standard logic handle wrapped items

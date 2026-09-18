@@ -6,6 +6,7 @@ import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.inventory.Slot;
 
 import appeng.api.stacks.GenericStack;
+import appeng.items.misc.WrappedGenericStack;
 
 /**
  * A stack that is rendered including its absolute on-screen bounds.
@@ -14,7 +15,7 @@ public record StackWithBounds(GenericStack stack, Rect2i bounds) {
     @Nullable
     public static StackWithBounds fromSlot(AEBaseScreen<?> screen, Slot slot) {
         var item = slot.getItem();
-        var stack = GenericStack.unwrapItemStack(item);
+        var stack = WrappedGenericStack.unwrap(item);
         if (stack != null) {
             return new StackWithBounds(
                     stack,

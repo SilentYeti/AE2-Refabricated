@@ -12,8 +12,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 
-import appeng.api.stacks.GenericStack;
 import appeng.client.api.AEKeyRendering;
+import appeng.items.misc.WrappedGenericStack;
 
 @Mixin(value = Screen.class, priority = 1001)
 public class WrappedGenericStackTooltipModIdMixin {
@@ -21,7 +21,7 @@ public class WrappedGenericStackTooltipModIdMixin {
     @Inject(method = "getTooltipFromItem", at = @At("RETURN"), cancellable = true)
     private static void getTooltipFromItem(Minecraft client, ItemStack itemStack,
             CallbackInfoReturnable<List<Component>> cri) {
-        var unwrapped = GenericStack.unwrapItemStack(itemStack);
+        var unwrapped = WrappedGenericStack.unwrap(itemStack);
         if (unwrapped != null) {
             cri.setReturnValue(AEKeyRendering.getTooltip(unwrapped.what()));
         }

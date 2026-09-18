@@ -60,6 +60,7 @@ import appeng.api.stacks.KeyCounter;
 import appeng.blockentity.crafting.IMolecularAssemblerSupportedPattern;
 import appeng.core.localization.GuiText;
 import appeng.crafting.RecipeAccess;
+import appeng.items.misc.WrappedGenericStack;
 
 public class AECraftingPattern implements IPatternDetails, IMolecularAssemblerSupportedPattern {
     public static final int CRAFTING_GRID_DIMENSION = 3;
@@ -371,7 +372,7 @@ public class AECraftingPattern implements IPatternDetails, IMolecularAssemblerSu
                     int requiredAmount = (int) validFluid.amount();
                     if (amount >= requiredAmount) {
                         gridAccessor.set(sparseIndex,
-                                GenericStack.wrapInItemStack(validFluidKey, requiredAmount));
+                                WrappedGenericStack.wrap(validFluidKey, requiredAmount));
                         list.remove(validFluidKey, requiredAmount);
                         continue;
                     }
@@ -403,7 +404,7 @@ public class AECraftingPattern implements IPatternDetails, IMolecularAssemblerSu
 
             for (int x = 0; x < container.size(); ++x) {
                 ItemStack item = container.getItem(x);
-                var stack = GenericStack.unwrapItemStack(item);
+                var stack = WrappedGenericStack.unwrap(item);
                 if (stack != null) {
                     // If we receive a pure fluid stack, we convert it to the appropriate container item
                     // If it matches the allowable input
@@ -425,7 +426,7 @@ public class AECraftingPattern implements IPatternDetails, IMolecularAssemblerSu
             var y = i / CRAFTING_GRID_DIMENSION - positionedPattern.top();
             if (x >= 0 && x < container.width() && y >= 0 && y < container.height()) {
                 ItemStack item = container.getItem(x, y);
-                var stack = GenericStack.unwrapItemStack(item);
+                var stack = WrappedGenericStack.unwrap(item);
                 if (stack != null) {
                     // If we receive a pure fluid stack, we'll convert it to the appropriate container item
                     // If it matches the allowable input
@@ -461,7 +462,7 @@ public class AECraftingPattern implements IPatternDetails, IMolecularAssemblerSu
                 var validFluid = getValidFluid(x);
                 if (validFluid != null) {
                     var item = container.getItem(x);
-                    var stack = GenericStack.unwrapItemStack(item);
+                    var stack = WrappedGenericStack.unwrap(item);
                     if (validFluid.equals(stack)) {
                         adjustedItems.set(x, ((AEItemKey) sparseInputs.get(x).what()).toStack());
                         slotsToClear[x] = true;

@@ -25,14 +25,12 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import appeng.api.config.FuzzyMode;
-import appeng.api.ids.AEComponents;
-import appeng.core.definitions.AEItems;
+import appeng.core.definitions.AEMissingContent;
 
 /**
  * Uniquely identifies something that "stacks" within an ME inventory.
@@ -56,13 +54,10 @@ public abstract class AEKey {
                 @Override
                 public <T> DataResult<AEKey> apply(DynamicOps<T> ops, MapLike<T> input, DataResult<AEKey> a) {
                     if (a instanceof DataResult.Error<AEKey> error) {
-                        var missingContent = AEItems.MISSING_CONTENT.stack();
                         var convert = ops.convertMap(NbtOps.INSTANCE, ops.createMap(input.entries()));
-                        if (convert instanceof CompoundTag compoundTag) {
-                            missingContent.set(AEComponents.MISSING_CONTENT_AEKEY_DATA, CustomData.of(compoundTag));
-                        }
                         LOG.error("Failed to deserialize AE key: {}", error.message());
-                        missingContent.set(AEComponents.MISSING_CONTENT_ERROR, error.message());
+                        var missingContent = AEMissingContent.replacement(AEMissingContent.AEKEY_DATA,
+                                convert instanceof CompoundTag compoundTag ? compoundTag : null, error.message());
 
                         return DataResult.success(
                                 AEItemKey.of(missingContent),
@@ -76,8 +71,8 @@ public abstract class AEKey {
                 public <T> RecordBuilder<T> coApply(DynamicOps<T> ops, AEKey input, RecordBuilder<T> t) {
                     // When the input is a MISSING_CONTENT item and has the original data attached,
                     // we write that back.
-                    if (AEItems.MISSING_CONTENT.is(input)) {
-                        var originalData = input.get(AEComponents.MISSING_CONTENT_AEKEY_DATA);
+                    if (input instanceof AEItemKey itemKey && AEMissingContent.is(itemKey.getReadOnlyStack())) {
+                        var originalData = input.get(AEMissingContent.AEKEY_DATA);
                         if (originalData != null) {
                             var originalDataMap = originalData.copyTag();
                             for (var entry : originalDataMap.entrySet()) {
@@ -288,7 +283,7 @@ public abstract class AEKey {
      * Wraps a key in an ItemStack that can be unwrapped into a key later.
      */
     public ItemStack wrapForDisplayOrFilter() {
-        return GenericStack.wrapInItemStack(this, 0);
+        return WrappedStacks.wrap(this, 0);
     }
 
     /**

@@ -22,13 +22,10 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
-import appeng.api.ids.AEComponents;
-import appeng.core.definitions.AEItems;
-import appeng.items.misc.WrappedGenericStack;
+import appeng.core.definitions.AEMissingContent;
 
 /**
  * Represents some amount of some generic resource that AE can store or handle in crafting.
@@ -59,13 +56,10 @@ public record GenericStack(AEKey what, long amount) {
         public <T> DataResult<Pair<GenericStack, T>> apply(DynamicOps<T> ops, T input,
                 DataResult<Pair<GenericStack, T>> a) {
             if (a instanceof DataResult.Error<Pair<GenericStack, T>> error) {
-                var missingContent = AEItems.MISSING_CONTENT.stack();
                 var convert = Dynamic.convert(ops, NbtOps.INSTANCE, input);
-                if (convert instanceof CompoundTag compoundTag) {
-                    missingContent.set(AEComponents.MISSING_CONTENT_ITEMSTACK_DATA, CustomData.of(compoundTag));
-                }
                 LOG.error("Failed to deserialize GenericStack {}: {}", input, error.message());
-                missingContent.set(AEComponents.MISSING_CONTENT_ERROR, error.message());
+                var missingContent = AEMissingContent.replacement(AEMissingContent.ITEMSTACK_DATA,
+                        convert instanceof CompoundTag compoundTag ? compoundTag : null, error.message());
 
                 var replacement = new GenericStack(AEItemKey.of(missingContent), 1);
 
@@ -83,9 +77,9 @@ public record GenericStack(AEKey what, long amount) {
             // When the serialization result failed, we write a missing content item instead
             // this one will NOT be recoverable
             if (t instanceof DataResult.Error<T> error) {
-                var missingContent = AEItems.MISSING_CONTENT.stack();
                 LOG.error("Failed to serialize GenericStack {}: {}", input, error.message());
-                missingContent.set(AEComponents.MISSING_CONTENT_ERROR, error.message());
+                var missingContent = AEMissingContent.replacement(AEMissingContent.ITEMSTACK_DATA, null,
+                        error.message());
 
                 var replacement = new GenericStack(AEItemKey.of(missingContent), 1);
                 return CODEC.encodeStart(ops, replacement).setLifecycle(t.lifecycle());
@@ -93,8 +87,8 @@ public record GenericStack(AEKey what, long amount) {
 
             // When the input is a MISSING_CONTENT item and has the original data attached,
             // we write that back.
-            if (input.what() instanceof AEItemKey itemKey && itemKey.is(AEItems.MISSING_CONTENT)) {
-                var originalData = itemKey.get(AEComponents.MISSING_CONTENT_ITEMSTACK_DATA);
+            if (input.what() instanceof AEItemKey itemKey && AEMissingContent.is(itemKey.getReadOnlyStack())) {
+                var originalData = itemKey.get(AEMissingContent.ITEMSTACK_DATA);
                 if (originalData != null) {
                     return DataResult.success(Dynamic.convert(NbtOps.INSTANCE, ops, originalData.copyTag()),
                             t.lifecycle());
@@ -160,7 +154,7 @@ public record GenericStack(AEKey what, long amount) {
      */
     @Nullable
     public static GenericStack fromItemStack(ItemStack stack) {
-        var genericStack = GenericStack.unwrapItemStack(stack);
+        var genericStack = WrappedStacks.unwrap(stack);
         if (genericStack != null) {
             return genericStack;
         }
@@ -174,35 +168,6 @@ public record GenericStack(AEKey what, long amount) {
 
     public static long getStackSizeOrZero(@Nullable GenericStack stack) {
         return stack == null ? 0 : stack.amount;
-    }
-
-    public static ItemStack wrapInItemStack(@Nullable GenericStack stack) {
-        if (stack != null) {
-            return wrapInItemStack(stack.what(), stack.amount());
-        } else {
-            return ItemStack.EMPTY;
-        }
-    }
-
-    public static ItemStack wrapInItemStack(AEKey what, long amount) {
-        return WrappedGenericStack.wrap(what, amount);
-    }
-
-    public static boolean isWrapped(ItemStack stack) {
-        return stack.getItem() instanceof WrappedGenericStack;
-    }
-
-    public static GenericStack unwrapItemStack(ItemStack stack) {
-        // The isEmpty stack is needed because the item can match while its count is 0
-        if (!stack.isEmpty() && stack.getItem() instanceof WrappedGenericStack item) {
-            var what = item.unwrapWhat(stack);
-            if (what != null) {
-                var amount = item.unwrapAmount(stack);
-                return new GenericStack(what, amount);
-            }
-        }
-
-        return null;
     }
 
     public static GenericStack sum(GenericStack left, GenericStack right) {

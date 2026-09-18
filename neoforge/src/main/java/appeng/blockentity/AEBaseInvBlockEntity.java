@@ -34,7 +34,7 @@ import net.neoforged.neoforge.transfer.ResourceHandler;
 import net.neoforged.neoforge.transfer.item.ItemResource;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.api.stacks.GenericStack;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.util.inv.AppEngInternalInventory;
 import appeng.util.inv.InternalInventoryHost;
 
@@ -81,7 +81,7 @@ public abstract class AEBaseInvBlockEntity extends AEBaseBlockEntity implements 
     public void addAdditionalDrops(Level level, BlockPos pos, List<ItemStack> drops) {
         var inv = getInternalInventory();
         for (var stack : inv) {
-            var genericStack = GenericStack.unwrapItemStack(stack);
+            var genericStack = WrappedGenericStack.unwrap(stack);
             if (genericStack != null) {
                 genericStack.what().addDrops(
                         genericStack.amount(),

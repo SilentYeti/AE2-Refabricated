@@ -10,6 +10,8 @@ import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
@@ -30,7 +32,6 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 
 import appeng.api.storage.AEKeyFilter;
-import appeng.core.AELog;
 import appeng.platform.FluidPlatform;
 
 /**
@@ -43,6 +44,8 @@ import appeng.platform.FluidPlatform;
  * loader's side.
  */
 public final class AEFluidKey extends AEKey {
+    private static final Logger LOG = LoggerFactory.getLogger(AEFluidKey.class);
+
     public static final MapCodec<AEFluidKey> MAP_CODEC = RecordCodecBuilder.mapCodec(
             instance -> instance.group(
                     BuiltInRegistries.FLUID.holderByNameCodec().validate(
@@ -123,7 +126,7 @@ public final class AEFluidKey extends AEKey {
         try {
             return input.read(MAP_CODEC).orElseThrow();
         } catch (Exception e) {
-            AELog.debug("Tried to load an invalid fluid key from NBT: %s", input, e);
+            LOG.debug("Tried to load an invalid fluid key from NBT: {}", input, e);
             return null;
         }
     }

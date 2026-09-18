@@ -20,6 +20,7 @@ import appeng.api.stacks.GenericStack;
 import appeng.client.gui.AEBaseScreen;
 import appeng.core.network.serverbound.InventoryActionPacket;
 import appeng.helpers.InventoryAction;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.slot.AppEngSlot;
 import appeng.menu.slot.FakeSlot;
 
@@ -49,7 +50,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AEBaseScreen> {
                 .or(() -> {
                     var genericStack = GenericEntryStackHelper.ingredientToStack(type, ingredient);
                     if (genericStack != null) {
-                        return Optional.of(GenericStack.wrapInItemStack(genericStack));
+                        return Optional.of(WrappedGenericStack.wrapOrEmpty(genericStack));
                     } else {
                         return Optional.empty();
                     }

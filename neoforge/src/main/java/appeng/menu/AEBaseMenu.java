@@ -68,7 +68,6 @@ import appeng.api.networking.security.IActionSource;
 import appeng.api.parts.IPart;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKey;
-import appeng.api.stacks.GenericStack;
 import appeng.api.upgrades.IUpgradeInventory;
 import appeng.core.network.ClientboundPacket;
 import appeng.core.network.ServerboundPacket;
@@ -76,6 +75,7 @@ import appeng.core.network.clientbound.GuiDataSyncPacket;
 import appeng.core.network.serverbound.GuiActionPacket;
 import appeng.helpers.InventoryAction;
 import appeng.helpers.externalstorage.GenericStackInv;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.me.helpers.PlayerSource;
 import appeng.menu.guisync.ClientActionKey;
 import appeng.menu.guisync.DataSynchronization;
@@ -760,7 +760,7 @@ public abstract class AEBaseMenu extends AbstractContainerMenu {
             case EMPTY_ITEM: {
                 var emptyingAction = ContainerItemStrategies.getEmptyingAction(hand);
                 if (emptyingAction != null) {
-                    fakeSlot.set(GenericStack.wrapInItemStack(emptyingAction.what(), emptyingAction.maxAmount()));
+                    fakeSlot.set(WrappedGenericStack.wrap(emptyingAction.what(), emptyingAction.maxAmount()));
                 }
             }
                 break;

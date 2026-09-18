@@ -31,8 +31,8 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
 import appeng.api.inventories.InternalInventory;
-import appeng.api.stacks.GenericStack;
 import appeng.core.AELog;
+import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.AEBaseMenu;
 import appeng.util.Icon;
 
@@ -181,7 +181,7 @@ public class AppEngSlot extends Slot {
     }
 
     private boolean containsWrapperItem() {
-        return GenericStack.isWrapped(getItem());
+        return WrappedGenericStack.isWrapped(getItem());
     }
 
     public boolean isSameInventory(Slot other) {
@@ -216,9 +216,9 @@ public class AppEngSlot extends Slot {
     public ItemStack getDisplayStack() {
         var is = getItem();
         if (hideAmount) {
-            var unwrapped = GenericStack.unwrapItemStack(is);
+            var unwrapped = WrappedGenericStack.unwrap(is);
             if (unwrapped != null) {
-                return GenericStack.wrapInItemStack(unwrapped.what(), 0);
+                return WrappedGenericStack.wrap(unwrapped.what(), 0);
             } else {
                 is = is.copy();
                 is.setCount(1);

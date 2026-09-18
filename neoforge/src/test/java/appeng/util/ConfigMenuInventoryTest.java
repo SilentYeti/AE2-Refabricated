@@ -18,6 +18,7 @@ import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
+import appeng.items.misc.WrappedGenericStack;
 
 @BootstrapMinecraft
 class ConfigMenuInventoryTest {
@@ -38,8 +39,8 @@ class ConfigMenuInventoryTest {
                 itemTest("Insert stone on stick changes filter", new ItemStack(Items.STONE), STONE, STICK),
                 itemTest("Water bucket wont be converted into fluid", new ItemStack(Items.WATER_BUCKET), WATER_BUCKET,
                         null),
-                itemTest("Wrapped item will be unwrapped", GenericStack.wrapInItemStack(STICK), STICK, null),
-                itemTest("Wrapped fluid will be rejected", GenericStack.wrapInItemStack(WATER), STICK, STICK));
+                itemTest("Wrapped item will be unwrapped", WrappedGenericStack.wrapOrEmpty(STICK), STICK, null),
+                itemTest("Wrapped fluid will be rejected", WrappedGenericStack.wrapOrEmpty(WATER), STICK, STICK));
     }
 
     @TestFactory
@@ -50,8 +51,8 @@ class ConfigMenuInventoryTest {
                 fluidTest("Insert empty clears existing filter", ItemStack.EMPTY, null, WATER),
                 fluidTest("Stick gets rejected", new ItemStack(Items.STICK), WATER, WATER),
                 fluidTest("Water bucket is not converted into fluid", new ItemStack(Items.WATER_BUCKET), null, null),
-                fluidTest("Wrapped item will be rejected", GenericStack.wrapInItemStack(STICK), WATER, WATER),
-                fluidTest("Wrapped fluid will be unwrapped", GenericStack.wrapInItemStack(WATER), WATER, null));
+                fluidTest("Wrapped item will be rejected", WrappedGenericStack.wrapOrEmpty(STICK), WATER, WATER),
+                fluidTest("Wrapped fluid will be unwrapped", WrappedGenericStack.wrapOrEmpty(WATER), WATER, null));
     }
 
     @Test
@@ -60,7 +61,7 @@ class ConfigMenuInventoryTest {
         inv.setStack(0, WATER);
         var wrappedStack = inv.createMenuWrapper().getStackInSlot(0);
         assertEquals(1, wrappedStack.getCount());
-        var unwrapped = GenericStack.unwrapItemStack(wrappedStack);
+        var unwrapped = WrappedGenericStack.unwrap(wrappedStack);
         // Types config sets amounts to 0
         assertEquals(new GenericStack(WATER.what(), 0), unwrapped);
     }

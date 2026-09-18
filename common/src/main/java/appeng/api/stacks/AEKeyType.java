@@ -31,6 +31,8 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import net.minecraft.core.Registry;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -44,7 +46,6 @@ import net.minecraft.world.level.storage.ValueInput;
 
 import appeng.api.ids.AEConstants;
 import appeng.api.storage.AEKeyFilter;
-import appeng.core.AELog;
 import appeng.util.ReadableNumberConverter;
 
 /**
@@ -52,6 +53,8 @@ import appeng.util.ReadableNumberConverter;
  * {@link AEItemKeys}.
  */
 public abstract class AEKeyType {
+    private static final Logger LOG = LoggerFactory.getLogger(AEKeyType.class);
+
     public static final ResourceKey<Registry<AEKeyType>> REGISTRY_KEY = ResourceKey
             .createRegistryKey(AEConstants.makeId("keytypes"));
     public static final Codec<AEKeyType> CODEC = Codec
@@ -154,7 +157,7 @@ public abstract class AEKeyType {
         try {
             return input.read(codec()).orElseThrow();
         } catch (Exception e) {
-            AELog.debug("Tried to load an invalid item key from NBT: %s", input, e);
+            LOG.debug("Tried to load an invalid item key from NBT: {}", input, e);
             return null;
         }
     }
