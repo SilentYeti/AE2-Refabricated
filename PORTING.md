@@ -1,7 +1,24 @@
 # Porting checklist
 
 Working document for getting Fabric to parity. [FABRIC-PARITY.md](FABRIC-PARITY.md) is the research
-behind it — read that once, work from this.
+behind it and [MULTILOADER.md](MULTILOADER.md) explains how the build is put together — read those
+once, work from this.
+
+## Starting cold
+
+```sh
+export JAVA_HOME=/usr/lib/jvm/java-25-openjdk        # 25 exactly; 21 will not do
+
+# GuideME is a REQUIRED dependency of AE2 and needed its own 26.2 port. Publish it first or
+# nothing here resolves.
+git clone https://github.com/SilentYeti/GuideME-Refabricated.git
+(cd GuideME-Refabricated && ./gradlew :neoforge:publishToMavenLocal -Pversion=26.2.0-ae2port)
+
+./gradlew build
+```
+
+`:fabric:runClientGametest` launches a real Minecraft client, so it needs a display. It closes
+itself; expect a window for ~20 seconds.
 
 ## The loop
 
@@ -10,7 +27,7 @@ Four commands, fastest first. Run the cheap ones constantly and the expensive on
 | | what it proves | time |
 |---|---|---|
 | `python3 tools/parity_report.py` | where the code sits and what is blocking the rest | instant |
-| `./gradlew :neoforge:test` | **nothing regressed** — 520 tests, the net under every file moved to `:common` | ~30 s |
+| `./gradlew :neoforge:test` | **nothing regressed** — the net under every file moved to `:common` | ~30 s |
 | `./gradlew build` | all three modules compile and both jars assemble | ~1 min |
 | `./gradlew :fabric:runClientGametest` | Fabric actually **works**: boots a client, creates a world, asserts registrations, screenshots the hotbar | ~30 s |
 
@@ -23,14 +40,43 @@ Fabric at all. It also writes `fabric/run-gametest/screenshots/`, which is worth
 a missing model renders as the purple-and-black placeholder and Minecraft only whispers about it in
 the log.
 
-### Current baseline
+Counts are deliberately not written down here — they go stale within a commit or two, and this
+document has already drifted once. `tools/parity_report.py` and the gametest's own log lines are the
+answer to "where are we".
 
-Everything below is measured, not remembered. Re-run the report rather than trusting these.
+## How to find what can move
 
+**Never by reading imports.** There are three coupling axes and only one of them is visible that way:
+
+1. imports of `net.neoforged.*` — visible
+2. **access transformers** — invisible. AE2 widens 56 vanilla members and `:common` has none, so
+   anything touching one fails to compile there
+3. **methods NeoForge patches onto vanilla classes** — invisible. Called with no NeoForge import at
+   all (`GuiGraphicsExtractor.peekScissorStack`, `submitGuiElementRenderState`)
+
+An import-based estimate of what could move said 34 files. Moving them and compiling said 233. So:
+
+```sh
+python3 tools/try_move_to_common.py appeng/recipes --dry-run   # what would stick, and why the rest would not
+python3 tools/try_move_to_common.py appeng/recipes             # actually do it
 ```
-:common 270   :neoforge/main 821   :neoforge/client 311
-gametest: 139 items + 49 blocks registered, 139 models resolved, 148 recipes, creative tab present
-```
+
+It moves, compiles, moves back whatever failed, repeats until it settles, and prints each bounced
+file with the compiler error that is the real reason it cannot move. Then run the rest of the loop
+above before committing.
+
+## Patterns that already work
+
+Reach for these before inventing something; each is in the tree with a comment explaining itself.
+
+| problem | answer | example |
+|---|---|---|
+| a vanilla member is `protected` and only reachable via AT | subclass it — a subclass may call a protected super constructor | `AEStairBlock` |
+| an API takes an AT-widened type | define a narrow interface in `:common` and adapt per loader | `CreativeTabSink` for `CreativeModeTab.Output` |
+| loader-agnostic code needs state that only an event can set | the state moves to `:common`, the event handler stays with its loader | `WrenchDisassembly` / `WrenchHook` |
+| `:common` needs something only a loader can answer | add to the platform SPI — vanilla-typed signatures only | `AEPlatform`, `MenuPlatform` |
+| a helper is a thin wrapper over something vanilla already has | reimplement it in `:common` | `AEStreamCodecs` for `NeoForgeStreamCodecs` |
+| content cannot be registered on Fabric yet | declare it in an `AECommon*` table, or explain it in `notYetPortable()` | `AECommonItems`, `AECommonBlocks` |
 
 ## Discipline
 
@@ -42,8 +88,14 @@ starts** — it is the cheapest parity tracker there is and it runs in CI.
 **Anything added to `:common` must be inside the `mods { }` source-set registration**, or it loads
 outside NeoForge's transforming class loader and fails at runtime while the build stays green.
 
-**Moving a file to `:common` is a refactor.** If `:neoforge:test` count changes, something else
+**Moving a file to `:common` is a refactor.** If the `:neoforge:test` count changes, something else
 happened too.
+
+**Raise the gametest floors when they rise.** `MIN_RECIPES` in `AE2ClientGameTest` is a floor, not a
+target; leaving it low lets a regression hide under it.
+
+**`:common` may not import `net.neoforged.*` or `net.fabricmc.*`.** Nothing enforces this but the
+compiler — `:common` builds against vanilla only, so a stray import simply fails.
 
 ---
 
