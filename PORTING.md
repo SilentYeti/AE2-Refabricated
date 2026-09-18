@@ -34,6 +34,12 @@ Four commands, fastest first. Run the cheap ones constantly and the expensive on
 `JAVA_HOME=/usr/lib/jvm/java-25-openjdk` for all of them. If spotless complains the "JVM-local cache
 is stale", `rm -rf .gradle/configuration-cache`.
 
+**On Windows**, point `JAVA_HOME` at a JDK 25 and use `gradlew.bat`; both tools run there too. If
+`spotlessCheck` fails on a file you have not touched, the working tree has CRLF line endings — a
+checkout made with `core.autocrlf=true` or copied in from elsewhere. The index is LF and git reports
+nothing to commit, so re-check the files out rather than editing them:
+`git ls-files --eol | grep w/crlf` lists them; delete and `git checkout --` them.
+
 The gametest is the one that matters. It creates a world, which starts the integrated server — the
 only thing that parses recipes, tags and loot tables, so it is the only check that exercises them on
 Fabric at all. It also writes `fabric/run-gametest/screenshots/`, which is worth actually looking at:
@@ -65,11 +71,16 @@ It moves, compiles, moves back whatever failed, repeats until it settles, and pr
 file with the compiler error that is the real reason it cannot move. Then run the rest of the loop
 above before committing.
 
-**The mechanical phase is over.** `--all --dry-run` currently moves 833 files and every one bounces,
-so nothing else crosses by relocation alone. From here each file needs a deliberate change first:
-break a cycle, split state from its event, narrow an interface, or resolve something from a registry
-instead of naming a definitions class. Run `--all --dry-run` again after any such change — it is the
-cheapest way to see what the change opened up, and it puts everything back.
+**Relocation alone is exhausted until a seam changes something.** Before a change, `--all --dry-run`
+moves every file and every one bounces. Each file then needs a deliberate change first: break a
+cycle, split state from its event, narrow an interface, or resolve something from a registry instead
+of naming a definitions class. **Run `--all --dry-run` again after every such change** — it is the
+cheapest way to see what the change opened up, and it puts everything back. The payoff can be much
+larger than the change: taking one method off `InternalInventory` let 39 unrelated files cross.
+
+The tail of its output is the other half of the answer: every bounced file with the compiler error
+that stopped it. Aggregating those errors (`package X does not exist`, grouped and counted) ranks
+the loader APIs still holding files back, which is how to choose the next seam.
 
 ## Patterns that already work
 
@@ -85,6 +96,9 @@ Reach for these before inventing something; each is in the tree with a comment e
 | a helper is a thin wrapper over something vanilla already has | reimplement it in `:common` | `AEStreamCodecs` for `NeoForgeStreamCodecs`, `AERecipeType` for `RecipeType.simple` |
 | two classes name each other across the boundary | invert it — the leaf owns the constant, the table points at the leaf | recipe classes own their `RecipeType`; `AERecipeTypes` collects them |
 | data is in a loader's format | translate it while assembling the other jar, and fail the build on anything unrecognised | `neoforge:conditions` → `fabric:load_conditions` |
+| an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches, and the classes with special answers implement a loader-side interface. A test pins every answer | `NeoForgeInventories` + `ResourceHandlerProvider`, pinned by `NeoForgeInventoriesTest` |
+| a class caches a loader object by identity | keep the cache, but as an opaque slot the loader fills | `BaseInternalInventory.getOrCreatePlatformAdapter` |
+| a Fabric seam has no reachable caller yet | throw `UnsupportedOperationException` naming the stage, and write the intended design in the javadoc. Returning "nothing" would look like working content that silently does nothing | `FabricMenuPlatform`, `FabricItemTransferPlatform` |
 | content cannot be registered on Fabric yet | declare it in an `AECommon*` table, or explain it in `notYetPortable()` | `AECommonItems`, `AECommonBlocks` |
 
 ## Discipline
@@ -233,8 +247,18 @@ stage is worth more than its file count suggests.
 
 The hinge: `InternalInventory` and `BaseInternalInventory` are reached by 663 and 648 files.
 
-- [ ] AE2-side lookup surface in `:common`, registered per loader
-- [ ] `InternalInventory` / `BaseInternalInventory` off `neoforge.capabilities`
+- [ ] AE2-side lookup surface in `:common`, registered per loader. `AECapabilities` is five of AE2's
+      own `BlockCapability`s, and parts also hold NeoForge `BlockCapabilityCache`s for speed, so the
+      seam has to cover cached lookups as well as one-off ones. Fabric's counterparts are
+      `BlockApiLookup` and `BlockApiCache`. `AECapabilities` is public API: changing its field types
+      breaks NeoForge addons that name them, which the key-API change already accepted as a cost
+- [x] `InternalInventory` / `BaseInternalInventory` off `neoforge.capabilities` — **in `:common`**.
+      `toResourceHandler()` came off the interface: `NeoForgeInventories.resourceHandler(inv)` gives
+      the answer each implementation used to give, the special-case ones via `ResourceHandlerProvider`,
+      and `NeoForgeInventoriesTest` pins all of them. `wrapExternal` goes through the new
+      `ItemTransferPlatform` SPI, which throws on Fabric until stage 4 — its only callers are the
+      inscriber and molecular assembler, neither registered there. **This alone let 39 other files
+      cross**, among them `AppEngInternalInventory`, the priority lists and the crafting inventories
 - [ ] `InitCapabilityProviders` equivalent on Fabric
 - [ ] Part capabilities (`RegisterPartCapabilitiesEventInternal`)
 
