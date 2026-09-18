@@ -106,6 +106,7 @@ Reach for these before inventing something; each is in the tree with a comment e
 | an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches, and the classes with special answers implement a loader-side interface. A test pins every answer | `NeoForgeInventories` + `ResourceHandlerProvider`, pinned by `NeoForgeInventoriesTest` |
 | a class caches a loader object by identity | keep the cache, but as an opaque slot the loader fills | `BaseInternalInventory.getOrCreatePlatformAdapter` |
 | a Fabric seam has no reachable caller yet | throw `UnsupportedOperationException` naming the stage, and write the intended design in the javadoc. Returning "nothing" would look like working content that silently does nothing | `FabricMenuPlatform`, `FabricItemTransferPlatform` |
+| a static initializer registers AE2's own loader-specific defaults | the SPI supplies them; keep the call in the static initializer so the ordering guarantee survives | `StackWorldBehaviorsPlatform` |
 | content cannot be registered on Fabric yet | declare it in an `AECommon*` table, or explain it in `notYetPortable()` | `AECommonItems`, `AECommonBlocks` |
 
 ## Discipline
@@ -114,6 +115,8 @@ Reach for these before inventing something; each is in the tree with a comment e
 `AECommonItemsTest` fails if an item is in neither that map nor the ported table. Nothing can be
 silently forgotten. **Extend the same pattern to blocks, block entities and parts as each stage
 starts** — it is the cheapest parity tracker there is and it runs in CI.
+
+**A new SPI must load through its own class loader** -- `ServiceLoader.load(X.class, X.class.getClassLoader())`, never the one-argument overload. That one uses the calling thread's context loader, which under a mod loader is not reliably the one that loaded AE2; when it is not, the implementation is defined a second time and its first reference back into AE2 throws `LinkageError`, depending only on which thread touched the SPI first. All six read the same way now.
 
 **Anything added to `:common` must be inside the `mods { }` source-set registration**, or it loads
 outside NeoForge's transforming class loader and fails at runtime while the build stays green.
@@ -277,6 +280,14 @@ The hinge: `InternalInventory` and `BaseInternalInventory` are reached by 663 an
       `ItemTransferPlatform` SPI, which throws on Fabric until stage 4 — its only callers are the
       inscriber and molecular assembler, neither registered there. **This alone let 39 other files
       cross**, among them `AppEngInternalInventory`, the priority lists and the crafting inventories
+- [x] `StackWorldBehaviors`' defaults out of its static initializer and behind
+      `StackWorldBehaviorsPlatform`. The strategies that reach another block's inventory are written
+      against the loader's transfer API, so the loader names them; the call stays *in* the static
+      initializer because `register*` keeps the first registration per key type, which is what makes
+      AE2's defaults beat an addon's. `StackWorldBehaviorsDefaultsTest` pins that NeoForge still gets
+      items and fluids for import, export and placement -- an empty registry does not throw, it silently
+      transfers nothing, so `FabricStackWorldBehaviors` must be filled in *before* the buses and planes
+      arrive there
 - [ ] `InitCapabilityProviders` equivalent on Fabric
 - [ ] Part capabilities (`RegisterPartCapabilitiesEventInternal`)
 
