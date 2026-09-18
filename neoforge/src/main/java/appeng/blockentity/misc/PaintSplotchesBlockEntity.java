@@ -36,9 +36,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.model.data.ModelProperty;
 
+import appeng.api.client.AEModelData;
+import appeng.api.client.AEModelProperty;
 import appeng.api.util.AEColor;
 import appeng.block.paint.PaintSplotches;
 import appeng.block.paint.PaintSplotchesBlock;
@@ -48,7 +48,7 @@ import appeng.items.misc.PaintBallItem;
 
 public class PaintSplotchesBlockEntity extends AEBaseBlockEntity {
 
-    public static final ModelProperty<PaintSplotches> SPLOTCHES = new ModelProperty<>();
+    public static final AEModelProperty<PaintSplotches> SPLOTCHES = new AEModelProperty<>();
 
     private List<Splotch> dots = null;
 
@@ -209,7 +209,7 @@ public class PaintSplotchesBlockEntity extends AEBaseBlockEntity {
     }
 
     @Override
-    public ModelData getModelData() {
-        return ModelData.builder().with(SPLOTCHES, new PaintSplotches(getDots())).build();
+    public AEModelData getAEModelData() {
+        return AEModelData.builder().with(SPLOTCHES, new PaintSplotches(getDots())).build();
     }
 }

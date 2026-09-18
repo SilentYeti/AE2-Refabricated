@@ -30,8 +30,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.implementations.blockentities.IColorableBlockEntity;
 import appeng.api.stacks.GenericStack;
 import appeng.api.util.AEColor;
@@ -107,7 +107,7 @@ public class CraftingMonitorBlockEntity extends CraftingBlockEntity implements I
     }
 
     @Override
-    public ModelData getModelData() {
+    public AEModelData getAEModelData() {
         return CraftingMonitorModelData.create(getConnections(), getColor());
     }
 }

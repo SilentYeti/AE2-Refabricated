@@ -21,8 +21,8 @@ package appeng.client.render.crafting;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.orientation.IOrientationStrategy;
 import appeng.api.orientation.RelativeSide;
 import appeng.api.util.AEColor;
@@ -66,7 +66,7 @@ public class MonitorBakedModel extends CraftingCubeModel {
     }
 
     @Override
-    protected void addInnerCube(Direction side, BlockState state, ModelData modelData, CubeBuilder builder, float x1,
+    protected void addInnerCube(Direction side, BlockState state, AEModelData modelData, CubeBuilder builder, float x1,
             float y1, float z1, float x2, float y2, float z2) {
         Direction forward = IOrientationStrategy.get(state).getSide(state, RelativeSide.FRONT);
 
@@ -103,7 +103,7 @@ public class MonitorBakedModel extends CraftingCubeModel {
         builder.setEmissiveMaterial(false);
     }
 
-    private static AEColor getColor(ModelData modelData) {
+    private static AEColor getColor(AEModelData modelData) {
         if (modelData.has(CraftingMonitorModelData.COLOR)) {
             return modelData.get(CraftingMonitorModelData.COLOR);
         }

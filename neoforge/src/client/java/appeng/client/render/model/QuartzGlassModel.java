@@ -46,8 +46,8 @@ import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 import net.neoforged.neoforge.client.model.pipeline.QuadBakingVertexConsumer;
-import net.neoforged.neoforge.model.data.ModelProperty;
 
+import appeng.api.client.AEModelProperty;
 import appeng.core.AppEng;
 import appeng.decorative.solid.GlassState;
 import appeng.decorative.solid.QuartzGlassBlock;
@@ -58,7 +58,7 @@ import appeng.decorative.solid.QuartzGlassBlock;
 public class QuartzGlassModel implements DynamicBlockStateModel {
     // This unlisted property is used to determine the actual block that should be
     // rendered
-    public static final ModelProperty<GlassState> GLASS_STATE = new ModelProperty<>();
+    public static final AEModelProperty<GlassState> GLASS_STATE = new AEModelProperty<>();
 
     // Alternating textures based on position
     static final Material TEXTURE_A = new Material(Identifier.parse("ae2:block/glass/quartz_glass_a"));

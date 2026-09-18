@@ -16,24 +16,25 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.blockentity;
+package appeng.block.storage;
 
-import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.model.data.ModelProperty;
+import net.minecraft.world.item.Item;
 
-/**
- * This implementation of IModelData allows us to know precisely which data is part of the model data.
- */
-public final class AEModelData {
+import appeng.api.client.AEModelData;
+import appeng.api.client.AEModelProperty;
 
-    public static final ModelProperty<Boolean> SKIP_CACHE = new ModelProperty<>();
-    public static final ModelProperty<Byte> SPIN = new ModelProperty<>();
+public final class DriveModelData {
+    public final static AEModelProperty<Item[]> STATE = new AEModelProperty<>();
 
-    public static ModelData.Builder builder() {
-        return ModelData.builder();
+    private DriveModelData() {
     }
 
-    public static ModelData create() {
-        return builder().build();
+    public static AEModelData.Builder builder(Item[] cells) {
+        return AEModelData.builder()
+                .with(STATE, cells);
+    }
+
+    public static AEModelData create(Item[] cells) {
+        return builder(cells).build();
     }
 }

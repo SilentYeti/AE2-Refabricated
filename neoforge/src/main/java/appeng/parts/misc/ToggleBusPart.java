@@ -26,8 +26,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.GridHelper;
 import appeng.api.networking.IGridConnection;
@@ -177,7 +177,7 @@ public class ToggleBusPart extends AEBasePart {
     }
 
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         super.collectModelData(builder);
 
         // Overwrite the original state

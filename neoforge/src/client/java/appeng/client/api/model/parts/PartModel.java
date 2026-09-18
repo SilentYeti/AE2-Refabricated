@@ -12,8 +12,8 @@ import net.minecraft.client.resources.model.ResolvableModel;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.util.RandomSource;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.parts.IPart;
 
 public interface PartModel {
@@ -23,11 +23,11 @@ public interface PartModel {
      * @param level         The level the part host is in.
      * @param pos           The position the part host is located at.
      * @param partModelData Any part model state previously collected from
-     *                      {@link IPart#collectModelData(ModelData.Builder)}.
+     *                      {@link IPart#collectModelData(AEModelData.Builder)}.
      */
     void collectParts(BlockAndTintGetter level,
             BlockPos pos,
-            ModelData partModelData,
+            AEModelData partModelData,
             RandomSource random,
             List<BlockStateModelPart> parts);
 

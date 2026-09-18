@@ -21,8 +21,8 @@ package appeng.client.render.crafting;
 import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.block.crafting.AbstractCraftingUnitBlock;
 import appeng.client.render.CubeBuilder;
 
@@ -44,7 +44,8 @@ public class LightBakedModel extends CraftingCubeModel {
     }
 
     @Override
-    protected void addInnerCube(Direction facing, BlockState state, ModelData modelData, CubeBuilder builder, float x1,
+    protected void addInnerCube(Direction facing, BlockState state, AEModelData modelData, CubeBuilder builder,
+            float x1,
             float y1, float z1, float x2, float y2, float z2) {
         builder.setTexture(this.baseTexture);
         builder.addCube(x1, y1, z1, x2, y2, z2);

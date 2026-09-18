@@ -30,8 +30,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.config.RedstoneMode;
 import appeng.api.config.Setting;
 import appeng.api.config.Settings;
@@ -247,7 +247,7 @@ public abstract class AbstractLevelEmitterPart extends UpgradeablePart {
 
     @Nullable
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         super.collectModelData(builder);
         builder.with(PartModelData.LEVEL_EMITTER_ON, isLevelEmitterOn());
     }

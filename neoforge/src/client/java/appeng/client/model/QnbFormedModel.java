@@ -50,6 +50,7 @@ import appeng.client.render.CubeBuilder;
 import appeng.client.render.MaterialUtil;
 import appeng.core.AppEng;
 import appeng.core.definitions.AEBlocks;
+import appeng.neoforge.model.NeoForgeModelData;
 
 public class QnbFormedModel implements DynamicBlockStateModel {
     private static final Identifier MODEL_RING = AppEng.makeId("block/quantum_ring");
@@ -110,7 +111,7 @@ public class QnbFormedModel implements DynamicBlockStateModel {
     @Override
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
             List<BlockStateModelPart> parts) {
-        var modelData = level.getModelData(pos);
+        var modelData = NeoForgeModelData.unwrap(level.getModelData(pos));
         var formedState = modelData.get(QuantumBridgeBlockEntity.FORMED_STATE);
 
         if (formedState == null) {

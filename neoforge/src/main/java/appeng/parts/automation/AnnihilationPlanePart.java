@@ -33,9 +33,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import appeng.api.behaviors.PickupStrategy;
+import appeng.api.client.AEModelData;
 import appeng.api.config.Actionable;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridNode;
@@ -320,7 +320,7 @@ public class AnnihilationPlanePart extends AEBasePart implements IGridTickable {
     }
 
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         super.collectModelData(builder);
         builder.with(PartModelData.CONNECTIONS, getConnections());
     }

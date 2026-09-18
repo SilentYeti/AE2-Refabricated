@@ -49,8 +49,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.EntityCollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.config.YesNo;
 import appeng.api.implementations.parts.ICablePart;
 import appeng.api.networking.GridHelper;
@@ -961,7 +961,7 @@ public class CableBusContainer implements AEMultiBlockEntity, ICableBusContainer
                 continue;
             }
 
-            var builder = ModelData.builder();
+            var builder = AEModelData.builder();
             part.collectModelData(builder);
             var partModelData = builder.build();
 

@@ -16,27 +16,27 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.block.storage;
+package appeng.blockentity.crafting;
 
-import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.model.data.ModelProperty;
+import java.util.EnumSet;
+import java.util.Objects;
 
-import appeng.blockentity.AEModelData;
+import net.minecraft.core.Direction;
 
-public final class DriveModelData {
-    public final static ModelProperty<Item[]> STATE = new ModelProperty<>();
+import appeng.api.client.AEModelData;
+import appeng.api.client.AEModelProperty;
+import appeng.api.util.AEColor;
 
-    private DriveModelData() {
+public final class CraftingMonitorModelData {
+    public static final AEModelProperty<AEColor> COLOR = new AEModelProperty<>();
+
+    public static AEModelData.Builder builder(EnumSet<Direction> connections,
+            AEColor color) {
+        return CraftingCubeModelData.builder(connections)
+                .with(COLOR, Objects.requireNonNull(color));
     }
 
-    public static ModelData.Builder builder(Item[] cells) {
-        return AEModelData.builder()
-                .with(STATE, cells)
-                .with(AEModelData.SKIP_CACHE, true);
-    }
-
-    public static ModelData create(Item[] cells) {
-        return builder(cells).build();
+    public static AEModelData create(EnumSet<Direction> connections, AEColor color) {
+        return builder(connections, color).build();
     }
 }

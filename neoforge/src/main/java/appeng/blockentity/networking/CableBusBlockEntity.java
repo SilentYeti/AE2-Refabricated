@@ -44,10 +44,10 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 
+import appeng.api.client.AEModelData;
 import appeng.api.networking.IGridNode;
 import appeng.api.parts.IFacadeContainer;
 import appeng.api.parts.IPart;
@@ -310,15 +310,15 @@ public class CableBusBlockEntity extends AEBaseBlockEntity implements AEMultiBlo
     }
 
     @Override
-    public ModelData getModelData() {
+    public AEModelData getAEModelData() {
         Level level = getLevel();
         if (level == null) {
-            return ModelData.EMPTY;
+            return AEModelData.EMPTY;
         }
 
         var renderState = this.cb.getRenderState();
         renderState.setPos(worldPosition);
-        return ModelData.builder().with(CableBusRenderState.PROPERTY, renderState).build();
+        return AEModelData.builder().with(CableBusRenderState.PROPERTY, renderState).build();
 
     }
 

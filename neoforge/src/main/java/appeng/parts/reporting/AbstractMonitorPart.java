@@ -28,9 +28,9 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import appeng.api.behaviors.ContainerItemStrategies;
+import appeng.api.client.AEModelData;
 import appeng.api.implementations.parts.IStorageMonitorPart;
 import appeng.api.networking.IGrid;
 import appeng.api.networking.IStackWatcher;
@@ -300,7 +300,7 @@ public abstract class AbstractMonitorPart extends AbstractDisplayPart
 
     @Nullable
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         super.collectModelData(builder);
         builder.with(PartModelData.MONITOR_LOCKED, isLocked());
     }

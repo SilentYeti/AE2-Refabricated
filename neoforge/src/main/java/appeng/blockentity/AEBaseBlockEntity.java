@@ -75,6 +75,7 @@ import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 
+import appeng.api.client.AEModelData;
 import appeng.api.ids.AEComponents;
 import appeng.api.inventories.ISegmentedInventory;
 import appeng.api.inventories.InternalInventory;
@@ -87,6 +88,7 @@ import appeng.core.AELog;
 import appeng.hooks.VisualStateSaving;
 import appeng.hooks.ticking.TickHandler;
 import appeng.items.tools.MemoryCardItem;
+import appeng.neoforge.model.NeoForgeModelData;
 import appeng.util.IDebugExportable;
 import appeng.util.JsonStreamUtil;
 import appeng.util.Platform;
@@ -441,7 +443,17 @@ public class AEBaseBlockEntity extends BlockEntity
 
     @Override
     public ModelData getModelData() {
-        return AEModelData.create();
+        return NeoForgeModelData.of(getAEModelData());
+    }
+
+    /**
+     * The extra state this block entity's model needs, beyond its block state.
+     * <p>
+     * AE2's own type, so that a subclass supplying it does not have to name the loader's. The NeoForge override above
+     * is the only place that does.
+     */
+    public AEModelData getAEModelData() {
+        return AEModelData.EMPTY;
     }
 
     /**

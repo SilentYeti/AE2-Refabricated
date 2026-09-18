@@ -21,27 +21,25 @@ package appeng.blockentity.crafting;
 import java.util.EnumSet;
 
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.model.data.ModelProperty;
 
-import appeng.blockentity.AEModelData;
+import appeng.api.client.AEModelData;
+import appeng.api.client.AEModelProperty;
 
 public final class CraftingCubeModelData {
 
     // Contains information on which sides of the block are connected to other parts
     // of a formed crafting cube
-    public static final ModelProperty<EnumSet<Direction>> CONNECTIONS = new ModelProperty<>();
+    public static final AEModelProperty<EnumSet<Direction>> CONNECTIONS = new AEModelProperty<>();
 
     private CraftingCubeModelData() {
     }
 
-    public static ModelData.Builder builder(EnumSet<Direction> connections) {
+    public static AEModelData.Builder builder(EnumSet<Direction> connections) {
         return AEModelData.builder()
-                .with(AEModelData.SKIP_CACHE, true)
                 .with(CONNECTIONS, connections);
     }
 
-    public static ModelData create(EnumSet<Direction> connections) {
+    public static AEModelData create(EnumSet<Direction> connections) {
         return builder(connections).build();
     }
 }

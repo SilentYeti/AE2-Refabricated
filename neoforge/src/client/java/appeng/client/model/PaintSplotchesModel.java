@@ -42,13 +42,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.block.paint.PaintSplotches;
 import appeng.blockentity.misc.PaintSplotchesBlockEntity;
 import appeng.client.render.CubeBuilder;
 import appeng.core.AppEng;
 import appeng.helpers.Splotch;
+import appeng.neoforge.model.NeoForgeModelData;
 
 public class PaintSplotchesModel implements DynamicBlockStateModel {
     private static final Material TEXTURE_PAINT1 = new Material(AppEng.makeId("block/paint1"));
@@ -79,7 +80,7 @@ public class PaintSplotchesModel implements DynamicBlockStateModel {
     @Override
     public void collectParts(BlockAndTintGetter blockAndTintGetter, BlockPos blockPos, BlockState blockState,
             RandomSource randomSource, List<BlockStateModelPart> list) {
-        var modelData = blockAndTintGetter.getModelData(blockPos);
+        var modelData = NeoForgeModelData.unwrap(blockAndTintGetter.getModelData(blockPos));
         var quadListBuilder = new QuadCollection.Builder();
         getQuads(quadListBuilder, modelData);
         list.add(new SimpleModelWrapper(
@@ -101,7 +102,7 @@ public class PaintSplotchesModel implements DynamicBlockStateModel {
     @Override
     public @Nullable Object createGeometryKey(BlockAndTintGetter level, BlockPos pos, BlockState state,
             RandomSource random) {
-        return level.getModelData(pos);
+        return NeoForgeModelData.unwrap(level.getModelData(pos));
     }
 
     public record Unbaked() implements CustomUnbakedBlockStateModel {
@@ -124,7 +125,7 @@ public class PaintSplotchesModel implements DynamicBlockStateModel {
         }
     }
 
-    private void getQuads(QuadCollection.Builder quadListBuilder, ModelData extraData) {
+    private void getQuads(QuadCollection.Builder quadListBuilder, AEModelData extraData) {
         PaintSplotches splotchesState = extraData.get(PaintSplotchesBlockEntity.SPLOTCHES);
 
         if (splotchesState == null) {

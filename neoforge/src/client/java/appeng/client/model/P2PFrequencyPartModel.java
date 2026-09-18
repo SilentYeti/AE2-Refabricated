@@ -24,8 +24,8 @@ import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.quad.QuadTransforms;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.util.AEColor;
 import appeng.client.api.model.parts.PartModel;
 import appeng.client.render.CubeBuilder;
@@ -46,7 +46,7 @@ public final class P2PFrequencyPartModel implements PartModel {
     }
 
     @Override
-    public void collectParts(BlockAndTintGetter level, BlockPos pos, ModelData partModelData, RandomSource random,
+    public void collectParts(BlockAndTintGetter level, BlockPos pos, AEModelData partModelData, RandomSource random,
             List<BlockStateModelPart> parts) {
         var frequency = partModelData.get(PartModelData.P2P_FREQUENCY);
         frequency = Objects.requireNonNullElse(frequency, 0L);

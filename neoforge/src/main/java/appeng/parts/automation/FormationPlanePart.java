@@ -29,9 +29,9 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import appeng.api.behaviors.PlacementStrategy;
+import appeng.api.client.AEModelData;
 import appeng.api.config.Actionable;
 import appeng.api.config.FuzzyMode;
 import appeng.api.config.IncludeExclude;
@@ -284,7 +284,7 @@ public class FormationPlanePart extends UpgradeablePart implements IStorageProvi
     }
 
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         super.collectModelData(builder);
         builder.with(PartModelData.CONNECTIONS, getConnections());
     }

@@ -14,8 +14,8 @@ import net.minecraft.client.resources.model.sprite.Material;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.util.AEColor;
 import appeng.core.AppEng;
 
@@ -40,7 +40,7 @@ public class StaticPartModel implements PartModel {
     }
 
     @Override
-    public void collectParts(BlockAndTintGetter level, BlockPos pos, ModelData partModelData, RandomSource random,
+    public void collectParts(BlockAndTintGetter level, BlockPos pos, AEModelData partModelData, RandomSource random,
             List<BlockStateModelPart> parts) {
         parts.add(model);
     }

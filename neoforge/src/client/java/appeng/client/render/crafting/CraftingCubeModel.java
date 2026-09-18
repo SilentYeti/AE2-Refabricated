@@ -40,13 +40,14 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.client.model.DynamicBlockStateModel;
 import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.block.crafting.CraftingUnitType;
 import appeng.blockentity.crafting.CraftingCubeModelData;
 import appeng.client.render.CubeBuilder;
 import appeng.client.render.MaterialUtil;
 import appeng.core.AppEng;
+import appeng.neoforge.model.NeoForgeModelData;
 import appeng.util.Platform;
 
 /**
@@ -74,7 +75,7 @@ public abstract class CraftingCubeModel implements DynamicBlockStateModel {
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
             List<BlockStateModelPart> parts) {
 
-        var extraData = level.getModelData(pos);
+        var extraData = NeoForgeModelData.unwrap(level.getModelData(pos));
 
         EnumSet<Direction> connections = getConnections(extraData);
 
@@ -239,14 +240,14 @@ public abstract class CraftingCubeModel implements DynamicBlockStateModel {
 
     // Retrieve the cube connection state from the block state
     // If none is present, just assume there are no adjacent crafting cube blocks
-    private static EnumSet<Direction> getConnections(ModelData modelData) {
+    private static EnumSet<Direction> getConnections(AEModelData modelData) {
         if (modelData.has(CraftingCubeModelData.CONNECTIONS)) {
             return modelData.get(CraftingCubeModelData.CONNECTIONS);
         }
         return EnumSet.noneOf(Direction.class);
     }
 
-    protected abstract void addInnerCube(Direction facing, BlockState state, ModelData modelData, CubeBuilder builder,
+    protected abstract void addInnerCube(Direction facing, BlockState state, AEModelData modelData, CubeBuilder builder,
             float x1, float y1, float z1, float x2, float y2, float z2);
 
     @Override

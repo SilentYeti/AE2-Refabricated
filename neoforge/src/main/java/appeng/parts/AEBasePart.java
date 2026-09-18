@@ -48,10 +48,10 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.model.data.ModelData;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 
+import appeng.api.client.AEModelData;
 import appeng.api.ids.AEComponents;
 import appeng.api.implementations.IPowerChannelState;
 import appeng.api.implementations.items.IMemoryCard;
@@ -480,7 +480,7 @@ public abstract class AEBasePart
 
     @Nullable
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         PartModelData.StatusIndicatorState state;
         if (isActive() && isPowered()) {
             state = PartModelData.StatusIndicatorState.ACTIVE;

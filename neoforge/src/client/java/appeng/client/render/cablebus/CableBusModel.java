@@ -61,6 +61,7 @@ import appeng.client.AppEngClient;
 import appeng.client.api.model.parts.PartModel;
 import appeng.client.model.FacingModelState;
 import appeng.core.AppEng;
+import appeng.neoforge.model.NeoForgeModelData;
 
 /**
  * The built-in model for the cable bus block.
@@ -104,7 +105,7 @@ public class CableBusModel implements DynamicBlockStateModel {
     @Override
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState state, RandomSource random,
             List<BlockStateModelPart> parts) {
-        var data = level.getModelData(pos);
+        var data = NeoForgeModelData.unwrap(level.getModelData(pos));
 
         var renderState = data.get(CableBusRenderState.PROPERTY);
         if (renderState == null) {

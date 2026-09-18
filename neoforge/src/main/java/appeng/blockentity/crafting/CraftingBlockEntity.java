@@ -36,8 +36,8 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.implementations.IPowerChannelState;
 import appeng.api.networking.GridFlags;
 import appeng.api.networking.IGridMultiblock;
@@ -291,7 +291,7 @@ public class CraftingBlockEntity extends AENetworkedBlockEntity
     }
 
     @Override
-    public ModelData getModelData() {
+    public AEModelData getAEModelData() {
         return CraftingCubeModelData.create(getConnections());
     }
 

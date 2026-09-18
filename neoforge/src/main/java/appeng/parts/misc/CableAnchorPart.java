@@ -23,8 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.networking.IGridNode;
 import appeng.api.parts.BusSupport;
 import appeng.api.parts.IPart;
@@ -85,7 +85,7 @@ public class CableAnchorPart implements IPart {
 
     @Nullable
     @Override
-    public void collectModelData(ModelData.Builder builder) {
+    public void collectModelData(AEModelData.Builder builder) {
         if (this.host != null && this.host.getFacadeContainer().getFacade(this.mySide) != null) {
             builder.with(PartModelData.CABLE_ANCHOR_SHORT, true);
         }

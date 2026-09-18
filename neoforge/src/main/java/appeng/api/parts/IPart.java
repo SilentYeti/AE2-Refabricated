@@ -48,8 +48,8 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.IManagedGridNode;
 import appeng.api.util.AECableType;
@@ -395,8 +395,7 @@ public interface IPart extends ICustomCableConnection, Clearable {
     /**
      * Additional model data to be passed to the part models for rendering this part.
      */
-    @Nullable
-    default void collectModelData(ModelData.Builder builder) {
+    default void collectModelData(AEModelData.Builder builder) {
     }
 
     /**

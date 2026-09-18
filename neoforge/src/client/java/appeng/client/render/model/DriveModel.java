@@ -54,6 +54,7 @@ import appeng.api.client.StorageCellModels;
 import appeng.block.storage.DriveModelData;
 import appeng.client.model.SpinnableVariant;
 import appeng.core.AppEng;
+import appeng.neoforge.model.NeoForgeModelData;
 
 public class DriveModel implements DynamicBlockStateModel {
     private static final Logger LOG = LoggerFactory.getLogger(DriveModel.class);
@@ -111,7 +112,7 @@ public class DriveModel implements DynamicBlockStateModel {
             List<BlockStateModelPart> parts) {
         parts.add(baseModel);
 
-        var cells = level.getModelData(pos).get(DriveModelData.STATE);
+        var cells = NeoForgeModelData.unwrap(level.getModelData(pos)).get(DriveModelData.STATE);
 
         // Add cell models on top of the base model, if possible
         if (cells != null) {

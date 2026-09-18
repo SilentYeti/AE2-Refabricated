@@ -47,6 +47,7 @@ import net.neoforged.neoforge.client.model.block.CustomUnbakedBlockStateModel;
 import appeng.blockentity.spatial.SpatialPylonBlockEntity;
 import appeng.client.render.CubeBuilder;
 import appeng.core.AppEng;
+import appeng.neoforge.model.NeoForgeModelData;
 
 /**
  * The baked model that will be used for rendering the spatial pylon.
@@ -73,7 +74,7 @@ public class SpatialPylonModel implements DynamicBlockStateModel {
     public void collectParts(BlockAndTintGetter level, BlockPos pos, BlockState blockState, RandomSource random,
             List<BlockStateModelPart> parts) {
         var state = Objects.requireNonNullElse(
-                level.getModelData(pos).get(SpatialPylonBlockEntity.STATE),
+                NeoForgeModelData.unwrap(level.getModelData(pos)).get(SpatialPylonBlockEntity.STATE),
                 SpatialPylonBlockEntity.ClientState.DEFAULT);
 
         var quadCollection = new QuadCollection.Builder();

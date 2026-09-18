@@ -24,8 +24,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.neoforged.neoforge.client.model.quad.QuadTransforms;
-import net.neoforged.neoforge.model.data.ModelData;
 
+import appeng.api.client.AEModelData;
 import appeng.client.api.model.parts.PartModel;
 import appeng.client.render.CubeBuilder;
 import appeng.core.AppEng;
@@ -92,7 +92,7 @@ public class PlanePartModel implements PartModel {
     }
 
     @Override
-    public void collectParts(BlockAndTintGetter level, BlockPos pos, ModelData partModelData, RandomSource random,
+    public void collectParts(BlockAndTintGetter level, BlockPos pos, AEModelData partModelData, RandomSource random,
             List<BlockStateModelPart> parts) {
         var connections = partModelData.get(PartModelData.CONNECTIONS);
         if (connections == null) {
