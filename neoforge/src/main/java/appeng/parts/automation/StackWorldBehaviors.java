@@ -24,6 +24,7 @@ import appeng.api.behaviors.StackExportStrategy;
 import appeng.api.behaviors.StackImportStrategy;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.storage.AEKeyFilter;
+import appeng.platform.StackWorldBehaviorsPlatform;
 import appeng.util.CowMap;
 
 public final class StackWorldBehaviors {
@@ -35,18 +36,9 @@ public final class StackWorldBehaviors {
     private static final CowMap<AEKeyType, PickupStrategy.Factory> pickupStrategies = CowMap.identityHashMap();
 
     static {
-        registerImportStrategy(AEKeyType.items(), StorageImportStrategy::createItem);
-        registerImportStrategy(AEKeyType.fluids(), StorageImportStrategy::createFluid);
-        registerExportStrategy(AEKeyType.items(), StorageExportStrategy::createItem);
-        registerExportStrategy(AEKeyType.fluids(), StorageExportStrategy::createFluid);
-        registerExternalStorageStrategy(AEKeyType.items(), ForgeExternalStorageStrategy::createItem);
-        registerExternalStorageStrategy(AEKeyType.fluids(), ForgeExternalStorageStrategy::createFluid);
-        registerPlacementStrategy(AEKeyType.fluids(), FluidPlacementStrategy::new);
-        registerPlacementStrategy(AEKeyType.items(), ItemPlacementStrategy::new);
-        registerPickupStrategy(AEKeyType.fluids(), (level, pos, side, host, enchantments,
-                owningPlayerId) -> new FluidPickupStrategy(level, pos, side, host, enchantments, owningPlayerId));
-        registerPickupStrategy(AEKeyType.items(), (level, pos, side, host, enchantments,
-                owningPlayerId) -> new ItemPickupStrategy(level, pos, side, host, enchantments, owningPlayerId));
+        // Here rather than at mod init: the register methods keep the first registration for a key type, so AE2's
+        // defaults must be in before anything else can touch this class for them to take precedence over an addon's.
+        StackWorldBehaviorsPlatform.get().registerDefaults();
     }
 
     private StackWorldBehaviors() {
