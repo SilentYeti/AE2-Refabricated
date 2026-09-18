@@ -126,9 +126,22 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       The cycle is the remaining problem: `AERecipeTypes` names the recipe classes and they name it
       back, so they can only move together, and any one with its own blocker drags the rest back.
       Those blockers, individually small: `TransformRecipe` needs the quantum bridge,
-      `MatterCannonAmmo` needs NeoForge's recipe conditions, `QuartzCuttingRecipe` and
-      `TransformLogic` want `neoforge.common` and the event bus. Clear those four and the whole
-      package crosses at once.
+      ~~`MatterCannonAmmo` needs NeoForge's recipe conditions~~ **(done)**, `QuartzCuttingRecipe` and
+      `TransformLogic` want `neoforge.common` and the event bus. Clear those and the whole package
+      crosses at once.
+- [x] **Recipe load conditions.** AE2 gates 67 matter-cannon recipes on "this tag is not empty", so
+      they only load when another mod supplies the tag. Both halves are handled now:
+      *Data* — `fabric/build.gradle` translates `neoforge:conditions` into Fabric's
+      `fabric:load_conditions` while assembling the jar, so the data is generated once in NeoForge's
+      form and converted on the way in. The translator understands only the shapes AE2 emits and
+      **fails the build on anything else**, because dropping a condition it did not recognise would
+      silently load a recipe with an empty ingredient tag.
+      *Code* — the datagen builders that construct the condition moved from `MatterCannonAmmo` to
+      `MatterCannonAmmoProvider`, where their only caller already lived; datagen runs on NeoForge
+      only, so that is where they belong.
+      Confirmed working in game: matter-cannon recipe errors fell from 68 to 4, and the 4 that remain
+      are the ones whose tags vanilla does populate (iron, gold, copper) plus the one unconditional
+      recipe — exactly the set that *should* still try to load.
 - [ ] Structures (`StructurePieceType`, `StructureType`)
 - [ ] Attachment types → `fabric-data-attachment-api-v1`
 - [ ] Register the 8 custom item-model element types (`ae2:color`, `ae2:storage_cell_state`,

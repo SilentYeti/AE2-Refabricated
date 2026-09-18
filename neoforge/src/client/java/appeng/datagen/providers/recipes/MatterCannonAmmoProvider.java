@@ -23,8 +23,13 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeOutput;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.level.ItemLike;
+import net.neoforged.neoforge.common.conditions.NotCondition;
+import net.neoforged.neoforge.common.conditions.TagEmptyCondition;
 
 import appeng.core.AppEng;
 import appeng.core.ConventionTags;
@@ -50,9 +55,9 @@ public class MatterCannonAmmoProvider extends AE2RecipeProvider {
         tag(output, "nuggets/fish", "c:nuggets/fish", 32);
 
         // derived from real world atomic mass...
-        MatterCannonAmmo.ammo(items, output, AppEng.makeId("matter_cannon/nuggets/iron"),
+        ammo(items, output, AppEng.makeId("matter_cannon/nuggets/iron"),
                 ConventionTags.IRON_NUGGET, 55.845f);
-        MatterCannonAmmo.ammo(items, output, AppEng.makeId("matter_cannon/nuggets/gold"),
+        ammo(items, output, AppEng.makeId("matter_cannon/nuggets/gold"),
                 ConventionTags.GOLD_NUGGET, 196.96655f);
         tag(output, "nuggets/lithium", "c:nuggets/lithium", 6.941f);
         tag(output, "nuggets/beryllium", "c:nuggets/beryllium", 9.0122f);
@@ -115,12 +120,37 @@ public class MatterCannonAmmoProvider extends AE2RecipeProvider {
         tag(output, "nuggets/invar", "c:nuggets/invar", (58.6934f + 55.845f + 55.845f) / 3.0f);
         tag(output, "nuggets/electrum", "c:nuggets/electrum", (107.8682f + 196.96655f) / 2.0f);
 
-        MatterCannonAmmo.ammo(output, AppEng.makeId("matter_cannon/matter_ball"), AEItems.MATTER_BALL, 32.0f);
+        ammo(output, AppEng.makeId("matter_cannon/matter_ball"), AEItems.MATTER_BALL, 32.0f);
     }
 
     private void tag(RecipeOutput output, String recipeId, String tagId, float weight) {
-        MatterCannonAmmo.ammo(items, output,
+        ammo(items, output,
                 AppEng.makeId("matter_cannon/" + recipeId),
                 TagKey.create(Registries.ITEM, Identifier.parse(tagId)), weight);
+    }
+
+    /**
+     * Emits a matter cannon ammo recipe.
+     * <p>
+     * These lived on {@link MatterCannonAmmo} until the recipe class had to become loader-agnostic: the tag-gated
+     * overload builds a NeoForge load condition, and datagen only ever runs on NeoForge, so the builders belong here
+     * with their caller rather than on the recipe. The condition they write is translated to Fabric's equivalent when
+     * the Fabric jar is assembled -- see fabric/build.gradle.
+     */
+    private static void ammo(RecipeOutput consumer, Identifier id, ItemLike item, float weight) {
+        consumer.accept(ResourceKey.create(Registries.RECIPE, id), new MatterCannonAmmo(Ingredient.of(item), weight),
+                null);
+    }
+
+    private static void ammo(RecipeOutput consumer, Identifier id, Ingredient ammo, float weight) {
+        consumer.accept(ResourceKey.create(Registries.RECIPE, id), new MatterCannonAmmo(ammo, weight), null);
+    }
+
+    /** Only loads when something actually populates {@code tag}. */
+    private static void ammo(HolderGetter<Item> items, RecipeOutput consumer, Identifier id, TagKey<Item> tag,
+            float weight) {
+        var recipe = new MatterCannonAmmo(Ingredient.of(items.getOrThrow(tag)), weight);
+        var condition = new NotCondition(new TagEmptyCondition<>(tag));
+        consumer.accept(ResourceKey.create(Registries.RECIPE, id), recipe, null, condition);
     }
 }

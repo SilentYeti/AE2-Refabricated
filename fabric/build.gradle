@@ -148,3 +148,59 @@ processResources {
     // Only ever produced by the NeoForge datagen run
     exclude '.cache/**'
 }
+
+// AE2's generated data carries NeoForge load conditions -- 67 matter-cannon ammo recipes that should
+// only load when another mod supplies the tag they are keyed on ("c:nuggets/barium" and friends).
+// Fabric has the same concept under a different key and vocabulary, so the data is translated on the
+// way into this jar rather than being generated twice.
+//
+//   {"neoforge:conditions":[{"type":"neoforge:not",
+//                            "value":{"type":"neoforge:tag_empty","tag":"c:nuggets/barium"}}]}
+//   {"fabric:load_conditions":[{"condition":"fabric:tags_populated","values":["c:nuggets/barium"]}]}
+//
+tasks.named('processResources') {
+    final translated = layout.buildDirectory.dir('resources/main').get().asFile
+    doLast {
+        final slurper = new groovy.json.JsonSlurper()
+        var rewritten = 0
+
+        // Deliberately narrow: it understands exactly the shapes AE2 emits and throws on anything
+        // else. Dropping a condition it did not understand would silently load a recipe whose
+        // ingredient tag is empty, which is the failure this mechanism exists to prevent.
+        final translate = { Object condition, File source ->
+            if (condition instanceof Map && condition.type == 'neoforge:not') {
+                final inner = condition.value
+                if (inner instanceof Map && inner.type == 'neoforge:tag_empty' && inner.tag) {
+                    // not(tag_empty(t)) is exactly "that tag has entries"
+                    return ['condition': 'fabric:tags_populated', 'values': [inner.tag]]
+                }
+            }
+            throw new GradleException(
+                    "No Fabric translation for the load condition " +
+                    groovy.json.JsonOutput.toJson(condition) + " in " + source + ". Add one to the " +
+                    "translate closure in fabric/build.gradle -- do not drop it, or the recipe will " +
+                    "load with an empty ingredient tag.")
+        }
+
+        translated.eachFileRecurse(groovy.io.FileType.FILES) { file ->
+            if (!file.name.endsWith('.json')) return
+            final text = file.text
+            if (!text.contains('neoforge:conditions')) return
+
+            final json = slurper.parseText(text)
+            if (!(json instanceof Map) || !json['neoforge:conditions']) return
+
+            final conditions = json.remove('neoforge:conditions').collect { translate(it, file) }
+            // Rebuild with the Fabric key first, where the NeoForge one was.
+            final out = new LinkedHashMap()
+            out['fabric:load_conditions'] = conditions
+            out.putAll(json)
+            file.text = groovy.json.JsonOutput.prettyPrint(groovy.json.JsonOutput.toJson(out)) + '\n'
+            rewritten++
+        }
+
+        if (rewritten > 0) {
+            logger.lifecycle("Translated NeoForge load conditions to Fabric in ${rewritten} data file(s)")
+        }
+    }
+}
