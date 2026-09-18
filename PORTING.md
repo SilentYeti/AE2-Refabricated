@@ -133,6 +133,9 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       `AERecipeType.simple` is the same three lines somewhere both loaders can reach. And display
       icons that named `AEItems`/`AEBlocks` now resolve from the item registry by id, which is the
       right place to ask anyway.
+      **Four types and serializers now register on Fabric** — inscriber, entropy, matter cannon and
+      charger — through `AECommonRecipes`, the same subset-table pattern as `AECommonItems`, with
+      `AECommonRecipesTest` as its ratchet. Recipes went **148 to 178**.
       Still in `:neoforge`: `AERecipeTypes` and `AERecipeSerializers` themselves (they name classes
       that have not crossed), `TransformRecipe` (quantum bridge), `QuartzCuttingRecipe` and
       `TransformLogic` (`neoforge.common`, the event bus), and the upgrade/facade recipes.

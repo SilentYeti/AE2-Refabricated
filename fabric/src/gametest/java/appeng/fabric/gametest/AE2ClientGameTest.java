@@ -34,6 +34,7 @@ import net.minecraft.world.item.Item;
 import appeng.api.ids.AECreativeTabIds;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
+import appeng.recipes.AECommonRecipes;
 
 /**
  * Checks what AE2 actually registered on Fabric, in a running client with a loaded world.
@@ -50,7 +51,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
      * A floor, not a target: recipes naming an unregistered serializer skip themselves, so this rises as the port
      * proceeds. Raise it when it does, so a regression cannot hide under it.
      */
-    private static final int MIN_RECIPES = 148;
+    private static final int MIN_RECIPES = 178;
 
     /** One of each kind of item that made it across: a tool, a material, a print, a component. */
     private static final List<String> HOTBAR_SHOWCASE = List.of(
@@ -71,6 +72,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
     public void runTest(ClientGameTestContext context) {
         assertItemsRegistered(context);
         assertBlocksRegistered(context);
+        assertRecipeTypesRegistered(context);
         assertCreativeTabRegistered(context);
         assertItemModelsResolved(context);
 
@@ -107,6 +109,28 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         }
 
         LOG.info("AE2 game test: passed");
+    }
+
+    /**
+     * Recipe types and serializers. Worth asserting separately from the recipe count: a serializer that fails to
+     * register does not fail anything, it just means every recipe using it is quietly skipped.
+     */
+    private static void assertRecipeTypesRegistered(ClientGameTestContext context) {
+        var missing = new ArrayList<Identifier>();
+        AECommonRecipes.types().keySet().forEach(id -> {
+            if (!BuiltInRegistries.RECIPE_TYPE.containsKey(id)) {
+                missing.add(id);
+            }
+        });
+        AECommonRecipes.serializers().keySet().forEach(id -> {
+            if (!BuiltInRegistries.RECIPE_SERIALIZER.containsKey(id)) {
+                missing.add(id);
+            }
+        });
+        if (!missing.isEmpty()) {
+            throw new AssertionError("AE2 recipe types/serializers not registered: " + missing);
+        }
+        LOG.info("AE2 game test: {} recipe types and serializers registered", AECommonRecipes.types().size());
     }
 
     /** Blocks, and the BlockItem each one needs to be placeable from the creative tab. */

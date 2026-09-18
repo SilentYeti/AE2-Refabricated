@@ -46,8 +46,10 @@ public class AppEngFabric implements ModInitializer {
         // stair, slab and wall variants copy the block state of the block they are cut from.
         FabricBlocks.register();
         FabricItems.register();
-        LOG.info("AE2 Fabric: registered {} blocks and {} items, plus the creative tab",
-                FabricBlocks.registered().size(), FabricItems.registered().size());
+        FabricRecipes.register();
+        LOG.info("AE2 Fabric: registered {} blocks, {} items, {} recipe types, plus the creative tab",
+                FabricBlocks.registered().size(), FabricItems.registered().size(),
+                FabricRecipes.registeredCount());
         LOG.warn("AE2 on Fabric is still partial: {} more items and {} more blocks need the grid, menu, "
                 + "energy or storage seams before they can be registered, and no parts or networks exist yet.",
                 AECommonItems.notYetPortable().size(), AECommonBlocks.notYetPortable().size());
