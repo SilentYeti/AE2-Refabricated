@@ -43,7 +43,8 @@ import net.minecraft.world.level.material.PushReaction;
 import appeng.api.orientation.IOrientableBlock;
 import appeng.api.orientation.IOrientationStrategy;
 import appeng.api.orientation.OrientationStrategies;
-import appeng.hooks.WrenchHook;
+import appeng.core.definitions.CreativeTabSink;
+import appeng.hooks.WrenchDisassembly;
 
 public abstract class AEBaseBlock extends Block implements IOrientableBlock {
 
@@ -94,7 +95,7 @@ public abstract class AEBaseBlock extends Block implements IOrientableBlock {
                 .pushReaction(PushReaction.DESTROY);
     }
 
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         output.accept(this);
     }
 
@@ -119,7 +120,7 @@ public abstract class AEBaseBlock extends Block implements IOrientableBlock {
     @Override
     protected void spawnDestroyParticles(Level level, Player player, BlockPos pos, BlockState state) {
         // Suppress break particles & sound when being disassembled by a wrench
-        if (!WrenchHook.isDisassembling()) {
+        if (!WrenchDisassembly.isDisassembling()) {
             super.spawnDestroyParticles(level, player, pos, state);
         }
     }

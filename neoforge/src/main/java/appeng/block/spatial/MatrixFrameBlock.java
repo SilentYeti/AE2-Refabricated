@@ -32,6 +32,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 import appeng.block.AEBaseBlock;
+import appeng.core.definitions.CreativeTabSink;
 
 /**
  * This block is used to fill empty space in spatial dimensions and delinates the border of a spatial dimensions's
@@ -49,7 +50,7 @@ public class MatrixFrameBlock extends AEBaseBlock {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         // do nothing
     }
 

@@ -32,6 +32,7 @@ import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import appeng.api.ids.AEComponents;
 import appeng.block.AEBaseEntityBlock;
 import appeng.blockentity.networking.EnergyCellBlockEntity;
+import appeng.core.definitions.CreativeTabSink;
 
 public class EnergyCellBlock extends AEBaseEntityBlock<EnergyCellBlockEntity> {
 
@@ -51,7 +52,7 @@ public class EnergyCellBlock extends AEBaseEntityBlock<EnergyCellBlockEntity> {
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         super.addToMainCreativeTab(parameters, output);
 
         var charged = new ItemStack(this, 1);

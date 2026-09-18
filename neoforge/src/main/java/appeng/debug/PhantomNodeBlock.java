@@ -28,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.block.AEBaseEntityBlock;
 import appeng.core.AEConfig;
+import appeng.core.definitions.CreativeTabSink;
 
 public class PhantomNodeBlock extends AEBaseEntityBlock<PhantomNodeBlockEntity> {
     public PhantomNodeBlock(Properties p) {
@@ -42,7 +43,7 @@ public class PhantomNodeBlock extends AEBaseEntityBlock<PhantomNodeBlockEntity> 
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

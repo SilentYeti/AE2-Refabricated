@@ -68,6 +68,7 @@ import appeng.api.parts.IFacadePart;
 import appeng.api.util.AEColor;
 import appeng.block.AEBaseEntityBlock;
 import appeng.blockentity.networking.CableBusBlockEntity;
+import appeng.core.definitions.CreativeTabSink;
 import appeng.integration.abstraction.IAEFacade;
 import appeng.parts.ICableBusContainer;
 import appeng.parts.NullCableBusContainer;
@@ -242,7 +243,7 @@ public class CableBusBlock extends AEBaseEntityBlock<CableBusBlockEntity> implem
         return false;
     }
 
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         // do nothing
     }
 

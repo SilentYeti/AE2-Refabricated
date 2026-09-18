@@ -28,6 +28,7 @@ import net.minecraft.world.phys.BlockHitResult;
 
 import appeng.block.AEBaseEntityBlock;
 import appeng.core.AEConfig;
+import appeng.core.definitions.CreativeTabSink;
 
 public class CubeGeneratorBlock extends AEBaseEntityBlock<CubeGeneratorBlockEntity> {
 
@@ -47,7 +48,7 @@ public class CubeGeneratorBlock extends AEBaseEntityBlock<CubeGeneratorBlockEnti
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

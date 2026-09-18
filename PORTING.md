@@ -28,9 +28,9 @@ the log.
 Everything below is measured, not remembered. Re-run the report rather than trusting these.
 
 ```
-:common 251   :neoforge/main 837   :neoforge/client 311
-blocked by an import 620   blocked invisibly 217
-gametest: 90 items registered, 90 models resolved, 0 recipes, creative tab present
+:common 258   :neoforge/main 833   :neoforge/client 311
+blocked by an import 615   blocked invisibly 218
+gametest: 139 items + 49 blocks registered, 139 models resolved, 0 recipes, creative tab present
 ```
 
 ## Discipline
@@ -52,7 +52,12 @@ happened too.
 
 Generalise what `FabricItems` does to the rest of the content. Mechanical; the pattern is set.
 
-- [ ] Blocks — `AECommonBlocks` + ratchet test, mirroring `AECommonItems`
+- [x] Blocks — `AECommonBlocks` + `AECommonBlocksTest`, mirroring `AECommonItems`.
+      **49 of 94 registered**, each with its `BlockItem`; the other 45 are in `notYetPortable()`,
+      almost all waiting on a block entity. Needed two things beyond transcription: `AEBaseBlock`
+      had the same `CreativeModeTab.Output` problem `CreativeTabSink` already solved for items
+      (8 overriders updated), and `StairBlock`'s constructor is `protected`, so `AEStairBlock`
+      subclasses it to get the reach without an access transformer.
 - [ ] Block entity types
 - [ ] Entity types
 - [ ] Data component types (`AEComponents`) — named by 3 `notYetPortable` entries

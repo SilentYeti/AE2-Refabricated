@@ -32,6 +32,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.Item;
 
 import appeng.api.ids.AECreativeTabIds;
+import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
 
 /**
@@ -55,11 +56,15 @@ public class AE2ClientGameTest implements FabricClientGameTest {
             "ae2:cell_component_64k",
             "ae2:wireless_receiver",
             "ae2:sky_dust",
-            "ae2:singularity");
+            "ae2:singularity",
+            "ae2:quartz_block",
+            "ae2:sky_stone_block",
+            "ae2:quartz_glass");
 
     @Override
     public void runTest(ClientGameTestContext context) {
         assertItemsRegistered(context);
+        assertBlocksRegistered(context);
         assertCreativeTabRegistered(context);
         assertItemModelsResolved(context);
 
@@ -90,6 +95,26 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         LOG.info("AE2 game test: passed");
     }
 
+    /** Blocks, and the BlockItem each one needs to be placeable from the creative tab. */
+    private static void assertBlocksRegistered(ClientGameTestContext context) {
+        var missing = new ArrayList<Identifier>();
+        var withoutItem = new ArrayList<Identifier>();
+        for (var entry : AECommonBlocks.entries()) {
+            if (!BuiltInRegistries.BLOCK.containsKey(entry.id())) {
+                missing.add(entry.id());
+            } else if (!BuiltInRegistries.ITEM.containsKey(entry.id())) {
+                withoutItem.add(entry.id());
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new AssertionError("AE2 blocks declared in AECommonBlocks but not registered: " + missing);
+        }
+        if (!withoutItem.isEmpty()) {
+            throw new AssertionError("AE2 blocks registered without a BlockItem: " + withoutItem);
+        }
+        LOG.info("AE2 game test: {} blocks registered, each with a block item", AECommonBlocks.entries().size());
+    }
+
     private static void assertItemsRegistered(ClientGameTestContext context) {
         var missing = new ArrayList<Identifier>();
         for (var entry : AECommonItems.entries()) {
@@ -101,7 +126,8 @@ public class AE2ClientGameTest implements FabricClientGameTest {
             throw new AssertionError("AE2 items declared in AECommonItems but not registered: " + missing);
         }
 
-        var expected = AECommonItems.entries().size();
+        // Block items share the item registry, so they count towards the ae2 namespace total.
+        var expected = AECommonItems.entries().size() + AECommonBlocks.entries().size();
         List<ResourceKey<Item>> ae2Items = BuiltInRegistries.ITEM.registryKeySet().stream()
                 .filter(key -> key.identifier().getNamespace().equals("ae2"))
                 .toList();
@@ -132,13 +158,20 @@ public class AE2ClientGameTest implements FabricClientGameTest {
                     bad.add(entry.id());
                 }
             }
+            // Block items are datagen output too, and were exactly as invisible when they went missing.
+            for (var entry : AECommonBlocks.entries()) {
+                if (models.getItemModel(entry.id()) == missing) {
+                    bad.add(entry.id());
+                }
+            }
             return bad;
         });
 
         if (!unmodelled.isEmpty()) {
             throw new AssertionError(unmodelled.size() + " AE2 items have no item model: " + unmodelled);
         }
-        LOG.info("AE2 game test: all {} items have a resolved item model", AECommonItems.entries().size());
+        LOG.info("AE2 game test: all {} items and block items have a resolved model",
+                AECommonItems.entries().size() + AECommonBlocks.entries().size());
     }
 
     private static void assertCreativeTabRegistered(ClientGameTestContext context) {

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
 
+import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
 import appeng.platform.AEPlatform;
 
@@ -41,10 +42,14 @@ public class AppEngFabric implements ModInitializer {
         var platform = AEPlatform.get();
         LOG.info("AE2 Fabric: platform SPI resolved -- loader={}, dev={}, client={}",
                 platform.loader(), platform.isDevelopmentEnvironment(), platform.isPhysicalClient());
+        // Blocks first: their BlockItems have to exist before the creative tab is populated, and the
+        // stair, slab and wall variants copy the block state of the block they are cut from.
+        FabricBlocks.register();
         FabricItems.register();
-        LOG.info("AE2 Fabric: registered {} items and the creative tab", FabricItems.registered().size());
-        LOG.warn("AE2 on Fabric is still partial: {} more of AE2's items need the grid, menu, energy or "
-                + "storage seams before they can be registered, and no blocks, parts or networks exist yet.",
-                AECommonItems.notYetPortable().size());
+        LOG.info("AE2 Fabric: registered {} blocks and {} items, plus the creative tab",
+                FabricBlocks.registered().size(), FabricItems.registered().size());
+        LOG.warn("AE2 on Fabric is still partial: {} more items and {} more blocks need the grid, menu, "
+                + "energy or storage seams before they can be registered, and no parts or networks exist yet.",
+                AECommonItems.notYetPortable().size(), AECommonBlocks.notYetPortable().size());
     }
 }

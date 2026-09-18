@@ -86,8 +86,8 @@ public final class FabricItems {
     private static void registerCreativeTab() {
         var tab = FabricCreativeModeTab.builder()
                 .title(GuiText.CreativeTab.text())
-                // NeoForge uses the controller block; no blocks are registered on Fabric yet, so the tab is
-                // iconed with an item that exists. Switch to AEBlocks.CONTROLLER once blocks follow.
+                // NeoForge uses the controller block, which needs a block entity and so is not registered
+                // here yet. Switch to it once the grid lands.
                 .icon(() -> new ItemStack(REGISTERED.get(ResourceKey.create(Registries.ITEM, AEItemIds.FLUIX_CRYSTAL))))
                 .build();
         Registry.register(BuiltInRegistries.CREATIVE_MODE_TAB, AECreativeTabIds.MAIN, tab);
@@ -96,6 +96,10 @@ public final class FabricItems {
         // CreativeModeTab.Output, which is protected in vanilla and would need an access widener here.
         CreativeModeTabEvents.modifyOutputEvent(AECreativeTabIds.MAIN).register(output -> {
             CreativeTabSink sink = stack -> output.accept(stack, TAB_AND_SEARCH);
+            // Blocks lead the tab on NeoForge too, because AEBlocks is declared before AEItems.
+            for (var blockItem : FabricBlocks.registeredItems()) {
+                sink.accept(blockItem);
+            }
             for (var item : REGISTERED.values()) {
                 // Same dispatch as MainCreativeTab: the item decides how it shows up, which is what gives
                 // the paint balls and the pre-charged tool variants their own entries.

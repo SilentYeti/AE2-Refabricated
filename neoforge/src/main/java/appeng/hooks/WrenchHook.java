@@ -24,13 +24,7 @@ import appeng.util.Platform;
  */
 public final class WrenchHook {
 
-    private static final ThreadLocal<Boolean> IS_DISASSEMBLING = new ThreadLocal<>();
-
     private WrenchHook() {
-    }
-
-    public static boolean isDisassembling() {
-        return Boolean.TRUE.equals(IS_DISASSEMBLING.get());
     }
 
     public static void onPlayerUseBlockEvent(PlayerInteractEvent.RightClickBlock event) {
@@ -60,8 +54,7 @@ public final class WrenchHook {
         if (InteractionUtil.isInAlternateUseMode(player) && InteractionUtil.canWrenchDisassemble(itemStack)) {
             var be = level.getBlockEntity(hitResult.getBlockPos());
             if (be instanceof AEBaseBlockEntity baseBlockEntity) {
-                IS_DISASSEMBLING.set(true);
-                try {
+                return WrenchDisassembly.whileDisassembling(() -> {
                     if (!Platform.hasPermissions(new DimensionalBlockPos(level, hitResult.getBlockPos()), player)) {
                         return InteractionResult.FAIL;
                     }
@@ -76,9 +69,7 @@ public final class WrenchHook {
                         level.playSound(player, hitResult.getBlockPos(), soundType, SoundSource.BLOCKS, 0.7F, 1.0F);
                     }
                     return result;
-                } finally {
-                    IS_DISASSEMBLING.remove();
-                }
+                });
             }
         } else if (!InteractionUtil.isInAlternateUseMode(player) && InteractionUtil.canWrenchRotate(itemStack)) {
             var pos = hitResult.getBlockPos();

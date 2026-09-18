@@ -22,6 +22,7 @@ import net.minecraft.world.item.CreativeModeTab;
 
 import appeng.block.AEBaseEntityBlock;
 import appeng.core.AEConfig;
+import appeng.core.definitions.CreativeTabSink;
 
 public class EnergyGeneratorBlock extends AEBaseEntityBlock<EnergyGeneratorBlockEntity> {
 
@@ -30,7 +31,7 @@ public class EnergyGeneratorBlock extends AEBaseEntityBlock<EnergyGeneratorBlock
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         if (AEConfig.instance().isDebugToolsEnabled()) {
             output.accept(this);
         }

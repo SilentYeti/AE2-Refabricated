@@ -74,7 +74,7 @@ public final class MainCreativeTab {
             // For block items, the block controls the creative tab
             if (item instanceof AEBaseBlockItem baseItem
                     && baseItem.getBlock() instanceof AEBaseBlock baseBlock) {
-                baseBlock.addToMainCreativeTab(itemDisplayParameters, output);
+                baseBlock.addToMainCreativeTab(itemDisplayParameters, output::accept);
             } else if (item instanceof AEBaseItem baseItem) {
                 // CreativeTabSink rather than Output, so AEBaseItem can live in :common
                 baseItem.addToMainCreativeTab(itemDisplayParameters, output::accept);

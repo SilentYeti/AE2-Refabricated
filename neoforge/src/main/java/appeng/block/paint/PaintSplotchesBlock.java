@@ -43,6 +43,7 @@ import appeng.api.orientation.IOrientationStrategy;
 import appeng.api.orientation.OrientationStrategies;
 import appeng.block.AEBaseEntityBlock;
 import appeng.blockentity.misc.PaintSplotchesBlockEntity;
+import appeng.core.definitions.CreativeTabSink;
 
 public class PaintSplotchesBlock extends AEBaseEntityBlock<PaintSplotchesBlockEntity> {
 
@@ -76,7 +77,7 @@ public class PaintSplotchesBlock extends AEBaseEntityBlock<PaintSplotchesBlockEn
     }
 
     @Override
-    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeModeTab.Output output) {
+    public void addToMainCreativeTab(CreativeModeTab.ItemDisplayParameters parameters, CreativeTabSink output) {
         // do nothing
     }
 
