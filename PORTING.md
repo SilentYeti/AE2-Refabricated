@@ -78,6 +78,7 @@ Reach for these before inventing something; each is in the tree with a comment e
 | problem | answer | example |
 |---|---|---|
 | a vanilla member is `protected` and only reachable via AT | subclass it — a subclass may call a protected super constructor | `AEStairBlock` |
+| a vanilla member is `private` and subclassing cannot reach it | on Fabric, an **access widener** — Loom's counterpart to an access transformer | none yet; `ItemModels.ID_MAPPER` will be the first |
 | an API takes an AT-widened type | define a narrow interface in `:common` and adapt per loader | `CreativeTabSink` for `CreativeModeTab.Output` |
 | loader-agnostic code needs state that only an event can set | the state moves to `:common`, the event handler stays with its loader | `WrenchDisassembly` / `WrenchHook` |
 | `:common` needs something only a loader can answer | add to the platform SPI — vanilla-typed signatures only | `AEPlatform`, `MenuPlatform` |
@@ -117,8 +118,11 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       had the same `CreativeModeTab.Output` problem `CreativeTabSink` already solved for items
       (8 overriders updated), and `StairBlock`'s constructor is `protected`, so `AEStairBlock`
       subclasses it to get the reach without an access transformer.
-- [ ] Block entity types
-- [ ] Entity types
+- [ ] Block entity types — needs the block entity classes, which need the grid. **Stage 6, not here.**
+- [ ] Entity types — one entity, `TinyTNTPrimedEntity`, and it is genuinely loader-coupled: it
+      implements NeoForge's `IEntityWithComplexSpawn` for its extra spawn data and calls `EventHooks`.
+      Fabric has no drop-in for either, so this needs a custom spawn packet. Small feature, poor
+      return; do it when the networking seam exists (stage 5)
 - [ ] Data component types (`AEComponents`) — named by 3 `notYetPortable` entries
 - [ ] Recipe types and serializers — **groundwork done, the move is blocked on a cycle.**
       `AERecipeTypes` and `AERecipeSerializers` are plain ordered tables now rather than
@@ -152,12 +156,15 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       Confirmed working in game: matter-cannon recipe errors fell from 68 to 4, and the 4 that remain
       are the ones whose tags vanilla does populate (iron, gold, copper) plus the one unconditional
       recipe — exactly the set that *should* still try to load.
-- [ ] Structures (`StructurePieceType`, `StructureType`)
-- [ ] Attachment types → `fabric-data-attachment-api-v1`
-- [ ] Register the 8 custom item-model element types (`ae2:color`, `ae2:storage_cell_state`,
-      `ae2:energy_fill_level`, `ae2:facade`, `ae2:memory_card_identity`, `ae2:meteorite_compass`,
-      `ae2:color_applicator`, `ae2:portable_cell_color`) — 48 item models currently fail to parse
-      on Fabric without them
+- [ ] Structures (`StructurePieceType`, `StructureType`) — the whole `appeng/worldgen` package
+      bounces on `neoforge.common` and AE2's own worldgen types. Not blocked by anything subtle,
+      just untouched
+- [ ] Attachment types → `fabric-data-attachment-api-v1`. Exactly one attachment,
+      `AEAttachmentTypes.HOLDING_CTRL`, a per-player boolean. Both loaders have the concept under
+      different APIs, so it wants a two-method seam (`isHoldingCtrl` / `setHoldingCtrl`) rather than
+      a shared type. Its only consumers are `UpdateHoldingCtrlPacket` and `PartPlacement`, neither of
+      which is close to crossing, so building the seam now would leave it with nothing to serve —
+      do it alongside stage 5
 
 **Partly done.** The blanket `exclude 'data/**'` is gone and **148 AE2 recipes load**, asserted as a
 floor by the gametest. The data pack now ships a directory at a time, because the kinds of data fail
@@ -219,6 +226,19 @@ which should fall out here without individual attention.
 
 Last on purpose: most loader-bound, least useful before the server side works.
 
+- [ ] The 8 custom item-model element types (`ae2:color`, `ae2:storage_cell_state`,
+      `ae2:energy_fill_level`, `ae2:facade`, `ae2:memory_card_identity`, `ae2:meteorite_compass`,
+      `ae2:color_applicator`, `ae2:portable_cell_color`). **Moved here from stage 1**: 48 item models
+      fail to parse on Fabric without them, but the classes behind them
+      (`ColorApplicatorItemModel`, `FacadeItemModel`, `MeteoriteCompassModel`,
+      `EnergyFillLevelProperty`, the tint sources) all live in `neoforge/src/client`, so nothing can
+      register them until this stage moves.
+      There is a second problem waiting behind that one. NeoForge registers them through
+      `RegisterItemModelsEvent`, `RegisterRangeSelectItemModelPropertyEvent` and
+      `RegisterColorHandlersEvent`, which reach `ItemModels.ID_MAPPER` — `private static final` in
+      vanilla *and* in the patched jar. Fabric's answer is an **access widener**, its counterpart to
+      an access transformer; Loom supports them natively and `:fabric:validateAccessWidener` already
+      runs (as NO-SOURCE, because there is no widener yet). That is the first one this port needs
 - [ ] Screens and widgets
 - [ ] Block entity and part renderers
 - [ ] Cable bus model + `neoforge.model.data` → `fabric-renderer-api-v1`
