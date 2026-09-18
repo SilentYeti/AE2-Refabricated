@@ -4,7 +4,7 @@ Move files into :common and keep whatever compiles.
 
     python3 tools/try_move_to_common.py appeng/recipes            # a package, recursively
     python3 tools/try_move_to_common.py appeng/block/AEBaseBlock.java
-    python3 tools/try_move_to_common.py --all                     # everything in :neoforge/main
+    python3 tools/try_move_to_common.py --all                     # everything, to find the ceiling
     python3 tools/try_move_to_common.py appeng/recipes --dry-run  # report, change nothing
 
 This is the only reliable way to find what can live in :common, because two of the three coupling
@@ -84,7 +84,10 @@ def prune_empty_dirs(root):
 def main():
     ap = argparse.ArgumentParser(description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("target", help="package prefix under appeng/, a single .java path, or --all")
+    ap.add_argument("target", nargs="?",
+                    help="package prefix under appeng/, or a single .java path; omit with --all")
+    ap.add_argument("--all", action="store_true",
+                    help="every file in :neoforge/src/main, to find the current ceiling")
     ap.add_argument("--dry-run", action="store_true",
                     help="move, compile, report, then put everything back")
     args = ap.parse_args()
@@ -92,7 +95,9 @@ def main():
     if not os.path.isdir(COMMON):
         sys.exit("run this from the repository root")
 
-    files = candidates(args.target)
+    if args.all == bool(args.target):
+        sys.exit("give either a target or --all, not both")
+    files = candidates("--all" if args.all else args.target)
     if not files:
         sys.exit("nothing to move")
     print(f"moving {len(files)} file(s) into :common\n")

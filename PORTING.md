@@ -65,6 +65,12 @@ It moves, compiles, moves back whatever failed, repeats until it settles, and pr
 file with the compiler error that is the real reason it cannot move. Then run the rest of the loop
 above before committing.
 
+**The mechanical phase is over.** `--all --dry-run` currently moves 833 files and every one bounces,
+so nothing else crosses by relocation alone. From here each file needs a deliberate change first:
+break a cycle, split state from its event, narrow an interface, or resolve something from a registry
+instead of naming a definitions class. Run `--all --dry-run` again after any such change — it is the
+cheapest way to see what the change opened up, and it puts everything back.
+
 ## Patterns that already work
 
 Reach for these before inventing something; each is in the tree with a comment explaining itself.
@@ -112,11 +118,17 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
 - [ ] Block entity types
 - [ ] Entity types
 - [ ] Data component types (`AEComponents`) — named by 3 `notYetPortable` entries
-- [ ] Recipe types and serializers — 12 recipe support classes are in `:common`; `AERecipeTypes`
-      itself is blocked only by `DeferredRegister`, but the recipe classes depend on it, so the two
-      have to move together. `EntropyRecipe` needs only a javadoc import dropped; `InscriberRecipe`
-      and `ChargerRecipe` need one display icon each resolving from the registry instead of
-      `AEBlocks`; `TransformRecipe` genuinely needs the quantum bridge
+- [ ] Recipe types and serializers — **groundwork done, the move is blocked on a cycle.**
+      `AERecipeTypes` and `AERecipeSerializers` are plain ordered tables now rather than
+      `DeferredRegister`s, registered through `AppEngBase`'s existing `RegisterEvent` path, so their
+      shape is already loader-agnostic. `EntropyRecipe`, `InscriberRecipe` and `ChargerRecipe` have
+      lost their last tie to `:neoforge`.
+      The cycle is the remaining problem: `AERecipeTypes` names the recipe classes and they name it
+      back, so they can only move together, and any one with its own blocker drags the rest back.
+      Those blockers, individually small: `TransformRecipe` needs the quantum bridge,
+      `MatterCannonAmmo` needs NeoForge's recipe conditions, `QuartzCuttingRecipe` and
+      `TransformLogic` want `neoforge.common` and the event bus. Clear those four and the whole
+      package crosses at once.
 - [ ] Structures (`StructurePieceType`, `StructureType`)
 - [ ] Attachment types → `fabric-data-attachment-api-v1`
 - [ ] Register the 8 custom item-model element types (`ae2:color`, `ae2:storage_cell_state`,
