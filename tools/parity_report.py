@@ -35,7 +35,9 @@ NEOFORGE_GROUPS = [
 def java_files(root):
     out = []
     for dirpath, _, names in os.walk(root):
-        out.extend(os.path.join(dirpath, n) for n in names if n.endswith(".java"))
+        # Forward slashes throughout: the rest of this script splits on "/java/", and on Windows
+        # os.walk hands back backslashes.
+        out.extend(os.path.join(dirpath, n).replace(os.sep, "/") for n in names if n.endswith(".java"))
     return out
 
 

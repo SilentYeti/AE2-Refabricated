@@ -59,12 +59,14 @@ def move(src, from_root, to_root):
 
 def compile_common():
     """Returns (ok, {relative path: first error line})."""
+    gradlew = "gradlew.bat" if os.name == "nt" else "./gradlew"
     result = subprocess.run(
-        ["./gradlew", ":common:compileJava", "--no-daemon", "-q", "--console=plain"],
-        capture_output=True, text=True)
+        [gradlew, ":common:compileJava", "--no-daemon", "-q", "--console=plain"],
+        capture_output=True, text=True, shell=os.name == "nt")
     if result.returncode == 0:
         return True, {}
-    log = result.stdout + result.stderr
+    # javac reports paths with the platform separator; the pattern below expects forward slashes.
+    log = (result.stdout + result.stderr).replace("\\", "/")
     failures = {}
     for match in re.finditer(r'/' + COMMON + r'/(appeng/[^:]+\.java):(\d+): error: (.*)', log):
         failures.setdefault(match.group(1), f"{match.group(3).strip()} (line {match.group(2)})")
