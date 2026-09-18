@@ -36,7 +36,6 @@ import net.neoforged.neoforge.transfer.transaction.SnapshotJournal;
 import it.unimi.dsi.fastutil.objects.Reference2LongArrayMap;
 import it.unimi.dsi.fastutil.objects.Reference2LongMap;
 
-import appeng.api.behaviors.GenericInternalInventory;
 import appeng.api.behaviors.GenericSlotCapacities;
 import appeng.api.config.Actionable;
 import appeng.api.networking.security.IActionSource;
@@ -49,9 +48,11 @@ import appeng.api.stacks.KeyCounter;
 import appeng.api.storage.AEKeySlotFilter;
 import appeng.api.storage.MEStorage;
 import appeng.core.AELog;
+import appeng.neoforge.resources.TransactionalGenericInventory;
 import appeng.util.ConfigMenuInventory;
 
-public class GenericStackInv extends SnapshotJournal<GenericStack[]> implements MEStorage, GenericInternalInventory {
+public class GenericStackInv extends SnapshotJournal<GenericStack[]>
+        implements MEStorage, TransactionalGenericInventory {
     protected final GenericStack[] stacks;
     private final Runnable listener;
     private boolean suppressOnChange;

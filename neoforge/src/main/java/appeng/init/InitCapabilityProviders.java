@@ -1,5 +1,7 @@
 package appeng.init;
 
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 
 import net.minecraft.core.Direction;
@@ -23,13 +25,16 @@ import appeng.blockentity.misc.GrowthAcceleratorBlockEntity;
 import appeng.blockentity.misc.InscriberBlockEntity;
 import appeng.blockentity.powersink.AEBasePoweredBlockEntity;
 import appeng.blockentity.storage.MEChestBlockEntity;
+import appeng.core.AELog;
 import appeng.core.definitions.AEBlockEntities;
 import appeng.core.definitions.AEItems;
 import appeng.core.definitions.ItemDefinition;
 import appeng.helpers.externalstorage.GenericStackFluidHandler;
 import appeng.helpers.externalstorage.GenericStackItemHandler;
 import appeng.items.tools.powered.powersink.PoweredItemCapabilities;
+import appeng.neoforge.NeoForgeCapabilities;
 import appeng.neoforge.resources.NeoForgeInventories;
+import appeng.neoforge.resources.TransactionalGenericInventory;
 import appeng.parts.crafting.PatternProviderPart;
 import appeng.parts.encoding.PatternEncodingTerminalPart;
 import appeng.parts.misc.InterfacePart;
@@ -48,15 +53,15 @@ public final class InitCapabilityProviders {
      */
     public static void markProxyableCapabilities(RegisterCapabilitiesEvent event) {
         // Definitely proxyable - this is a storage capability.
-        event.setProxyable(AECapabilities.ME_STORAGE);
+        event.setProxyable(NeoForgeCapabilities.of(AECapabilities.ME_STORAGE));
         // Why not - in principle a crafting machine could be behind a tunnel.
-        event.setProxyable(AECapabilities.CRAFTING_MACHINE);
+        event.setProxyable(NeoForgeCapabilities.of(AECapabilities.CRAFTING_MACHINE));
         // Why not - this is a storage capability, albeit in principle not exposed directly.
-        event.setProxyable(AECapabilities.GENERIC_INTERNAL_INV);
+        event.setProxyable(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV));
         // Definitely not proxyable, we don't want to connect nodes through a capability tunnel.
-        event.setNonProxyable(AECapabilities.IN_WORLD_GRID_NODE_HOST);
+        event.setNonProxyable(NeoForgeCapabilities.of(AECapabilities.IN_WORLD_GRID_NODE_HOST));
         // It would be weird to crank through a tunnel, and we might miss neighbor updates from the crankable.
-        event.setNonProxyable(AECapabilities.CRANKABLE);
+        event.setNonProxyable(NeoForgeCapabilities.of(AECapabilities.CRANKABLE));
     }
 
     public static void register(RegisterCapabilitiesEvent event) {
@@ -84,7 +89,7 @@ public final class InitCapabilityProviders {
                     AEBasePoweredBlockEntity::getEnergyStorage);
         }
         for (var type : AEBlockEntities.getImplementorsOf(IInWorldGridNodeHost.class)) {
-            event.registerBlockEntity(AECapabilities.IN_WORLD_GRID_NODE_HOST, type,
+            event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.IN_WORLD_GRID_NODE_HOST), type,
                     (object, context) -> (IInWorldGridNodeHost) object);
         }
     }
@@ -95,7 +100,7 @@ public final class InitCapabilityProviders {
     public static void registerGenericAdapters(RegisterCapabilitiesEvent event) {
 
         for (var block : BuiltInRegistries.BLOCK) {
-            if (event.isBlockRegistered(AECapabilities.GENERIC_INTERNAL_INV, block)) {
+            if (event.isBlockRegistered(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV), block)) {
                 registerGenericInvAdapter(event, block, Capabilities.Item.BLOCK, GenericStackItemHandler::new);
                 registerGenericInvAdapter(event, block, Capabilities.Fluid.BLOCK, GenericStackFluidHandler::new);
             }
@@ -106,28 +111,46 @@ public final class InitCapabilityProviders {
     private static <T> void registerGenericInvAdapter(RegisterCapabilitiesEvent event,
             Block block,
             BlockCapability<T, Direction> capability,
-            Function<GenericInternalInventory, T> adapter) {
+            Function<TransactionalGenericInventory, T> adapter) {
         event.registerBlock(
                 capability,
                 (level, pos, state, blockEntity, context) -> {
-                    var genericInv = level.getCapability(AECapabilities.GENERIC_INTERNAL_INV, pos, state,
+                    var genericInv = level.getCapability(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
+                            pos, state,
                             blockEntity, context);
+                    if (genericInv instanceof TransactionalGenericInventory transactional) {
+                        return adapter.apply(transactional);
+                    }
                     if (genericInv != null) {
-                        return adapter.apply(genericInv);
+                        warnNotTransactional(genericInv);
                     }
                     return null;
                 },
                 block);
     }
 
+    private static final Set<Class<?>> WARNED_NOT_TRANSACTIONAL = ConcurrentHashMap.newKeySet();
+
+    /**
+     * Every inventory AE2 itself exposes is transactional. One that is not can only come from another mod, and is left
+     * unexposed rather than wrapped in a handler that could not undo an aborted transaction.
+     */
+    private static void warnNotTransactional(GenericInternalInventory inventory) {
+        if (WARNED_NOT_TRANSACTIONAL.add(inventory.getClass())) {
+            AELog.warn("{} is a GenericInternalInventory but not a TransactionalGenericInventory, so it is not exposed "
+                    + "as a NeoForge item or fluid handler: an aborted transfer could not be rolled back. Implement "
+                    + "TransactionalGenericInventory to expose it.", inventory.getClass().getName());
+        }
+    }
+
     private static void initInterface(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                AECapabilities.GENERIC_INTERNAL_INV,
+                NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
                 AEBlockEntities.INTERFACE.get(),
                 (be, context) -> be.getInterfaceLogic().getStorage());
 
         event.registerBlockEntity(
-                AECapabilities.ME_STORAGE,
+                NeoForgeCapabilities.of(AECapabilities.ME_STORAGE),
                 AEBlockEntities.INTERFACE.get(),
                 (blockEntity, context) -> {
                     return blockEntity.getInterfaceLogic().getInventory();
@@ -136,7 +159,7 @@ public final class InitCapabilityProviders {
 
     private static void initPatternProvider(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                AECapabilities.GENERIC_INTERNAL_INV,
+                NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
                 AEBlockEntities.PATTERN_PROVIDER.get(),
                 (blockEntity, context) -> blockEntity.getLogic().getReturnInv());
     }
@@ -152,7 +175,7 @@ public final class InitCapabilityProviders {
                 ((blockEntity, context) -> {
                     return blockEntity.getFluidHandler();
                 }));
-        event.registerBlockEntity(AECapabilities.ME_STORAGE, AEBlockEntities.CONDENSER.get(),
+        event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.ME_STORAGE), AEBlockEntities.CONDENSER.get(),
                 (blockEntity, context) -> {
                     return blockEntity.getMEStorage();
                 });
@@ -161,13 +184,13 @@ public final class InitCapabilityProviders {
     private static void initMEChest(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(Capabilities.Fluid.BLOCK, AEBlockEntities.ME_CHEST.get(),
                 MEChestBlockEntity::getFluidHandler);
-        event.registerBlockEntity(AECapabilities.ME_STORAGE, AEBlockEntities.ME_CHEST.get(),
+        event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.ME_STORAGE), AEBlockEntities.ME_CHEST.get(),
                 MEChestBlockEntity::getMEStorage);
     }
 
     private static void initMisc(RegisterCapabilitiesEvent event) {
         event.registerBlockEntity(
-                AECapabilities.CRAFTING_MACHINE,
+                NeoForgeCapabilities.of(AECapabilities.CRAFTING_MACHINE),
                 AEBlockEntities.MOLECULAR_ASSEMBLER.get(),
                 (object, context) -> object);
         event.registerBlockEntity(
@@ -214,11 +237,12 @@ public final class InitCapabilityProviders {
     }
 
     private static void initCrankable(RegisterCapabilitiesEvent event) {
-        event.registerBlockEntity(AECapabilities.CRANKABLE, AEBlockEntities.CHARGER.get(),
+        event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.CRANKABLE), AEBlockEntities.CHARGER.get(),
                 ChargerBlockEntity::getCrankable);
-        event.registerBlockEntity(AECapabilities.CRANKABLE, AEBlockEntities.INSCRIBER.get(),
+        event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.CRANKABLE), AEBlockEntities.INSCRIBER.get(),
                 InscriberBlockEntity::getCrankable);
-        event.registerBlockEntity(AECapabilities.CRANKABLE, AEBlockEntities.GROWTH_ACCELERATOR.get(),
+        event.registerBlockEntity(NeoForgeCapabilities.of(AECapabilities.CRANKABLE),
+                AEBlockEntities.GROWTH_ACCELERATOR.get(),
                 GrowthAcceleratorBlockEntity::getCrankable);
     }
 
@@ -226,12 +250,13 @@ public final class InitCapabilityProviders {
         event.register(Capabilities.Item.BLOCK,
                 (part, direction) -> NeoForgeInventories.resourceHandler(part.getLogic().getBlankPatternInv()),
                 PatternEncodingTerminalPart.class);
-        event.register(AECapabilities.GENERIC_INTERNAL_INV, (part, context) -> part.getLogic().getReturnInv(),
+        event.register(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
+                (part, context) -> part.getLogic().getReturnInv(),
                 PatternProviderPart.class);
-        event.register(AECapabilities.GENERIC_INTERNAL_INV,
+        event.register(NeoForgeCapabilities.of(AECapabilities.GENERIC_INTERNAL_INV),
                 (part, context) -> part.getInterfaceLogic().getStorage(),
                 InterfacePart.class);
-        event.register(AECapabilities.ME_STORAGE,
+        event.register(NeoForgeCapabilities.of(AECapabilities.ME_STORAGE),
                 (part, context) -> part.getInterfaceLogic().getInventory(), InterfacePart.class);
 
         event.register(Capabilities.Item.BLOCK, (part, context) -> part.getExposedApi(),

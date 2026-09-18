@@ -21,35 +21,38 @@ package appeng.api;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Direction;
-import net.neoforged.neoforge.capabilities.BlockCapability;
 
 import appeng.api.behaviors.GenericInternalInventory;
+import appeng.api.ids.AEConstants;
 import appeng.api.implementations.blockentities.ICraftingMachine;
 import appeng.api.implementations.blockentities.ICrankable;
 import appeng.api.networking.IInWorldGridNodeHost;
 import appeng.api.storage.MEStorage;
-import appeng.core.AppEng;
 
 /**
  * Utility class that holds the capabilities provided by AE2.
+ * <p>
+ * These are {@link AEBlockCapability} handles rather than a loader's own capability objects, so that code on either
+ * loader can look them up. On NeoForge, {@code NeoForgeCapabilities.of(...)} gives the {@code BlockCapability} to
+ * register providers against; it is the same object these fields held before they became handles.
  */
 public final class AECapabilities {
     private AECapabilities() {
     }
 
-    public static BlockCapability<MEStorage, @Nullable Direction> ME_STORAGE = BlockCapability
-            .createSided(AppEng.makeId("me_storage"), MEStorage.class);
+    public static final AEBlockCapability<MEStorage, @Nullable Direction> ME_STORAGE = AEBlockCapability
+            .sided(AEConstants.makeId("me_storage"), MEStorage.class);
 
-    public static BlockCapability<ICraftingMachine, @Nullable Direction> CRAFTING_MACHINE = BlockCapability
-            .createSided(AppEng.makeId("crafting_machine"), ICraftingMachine.class);
+    public static final AEBlockCapability<ICraftingMachine, @Nullable Direction> CRAFTING_MACHINE = AEBlockCapability
+            .sided(AEConstants.makeId("crafting_machine"), ICraftingMachine.class);
 
-    public static BlockCapability<GenericInternalInventory, @Nullable Direction> GENERIC_INTERNAL_INV = BlockCapability
-            .createSided(AppEng.makeId("generic_internal_inv"), GenericInternalInventory.class);
+    public static final AEBlockCapability<GenericInternalInventory, @Nullable Direction> GENERIC_INTERNAL_INV = AEBlockCapability
+            .sided(AEConstants.makeId("generic_internal_inv"), GenericInternalInventory.class);
 
-    public static BlockCapability<IInWorldGridNodeHost, Void> IN_WORLD_GRID_NODE_HOST = BlockCapability
-            .createVoid(AppEng.makeId("inworld_gridnode_host"), IInWorldGridNodeHost.class);
+    public static final AEBlockCapability<IInWorldGridNodeHost, @Nullable Void> IN_WORLD_GRID_NODE_HOST = AEBlockCapability
+            .unsided(AEConstants.makeId("inworld_gridnode_host"), IInWorldGridNodeHost.class);
 
-    public static BlockCapability<ICrankable, @Nullable Direction> CRANKABLE = BlockCapability
-            .createSided(AppEng.makeId("crankable"), ICrankable.class);
+    public static final AEBlockCapability<ICrankable, @Nullable Direction> CRANKABLE = AEBlockCapability
+            .sided(AEConstants.makeId("crankable"), ICrankable.class);
 
 }

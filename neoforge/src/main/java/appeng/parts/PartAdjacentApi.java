@@ -4,9 +4,9 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.capabilities.BlockCapability;
-import net.neoforged.neoforge.capabilities.BlockCapabilityCache;
 
+import appeng.api.AEBlockCapability;
+import appeng.api.AEBlockCapabilityCache;
 import appeng.api.parts.IPartHost;
 import appeng.util.Platform;
 
@@ -15,16 +15,17 @@ import appeng.util.Platform;
  */
 public class PartAdjacentApi<T> {
     private final AEBasePart part;
-    private final BlockCapability<T, Direction> capability;
+    private final AEBlockCapability<T, @Nullable Direction> capability;
     private final Runnable invalidationListener;
-    private BlockCapabilityCache<T, Direction> cache;
+    private AEBlockCapabilityCache<T> cache;
 
-    public PartAdjacentApi(AEBasePart part, BlockCapability<T, Direction> capability) {
+    public PartAdjacentApi(AEBasePart part, AEBlockCapability<T, @Nullable Direction> capability) {
         this(part, capability, () -> {
         });
     }
 
-    public PartAdjacentApi(AEBasePart part, BlockCapability<T, Direction> capability, Runnable invalidationListener) {
+    public PartAdjacentApi(AEBasePart part, AEBlockCapability<T, @Nullable Direction> capability,
+            Runnable invalidationListener) {
         this.capability = capability;
         this.part = part;
         this.invalidationListener = invalidationListener;
@@ -45,8 +46,7 @@ public class PartAdjacentApi<T> {
         }
 
         if (cache == null) {
-            cache = BlockCapabilityCache.create(
-                    capability,
+            cache = capability.createCache(
                     serverLevel,
                     targetPos,
                     attachedSide.getOpposite(),
@@ -54,7 +54,7 @@ public class PartAdjacentApi<T> {
                     invalidationListener);
         }
 
-        return cache.getCapability();
+        return cache.find();
     }
 
     public static boolean isPartValid(AEBasePart part) {

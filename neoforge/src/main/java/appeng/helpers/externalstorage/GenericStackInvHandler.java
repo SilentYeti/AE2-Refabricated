@@ -7,21 +7,21 @@ import net.neoforged.neoforge.transfer.TransferPreconditions;
 import net.neoforged.neoforge.transfer.resource.Resource;
 import net.neoforged.neoforge.transfer.transaction.TransactionContext;
 
-import appeng.api.behaviors.GenericInternalInventory;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
 import appeng.helpers.ResourceConversion;
+import appeng.neoforge.resources.TransactionalGenericInventory;
 
 /**
  * Adapts a {@link GenericStackInv} as {@link ResourceHandler} of the appropriate type.
  */
 public class GenericStackInvHandler<V extends Resource> implements ResourceHandler<V> {
     private final ResourceConversion<V> conversion;
-    private final GenericInternalInventory inv;
+    private final TransactionalGenericInventory inv;
     private final AEKeyType channel;
 
     public GenericStackInvHandler(ResourceConversion<V> conversion, AEKeyType channel,
-            GenericInternalInventory inv) {
+            TransactionalGenericInventory inv) {
         this.conversion = conversion;
         this.channel = channel;
         this.inv = inv;

@@ -24,6 +24,7 @@ import net.minecraft.core.Direction;
 import net.neoforged.neoforge.capabilities.BlockCapability;
 
 import appeng.api.parts.IPartItem;
+import appeng.neoforge.NeoForgeCapabilities;
 import appeng.parts.PartAdjacentApi;
 
 /**
@@ -42,7 +43,8 @@ public abstract class CapabilityP2PTunnelPart<P extends CapabilityP2PTunnelPart<
 
     public CapabilityP2PTunnelPart(IPartItem<?> partItem, BlockCapability<T, Direction> capability) {
         super(partItem);
-        this.adjacentCapability = new PartAdjacentApi<>(this, capability, this::forwardCapabilityInvalidation);
+        this.adjacentCapability = new PartAdjacentApi<>(this, NeoForgeCapabilities.handle(capability),
+                this::forwardCapabilityInvalidation);
     }
 
     @Override
