@@ -5,9 +5,11 @@ import java.util.List;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -16,8 +18,8 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
+import appeng.api.ids.AEBlockIds;
 import appeng.core.AppEng;
-import appeng.core.definitions.AEBlocks;
 import appeng.recipes.AERecipeTypes;
 import appeng.recipes.MechanicsRecipe;
 
@@ -75,6 +77,17 @@ public class ChargerRecipe extends MechanicsRecipe<RecipeInput> {
                 new ChargerRecipeDisplay(
                         ingredient.display(),
                         new SlotDisplay.ItemStackSlotDisplay(result),
-                        new SlotDisplay.ItemSlotDisplay(AEBlocks.CHARGER.asItem())));
+                        new SlotDisplay.ItemSlotDisplay(craftingStation())));
+    }
+
+    /**
+     * The block shown as the crafting station in the recipe book.
+     * <p>
+     * Resolved from the registry rather than named through {@code AEBlocks}, which cannot be reached from
+     * {@code :common} -- and which would be the wrong place to ask anyway, since the loader that registered the block
+     * is the one that knows about it.
+     */
+    private static Item craftingStation() {
+        return BuiltInRegistries.ITEM.getValue(AEBlockIds.CHARGER);
     }
 }

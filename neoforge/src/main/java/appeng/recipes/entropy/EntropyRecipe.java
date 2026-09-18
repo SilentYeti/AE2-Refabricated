@@ -46,13 +46,12 @@ import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.world.level.material.FluidState;
 
-import appeng.items.tools.powered.EntropyManipulatorItem;
 import appeng.recipes.AERecipeTypes;
 import appeng.recipes.MechanicsRecipe;
 import appeng.util.AEStreamCodecs;
 
 /**
- * A special recipe used for the {@link EntropyManipulatorItem}.
+ * A special recipe used for the {@code EntropyManipulatorItem}.
  */
 public class EntropyRecipe extends MechanicsRecipe<RecipeInput> {
 

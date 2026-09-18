@@ -135,8 +135,6 @@ public abstract class AppEngBase implements AppEng {
         AEBlockEntities.DR.register(modEventBus);
         AEComponents.DR.register(modEventBus);
         AEEntities.DR.register(modEventBus);
-        AERecipeTypes.DR.register(modEventBus);
-        AERecipeSerializers.DR.register(modEventBus);
         InitStructures.register(modEventBus);
         AEAttachmentTypes.register(modEventBus);
 
@@ -148,7 +146,14 @@ public abstract class AppEngBase implements AppEng {
         modEventBus.addListener(InitCapabilityProviders::register);
         modEventBus.addListener(EventPriority.LOWEST, InitCapabilityProviders::registerGenericAdapters);
         modEventBus.addListener((RegisterEvent event) -> {
-            if (event.getRegistryKey() == Registries.SOUND_EVENT) {
+            if (event.getRegistryKey() == Registries.RECIPE_TYPE) {
+                // Plain tables rather than DeferredRegisters, because :common has to be able to name
+                // these types and serializers; see AERecipeTypes.
+                AERecipeTypes.all().forEach((id, type) -> event.register(Registries.RECIPE_TYPE, id, () -> type));
+            } else if (event.getRegistryKey() == Registries.RECIPE_SERIALIZER) {
+                AERecipeSerializers.all()
+                        .forEach((id, ser) -> event.register(Registries.RECIPE_SERIALIZER, id, () -> ser));
+            } else if (event.getRegistryKey() == Registries.SOUND_EVENT) {
                 registerSounds(BuiltInRegistries.SOUND_EVENT);
             } else if (event.getRegistryKey() == Registries.CREATIVE_MODE_TAB) {
                 registerCreativeTabs(BuiltInRegistries.CREATIVE_MODE_TAB);

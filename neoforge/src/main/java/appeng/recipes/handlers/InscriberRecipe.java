@@ -26,8 +26,10 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStackTemplate;
 import net.minecraft.world.item.crafting.Ingredient;
 import net.minecraft.world.item.crafting.RecipeInput;
@@ -36,7 +38,7 @@ import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.item.crafting.display.RecipeDisplay;
 import net.minecraft.world.item.crafting.display.SlotDisplay;
 
-import appeng.core.definitions.AEBlocks;
+import appeng.api.ids.AEBlockIds;
 import appeng.recipes.AERecipeTypes;
 import appeng.recipes.MechanicsRecipe;
 import appeng.util.AEStreamCodecs;
@@ -115,7 +117,7 @@ public class InscriberRecipe extends MechanicsRecipe<RecipeInput> {
                         bottomOptional.map(Ingredient::display).orElse(SlotDisplay.Empty.INSTANCE),
                         processType,
                         new SlotDisplay.ItemStackSlotDisplay(result),
-                        new SlotDisplay.ItemSlotDisplay(AEBlocks.INSCRIBER.asItem())));
+                        new SlotDisplay.ItemSlotDisplay(craftingStation())));
     }
 
     public Ingredient getMiddleInput() {
@@ -164,4 +166,14 @@ public class InscriberRecipe extends MechanicsRecipe<RecipeInput> {
                 Ingredients::new);
     }
 
+    /**
+     * The block shown as the crafting station in the recipe book.
+     * <p>
+     * Resolved from the registry rather than named through {@code AEBlocks}, which cannot be reached from
+     * {@code :common} -- and which would be the wrong place to ask anyway, since the loader that registered the block
+     * is the one that knows about it.
+     */
+    private static Item craftingStation() {
+        return BuiltInRegistries.ITEM.getValue(AEBlockIds.INSCRIBER);
+    }
 }

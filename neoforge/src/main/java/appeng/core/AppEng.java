@@ -44,7 +44,7 @@ public interface AppEng {
     }
 
     static Identifier makeId(String id) {
-        return Identifier.fromNamespaceAndPath(MOD_ID, id);
+        return AEConstants.makeId(id);
     }
 
     /**

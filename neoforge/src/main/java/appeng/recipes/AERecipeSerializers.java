@@ -1,10 +1,13 @@
 package appeng.recipes;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.item.crafting.RecipeSerializer;
-import net.neoforged.neoforge.registries.DeferredRegister;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
-import appeng.core.AppEng;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.item.crafting.RecipeSerializer;
+
+import appeng.api.ids.AEConstants;
 import appeng.recipes.entropy.EntropyRecipe;
 import appeng.recipes.game.AddItemUpgradeRecipe;
 import appeng.recipes.game.CraftingUnitTransformRecipe;
@@ -22,8 +25,12 @@ public final class AERecipeSerializers {
     private AERecipeSerializers() {
     }
 
-    public static final DeferredRegister<RecipeSerializer<?>> DR = DeferredRegister
-            .create(Registries.RECIPE_SERIALIZER, AppEng.MOD_ID);
+    /** Every serializer declared here, in declaration order, for whichever loader is registering them. */
+    private static final Map<Identifier, RecipeSerializer<?>> ALL = new LinkedHashMap<>();
+
+    public static Map<Identifier, RecipeSerializer<?>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     static {
         register("inscriber", InscriberRecipe.SERIALIZER);
@@ -41,6 +48,6 @@ public final class AERecipeSerializers {
     }
 
     private static void register(String id, RecipeSerializer<?> serializer) {
-        DR.register(id, () -> serializer);
+        ALL.put(AEConstants.makeId(id), serializer);
     }
 }

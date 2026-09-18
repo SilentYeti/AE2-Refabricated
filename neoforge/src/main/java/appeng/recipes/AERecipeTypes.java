@@ -1,11 +1,14 @@
 package appeng.recipes;
 
-import net.minecraft.core.registries.Registries;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Recipe;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
-import appeng.core.AppEng;
+import appeng.api.ids.AEConstants;
 import appeng.recipes.entropy.EntropyRecipe;
 import appeng.recipes.game.CraftingUnitTransformRecipe;
 import appeng.recipes.game.StorageCellDisassemblyRecipe;
@@ -19,8 +22,18 @@ public final class AERecipeTypes {
     private AERecipeTypes() {
     }
 
-    public static final DeferredRegister<RecipeType<?>> DR = DeferredRegister
-            .create(Registries.RECIPE_TYPE, AppEng.MOD_ID);
+    /**
+     * Every type declared here, in declaration order, for whichever loader is registering them.
+     * <p>
+     * A plain table rather than a {@code DeferredRegister}, because that is NeoForge's and this class has to be
+     * reachable from {@code :common} -- the recipe classes name these constants as their type, so it cannot sit on the
+     * far side of the loader boundary from them.
+     */
+    private static final Map<Identifier, RecipeType<?>> ALL = new LinkedHashMap<>();
+
+    public static Map<Identifier, RecipeType<?>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     public static final RecipeType<TransformRecipe> TRANSFORM = register("transform");
     public static final RecipeType<EntropyRecipe> ENTROPY = register("entropy");
@@ -34,8 +47,9 @@ public final class AERecipeTypes {
             "storage_cell_disassembly");
 
     private static <T extends Recipe<?>> RecipeType<T> register(String id) {
-        RecipeType<T> type = RecipeType.simple(AppEng.makeId(id));
-        DR.register(id, () -> type);
+        var key = AEConstants.makeId(id);
+        RecipeType<T> type = RecipeType.simple(key);
+        ALL.put(key, type);
         return type;
     }
 }

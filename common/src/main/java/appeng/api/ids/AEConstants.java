@@ -23,6 +23,8 @@
 
 package appeng.api.ids;
 
+import net.minecraft.resources.Identifier;
+
 /**
  * Contains various global constants
  */
@@ -30,4 +32,14 @@ public class AEConstants {
 
     public static final String MOD_ID = "ae2";
 
+    /**
+     * An {@link Identifier} in AE2's namespace.
+     * <p>
+     * {@code AppEng.makeId} does the same and is what most of the codebase calls, but {@code AppEng} is also the mod's
+     * runtime service interface -- packets, the server, cable render modes -- so it cannot be reached from
+     * {@code :common}. Loader-agnostic code asks here instead.
+     */
+    public static Identifier makeId(String id) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, id);
+    }
 }
