@@ -8,15 +8,17 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityType;
-import net.neoforged.neoforge.registries.DeferredHolder;
 
-public final class DeferredBlockEntityType<T extends BlockEntity> implements Supplier<BlockEntityType<T>> {
+public final class AEBlockEntityType<T extends BlockEntity> implements Supplier<BlockEntityType<T>> {
     private final Class<T> blockEntityClass;
 
-    private final DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> holder;
+    private final Supplier<BlockEntityType<T>> holder;
 
-    public DeferredBlockEntityType(Class<T> blockEntityClass,
-            DeferredHolder<BlockEntityType<?>, BlockEntityType<T>> holder) {
+    /**
+     * A supplier of the type rather than one of the loader's deferred-registry handles, for the same reason
+     * {@link ItemDefinition} takes one.
+     */
+    public AEBlockEntityType(Class<T> blockEntityClass, Supplier<BlockEntityType<T>> holder) {
         this.blockEntityClass = blockEntityClass;
         this.holder = holder;
     }

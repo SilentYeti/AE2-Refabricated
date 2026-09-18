@@ -29,6 +29,7 @@ import appeng.api.parts.IPart;
 import appeng.api.parts.IPartCollisionHelper;
 import appeng.api.parts.IPartHost;
 import appeng.parts.AEBasePart;
+import appeng.platform.ModelDataPlatform;
 
 /**
  * Helps plane parts (annihilation, formation) with determining and checking for connections to adjacent plane parts of
@@ -150,7 +151,7 @@ public final class PlaneConnectionHelper {
     public void updateConnections() {
         BlockEntity host = getHostBlockEntity();
         if (host != null) {
-            host.requestModelDataUpdate();
+            ModelDataPlatform.get().requestModelDataUpdate(host);
         }
     }
 

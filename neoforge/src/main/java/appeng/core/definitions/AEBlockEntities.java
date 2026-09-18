@@ -75,110 +75,110 @@ import appeng.debug.ItemGenBlockEntity;
 import appeng.debug.PhantomNodeBlockEntity;
 
 public final class AEBlockEntities {
-    private static final List<DeferredBlockEntityType<?>> BLOCK_ENTITY_TYPES = new ArrayList<>();
+    private static final List<AEBlockEntityType<?>> BLOCK_ENTITY_TYPES = new ArrayList<>();
 
     public static final DeferredRegister<BlockEntityType<?>> DR = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,
             AppEng.MOD_ID);
 
-    public static final DeferredBlockEntityType<InscriberBlockEntity> INSCRIBER = create("inscriber",
+    public static final AEBlockEntityType<InscriberBlockEntity> INSCRIBER = create("inscriber",
             InscriberBlockEntity.class,
             InscriberBlockEntity::new, AEBlocks.INSCRIBER);
-    public static final DeferredBlockEntityType<WirelessAccessPointBlockEntity> WIRELESS_ACCESS_POINT = create(
+    public static final AEBlockEntityType<WirelessAccessPointBlockEntity> WIRELESS_ACCESS_POINT = create(
             "wireless_access_point",
             WirelessAccessPointBlockEntity.class, WirelessAccessPointBlockEntity::new, AEBlocks.WIRELESS_ACCESS_POINT);
-    public static final DeferredBlockEntityType<ChargerBlockEntity> CHARGER = create("charger",
+    public static final AEBlockEntityType<ChargerBlockEntity> CHARGER = create("charger",
             ChargerBlockEntity.class,
             ChargerBlockEntity::new, AEBlocks.CHARGER);
-    public static final DeferredBlockEntityType<QuantumBridgeBlockEntity> QUANTUM_BRIDGE = create("quantum_ring",
+    public static final AEBlockEntityType<QuantumBridgeBlockEntity> QUANTUM_BRIDGE = create("quantum_ring",
             QuantumBridgeBlockEntity.class, QuantumBridgeBlockEntity::new, AEBlocks.QUANTUM_RING,
             AEBlocks.QUANTUM_LINK);
-    public static final DeferredBlockEntityType<SpatialPylonBlockEntity> SPATIAL_PYLON = create("spatial_pylon",
+    public static final AEBlockEntityType<SpatialPylonBlockEntity> SPATIAL_PYLON = create("spatial_pylon",
             SpatialPylonBlockEntity.class, SpatialPylonBlockEntity::new, AEBlocks.SPATIAL_PYLON);
-    public static final DeferredBlockEntityType<SpatialIOPortBlockEntity> SPATIAL_IO_PORT = create("spatial_io_port",
+    public static final AEBlockEntityType<SpatialIOPortBlockEntity> SPATIAL_IO_PORT = create("spatial_io_port",
             SpatialIOPortBlockEntity.class, SpatialIOPortBlockEntity::new, AEBlocks.SPATIAL_IO_PORT);
-    public static final DeferredBlockEntityType<SpatialAnchorBlockEntity> SPATIAL_ANCHOR = create("spatial_anchor",
+    public static final AEBlockEntityType<SpatialAnchorBlockEntity> SPATIAL_ANCHOR = create("spatial_anchor",
             SpatialAnchorBlockEntity.class, SpatialAnchorBlockEntity::new, AEBlocks.SPATIAL_ANCHOR);
-    public static final DeferredBlockEntityType<CableBusBlockEntity> CABLE_BUS = create("cable_bus",
+    public static final AEBlockEntityType<CableBusBlockEntity> CABLE_BUS = create("cable_bus",
             CableBusBlockEntity.class,
             CableBusBlockEntity::new, AEBlocks.CABLE_BUS);
-    public static final DeferredBlockEntityType<ControllerBlockEntity> CONTROLLER = create("controller",
+    public static final AEBlockEntityType<ControllerBlockEntity> CONTROLLER = create("controller",
             ControllerBlockEntity.class, ControllerBlockEntity::new, AEBlocks.CONTROLLER);
-    public static final DeferredBlockEntityType<DriveBlockEntity> DRIVE = create("drive", DriveBlockEntity.class,
+    public static final AEBlockEntityType<DriveBlockEntity> DRIVE = create("drive", DriveBlockEntity.class,
             DriveBlockEntity::new, AEBlocks.DRIVE);
-    public static final DeferredBlockEntityType<MEChestBlockEntity> ME_CHEST = create("chest", MEChestBlockEntity.class,
+    public static final AEBlockEntityType<MEChestBlockEntity> ME_CHEST = create("chest", MEChestBlockEntity.class,
             MEChestBlockEntity::new, AEBlocks.ME_CHEST);
-    public static final DeferredBlockEntityType<InterfaceBlockEntity> INTERFACE = create("interface",
+    public static final AEBlockEntityType<InterfaceBlockEntity> INTERFACE = create("interface",
             InterfaceBlockEntity.class, InterfaceBlockEntity::new, AEBlocks.INTERFACE);
-    public static final DeferredBlockEntityType<CellWorkbenchBlockEntity> CELL_WORKBENCH = create("cell_workbench",
+    public static final AEBlockEntityType<CellWorkbenchBlockEntity> CELL_WORKBENCH = create("cell_workbench",
             CellWorkbenchBlockEntity.class, CellWorkbenchBlockEntity::new, AEBlocks.CELL_WORKBENCH);
-    public static final DeferredBlockEntityType<IOPortBlockEntity> IO_PORT = create("io_port", IOPortBlockEntity.class,
+    public static final AEBlockEntityType<IOPortBlockEntity> IO_PORT = create("io_port", IOPortBlockEntity.class,
             IOPortBlockEntity::new, AEBlocks.IO_PORT);
-    public static final DeferredBlockEntityType<CondenserBlockEntity> CONDENSER = create("condenser",
+    public static final AEBlockEntityType<CondenserBlockEntity> CONDENSER = create("condenser",
             CondenserBlockEntity.class,
             CondenserBlockEntity::new, AEBlocks.CONDENSER);
-    public static final DeferredBlockEntityType<EnergyAcceptorBlockEntity> ENERGY_ACCEPTOR = create("energy_acceptor",
+    public static final AEBlockEntityType<EnergyAcceptorBlockEntity> ENERGY_ACCEPTOR = create("energy_acceptor",
             EnergyAcceptorBlockEntity.class, EnergyAcceptorBlockEntity::new, AEBlocks.ENERGY_ACCEPTOR);
-    public static final DeferredBlockEntityType<CrystalResonanceGeneratorBlockEntity> CRYSTAL_RESONANCE_GENERATOR = create(
+    public static final AEBlockEntityType<CrystalResonanceGeneratorBlockEntity> CRYSTAL_RESONANCE_GENERATOR = create(
             "crystal_resonance_generator",
             CrystalResonanceGeneratorBlockEntity.class, CrystalResonanceGeneratorBlockEntity::new,
             AEBlocks.CRYSTAL_RESONANCE_GENERATOR);
-    public static final DeferredBlockEntityType<VibrationChamberBlockEntity> VIBRATION_CHAMBER = create(
+    public static final AEBlockEntityType<VibrationChamberBlockEntity> VIBRATION_CHAMBER = create(
             "vibration_chamber",
             VibrationChamberBlockEntity.class, VibrationChamberBlockEntity::new, AEBlocks.VIBRATION_CHAMBER);
-    public static final DeferredBlockEntityType<GrowthAcceleratorBlockEntity> GROWTH_ACCELERATOR = create(
+    public static final AEBlockEntityType<GrowthAcceleratorBlockEntity> GROWTH_ACCELERATOR = create(
             "growth_accelerator", GrowthAcceleratorBlockEntity.class,
             GrowthAcceleratorBlockEntity::new, AEBlocks.GROWTH_ACCELERATOR);
-    public static final DeferredBlockEntityType<EnergyCellBlockEntity> ENERGY_CELL = create("energy_cell",
+    public static final AEBlockEntityType<EnergyCellBlockEntity> ENERGY_CELL = create("energy_cell",
             EnergyCellBlockEntity.class, EnergyCellBlockEntity::new, AEBlocks.ENERGY_CELL);
-    public static final DeferredBlockEntityType<EnergyCellBlockEntity> DENSE_ENERGY_CELL = create("dense_energy_cell",
+    public static final AEBlockEntityType<EnergyCellBlockEntity> DENSE_ENERGY_CELL = create("dense_energy_cell",
             EnergyCellBlockEntity.class, EnergyCellBlockEntity::new, AEBlocks.DENSE_ENERGY_CELL);
-    public static final DeferredBlockEntityType<CreativeEnergyCellBlockEntity> CREATIVE_ENERGY_CELL = create(
+    public static final AEBlockEntityType<CreativeEnergyCellBlockEntity> CREATIVE_ENERGY_CELL = create(
             "creative_energy_cell",
             CreativeEnergyCellBlockEntity.class, CreativeEnergyCellBlockEntity::new, AEBlocks.CREATIVE_ENERGY_CELL);
-    public static final DeferredBlockEntityType<CraftingBlockEntity> CRAFTING_UNIT = create("crafting_unit",
+    public static final AEBlockEntityType<CraftingBlockEntity> CRAFTING_UNIT = create("crafting_unit",
             CraftingBlockEntity.class, CraftingBlockEntity::new, AEBlocks.CRAFTING_UNIT,
             AEBlocks.CRAFTING_ACCELERATOR);
-    public static final DeferredBlockEntityType<CraftingBlockEntity> CRAFTING_STORAGE = create("crafting_storage",
+    public static final AEBlockEntityType<CraftingBlockEntity> CRAFTING_STORAGE = create("crafting_storage",
             CraftingBlockEntity.class, CraftingBlockEntity::new, AEBlocks.CRAFTING_STORAGE_1K,
             AEBlocks.CRAFTING_STORAGE_4K, AEBlocks.CRAFTING_STORAGE_16K, AEBlocks.CRAFTING_STORAGE_64K,
             AEBlocks.CRAFTING_STORAGE_256K);
-    public static final DeferredBlockEntityType<CraftingMonitorBlockEntity> CRAFTING_MONITOR = create(
+    public static final AEBlockEntityType<CraftingMonitorBlockEntity> CRAFTING_MONITOR = create(
             "crafting_monitor",
             CraftingMonitorBlockEntity.class, CraftingMonitorBlockEntity::new, AEBlocks.CRAFTING_MONITOR);
-    public static final DeferredBlockEntityType<PatternProviderBlockEntity> PATTERN_PROVIDER = create(
+    public static final AEBlockEntityType<PatternProviderBlockEntity> PATTERN_PROVIDER = create(
             "pattern_provider",
             PatternProviderBlockEntity.class, PatternProviderBlockEntity::new, AEBlocks.PATTERN_PROVIDER);
-    public static final DeferredBlockEntityType<MolecularAssemblerBlockEntity> MOLECULAR_ASSEMBLER = create(
+    public static final AEBlockEntityType<MolecularAssemblerBlockEntity> MOLECULAR_ASSEMBLER = create(
             "molecular_assembler",
             MolecularAssemblerBlockEntity.class, MolecularAssemblerBlockEntity::new, AEBlocks.MOLECULAR_ASSEMBLER);
-    public static final DeferredBlockEntityType<LightDetectorBlockEntity> LIGHT_DETECTOR = create("light_detector",
+    public static final AEBlockEntityType<LightDetectorBlockEntity> LIGHT_DETECTOR = create("light_detector",
             LightDetectorBlockEntity.class, LightDetectorBlockEntity::new, AEBlocks.LIGHT_DETECTOR);
-    public static final DeferredBlockEntityType<PaintSplotchesBlockEntity> PAINT = create("paint",
+    public static final AEBlockEntityType<PaintSplotchesBlockEntity> PAINT = create("paint",
             PaintSplotchesBlockEntity.class,
             PaintSplotchesBlockEntity::new, AEBlocks.PAINT);
-    public static final DeferredBlockEntityType<SkyStoneChestBlockEntity> SKY_CHEST = create("sky_chest",
+    public static final AEBlockEntityType<SkyStoneChestBlockEntity> SKY_CHEST = create("sky_chest",
             SkyStoneChestBlockEntity.class,
             SkyStoneChestBlockEntity::new, AEBlocks.SKY_STONE_CHEST, AEBlocks.SMOOTH_SKY_STONE_CHEST);
 
-    public static final DeferredBlockEntityType<SkyStoneTankBlockEntity> SKY_STONE_TANK = create("sky_tank",
+    public static final AEBlockEntityType<SkyStoneTankBlockEntity> SKY_STONE_TANK = create("sky_tank",
             SkyStoneTankBlockEntity.class,
             SkyStoneTankBlockEntity::new, AEBlocks.SKY_STONE_TANK);
 
-    public static final DeferredBlockEntityType<ItemGenBlockEntity> DEBUG_ITEM_GEN = create("debug_item_gen",
+    public static final AEBlockEntityType<ItemGenBlockEntity> DEBUG_ITEM_GEN = create("debug_item_gen",
             ItemGenBlockEntity.class, ItemGenBlockEntity::new, AEBlocks.DEBUG_ITEM_GEN);
-    public static final DeferredBlockEntityType<PhantomNodeBlockEntity> DEBUG_PHANTOM_NODE = create(
+    public static final AEBlockEntityType<PhantomNodeBlockEntity> DEBUG_PHANTOM_NODE = create(
             "debug_phantom_node",
             PhantomNodeBlockEntity.class, PhantomNodeBlockEntity::new, AEBlocks.DEBUG_PHANTOM_NODE);
-    public static final DeferredBlockEntityType<CubeGeneratorBlockEntity> DEBUG_CUBE_GEN = create("debug_cube_gen",
+    public static final AEBlockEntityType<CubeGeneratorBlockEntity> DEBUG_CUBE_GEN = create("debug_cube_gen",
             CubeGeneratorBlockEntity.class, CubeGeneratorBlockEntity::new, AEBlocks.DEBUG_CUBE_GEN);
-    public static final DeferredBlockEntityType<EnergyGeneratorBlockEntity> DEBUG_ENERGY_GEN = create(
+    public static final AEBlockEntityType<EnergyGeneratorBlockEntity> DEBUG_ENERGY_GEN = create(
             "debug_energy_gen",
             EnergyGeneratorBlockEntity.class, EnergyGeneratorBlockEntity::new, AEBlocks.DEBUG_ENERGY_GEN);
 
-    public static final DeferredBlockEntityType<CrankBlockEntity> CRANK = create("crank", CrankBlockEntity.class,
+    public static final AEBlockEntityType<CrankBlockEntity> CRANK = create("crank", CrankBlockEntity.class,
             CrankBlockEntity::new, AEBlocks.CRANK);
 
-    public static final DeferredBlockEntityType<MysteriousCubeBlockEntity> MYSTERIOUS_CUBE = create("mysterious_cube",
+    public static final AEBlockEntityType<MysteriousCubeBlockEntity> MYSTERIOUS_CUBE = create("mysterious_cube",
             MysteriousCubeBlockEntity.class,
             MysteriousCubeBlockEntity::new, AEBlocks.MYSTERIOUS_CUBE);
 
@@ -214,7 +214,7 @@ public final class AEBlockEntities {
 
     @SuppressWarnings("unchecked")
     @SafeVarargs
-    private static <T extends AEBaseBlockEntity> DeferredBlockEntityType<T> create(String shortId,
+    private static <T extends AEBaseBlockEntity> AEBlockEntityType<T> create(String shortId,
             Class<T> entityClass,
             BlockEntityFactory<T> factory,
             BlockDefinition<? extends AEBaseEntityBlock<?>>... blockDefinitions) {
@@ -257,7 +257,7 @@ public final class AEBlockEntities {
             return type;
         });
 
-        var result = new DeferredBlockEntityType<>(entityClass, deferred);
+        var result = new AEBlockEntityType<>(entityClass, deferred);
         BLOCK_ENTITY_TYPES.add(result);
         return result;
     }

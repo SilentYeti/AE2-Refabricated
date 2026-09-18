@@ -89,6 +89,7 @@ import appeng.hooks.VisualStateSaving;
 import appeng.hooks.ticking.TickHandler;
 import appeng.items.tools.MemoryCardItem;
 import appeng.neoforge.model.NeoForgeModelData;
+import appeng.platform.ModelDataPlatform;
 import appeng.util.IDebugExportable;
 import appeng.util.JsonStreamUtil;
 import appeng.util.Platform;
@@ -162,7 +163,7 @@ public class AEBaseBlockEntity extends BlockEntity
                             ConnectionType.NEOFORGE))) {
                 // Triggers a chunk re-render if the level is already loaded
                 if (level != null) {
-                    requestModelDataUpdate();
+                    ModelDataPlatform.get().requestModelDataUpdate(this);
                     level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 0);
                 }
             }
@@ -269,7 +270,7 @@ public class AEBaseBlockEntity extends BlockEntity
      * Mark this block to be updated for clients.
      */
     public void markForClientUpdate() {
-        this.requestModelDataUpdate();
+        ModelDataPlatform.get().requestModelDataUpdate(this);
 
         if (this.level != null && !this.isRemoved() && !notLoaded()) {
             this.level.sendBlockUpdated(this.worldPosition, getBlockState(), getBlockState(), Block.UPDATE_CLIENTS);
@@ -278,7 +279,7 @@ public class AEBaseBlockEntity extends BlockEntity
 
     public void markForUpdate() {
         // Clearing the cached model-data is always harmless regardless of status
-        this.requestModelDataUpdate();
+        ModelDataPlatform.get().requestModelDataUpdate(this);
 
         // TODO: Optimize Network Load
         if (this.level != null && !this.isRemoved() && !notLoaded()) {

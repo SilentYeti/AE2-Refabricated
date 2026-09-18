@@ -52,6 +52,7 @@ import appeng.core.definitions.AEBlocks;
 import appeng.me.cluster.IAEMultiBlock;
 import appeng.me.cluster.implementations.CraftingCPUCalculator;
 import appeng.me.cluster.implementations.CraftingCPUCluster;
+import appeng.platform.ModelDataPlatform;
 import appeng.util.NullConfigManager;
 import appeng.util.Platform;
 import appeng.util.iterators.ChainedIterator;
@@ -323,7 +324,7 @@ public class CraftingBlockEntity extends AENetworkedBlockEntity
     @Override
     public void setBlockState(BlockState state) {
         super.setBlockState(state);
-        requestModelDataUpdate();
+        ModelDataPlatform.get().requestModelDataUpdate(this);
     }
 
     private Iterator<IGridNode> getMultiblockNodes() {

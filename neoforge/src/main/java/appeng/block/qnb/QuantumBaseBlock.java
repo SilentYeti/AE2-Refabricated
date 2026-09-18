@@ -42,6 +42,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import appeng.block.AEBaseEntityBlock;
 import appeng.blockentity.qnb.QuantumBridgeBlockEntity;
+import appeng.platform.ModelDataPlatform;
 
 public abstract class QuantumBaseBlock extends AEBaseEntityBlock<QuantumBridgeBlockEntity>
         implements SimpleWaterloggedBlock {
@@ -104,7 +105,8 @@ public abstract class QuantumBaseBlock extends AEBaseEntityBlock<QuantumBridgeBl
         var bridge = this.getBlockEntity(level, pos);
         if (bridge != null) {
             bridge.updateMultiBlock(neighborPos);
-            bridge.requestModelDataUpdate(); // Adjacency is encoded in model data
+            // Adjacency is encoded in model data
+            ModelDataPlatform.get().requestModelDataUpdate(bridge);
         }
 
         return super.updateShape(state, level, scheduledTickAccess, pos, direction, neighborPos, neighborState, random);

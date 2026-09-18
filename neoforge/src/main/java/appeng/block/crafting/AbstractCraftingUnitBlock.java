@@ -49,6 +49,7 @@ import appeng.core.localization.PlayerMessages;
 import appeng.menu.MenuOpener;
 import appeng.menu.locator.MenuLocators;
 import appeng.menu.me.crafting.CraftingCPUMenu;
+import appeng.platform.ModelDataPlatform;
 import appeng.recipes.game.CraftingUnitTransformRecipe;
 import appeng.util.InteractionUtil;
 
@@ -78,7 +79,7 @@ public abstract class AbstractCraftingUnitBlock<T extends CraftingBlockEntity> e
             BlockPos pos, Direction direction, BlockPos neighborPos, BlockState neighborState, RandomSource random) {
         BlockEntity te = level.getBlockEntity(pos);
         if (te != null) {
-            te.requestModelDataUpdate();
+            ModelDataPlatform.get().requestModelDataUpdate(te);
         }
         var cp = this.getBlockEntity(level, pos);
         if (cp != null) {

@@ -202,6 +202,13 @@ Generalise what `FabricItems` does to the rest of the content. Mechanical; the p
       had the same `CreativeModeTab.Output` problem `CreativeTabSink` already solved for items
       (8 overriders updated), and `StairBlock`'s constructor is `protected`, so `AEStairBlock`
       subclasses it to get the reach without an access transformer.
+- [x] The definition wrappers off `neoforge.registries`. `ItemDefinition` and `BlockDefinition` took
+      `DeferredItem`/`DeferredBlock` and used them for the id, the value and being a `Holder` — two
+      vanilla things behind one loader type. They take an `Identifier` and a `Supplier` now, and are in
+      `:common` along with `ColoredItemDefinition`; `AEBlockEntityType` (was
+      `DeferredBlockEntityType`) is the same change. `AEItems`/`AEBlocks` still register through a
+      `DeferredRegister` and hand the deferred handle over as the supplier, so registration is
+      untouched
 - [ ] Block entity types — needs the block entity classes, which need the grid. **Stage 6, not here.**
 - [ ] Entity types — one entity, `TinyTNTPrimedEntity`, and it is genuinely loader-coupled: it
       implements NeoForge's `IEntityWithComplexSpawn` for its extra spawn data and calls `EventHooks`.
@@ -442,10 +449,13 @@ which should fall out here without individual attention.
       since nothing else automated looks at rendering. **The group is gone from the report entirely
       and 79 files stopped being blocked by a loader import.** Fabric's counterpart is its
       block-entity render data; write it when block entities register there
-- [ ] `requestModelDataUpdate()` is the other half and is *not* done. It is a NeoForge method on
-      vanilla `BlockEntity`, called from seven places, two of them on a plain `BlockEntity`
-      reference — so it is one of the invisible couplings, and it wants a one-method SPI taking the
-      block entity
+- [x] `requestModelDataUpdate()`, the other half. A NeoForge method on vanilla `BlockEntity` — one of
+      the invisible couplings, since calling it needs no import — now behind `ModelDataPlatform`,
+      taking the block entity because two callers have only a vanilla one to hand (a block reacting to
+      a neighbour, and the plane connection helper). All seven call sites read the same way.
+      `FabricModelDataPlatform` throws: every caller is an AE2 block entity or its neighbour and none
+      register there yet, and a redraw that silently never happens would look like a bug in the model,
+      a long way from the cause
 
 
 Last on purpose: most loader-bound, least useful before the server side works.
