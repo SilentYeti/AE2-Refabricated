@@ -27,6 +27,10 @@ import org.slf4j.LoggerFactory;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.item.v1.FabricItem;
+import net.minecraft.core.Direction;
+import net.minecraft.core.particles.ItemParticleOption;
+import net.minecraft.core.particles.ParticleOptions;
+import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -34,11 +38,14 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 
 import appeng.api.ids.AEComponents;
 import appeng.api.ids.AECreativeTabIds;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
+import appeng.core.particles.EnergyParticleData;
+import appeng.core.particles.ParticleTypes;
 import appeng.items.tools.powered.powersink.AEBasePoweredItem;
 import appeng.platform.AEPlatform;
 import appeng.recipes.AECommonRecipes;
@@ -58,7 +65,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
      * A floor, not a target: recipes naming an unregistered serializer skip themselves, so this rises as the port
      * proceeds. Raise it when it does, so a regression cannot hide under it.
      */
-    private static final int MIN_RECIPES = 178;
+    private static final int MIN_RECIPES = 179;
 
     /** One of each kind of item that made it across: a tool, a material, a print, a component. */
     private static final List<String> HOTBAR_SHOWCASE = List.of(
@@ -117,6 +124,8 @@ public class AE2ClientGameTest implements FabricClientGameTest {
             // storages, and a vanilla chest reached through ItemTransferPlatform.
             int transferChecks = server.computeOnServer(TransferChecks::run);
             LOG.info("AE2 game test: {} item transfer checks passed", transferChecks);
+
+            assertParticlesDraw(context);
 
             // Which of AE2's two loggers a message goes to depends on this; Fabric answers it from the server itself
             if (!server.computeOnServer(s -> AEPlatform.get().isServerThread())) {
@@ -275,6 +284,42 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         } catch (NoSuchMethodException e) {
             throw new AssertionError("Fabric's item animation hook has changed signature", e);
         }
+    }
+
+    /**
+     * Every AE2 particle type is registered, and the ones Fabric can draw have a provider: the client's particle engine
+     * answers null for a type it has no provider for, so asking it for one of each is the whole check.
+     */
+    private static void assertParticlesDraw(ClientGameTestContext context) {
+        var missing = new ArrayList<Identifier>();
+        ParticleTypes.all().forEach((id, type) -> {
+            if (BuiltInRegistries.PARTICLE_TYPE.getValue(id) != type) {
+                missing.add(id);
+            }
+        });
+        if (!missing.isEmpty()) {
+            throw new AssertionError("AE2 particle types not registered: " + missing);
+        }
+
+        List<ParticleOptions> drawable = List.of(
+                ParticleTypes.VIBRANT,
+                ParticleTypes.MATTER_CANNON,
+                new EnergyParticleData(false, Direction.UP),
+                new ItemParticleOption(ParticleTypes.CRAFTING, Items.DIAMOND));
+        var undrawn = context.computeOnClient(client -> {
+            var failed = new ArrayList<ParticleType<?>>();
+            for (var options : drawable) {
+                if (client.particleEngine.createParticle(options, 0, 100, 0, 0, 0, 0) == null) {
+                    failed.add(options.getType());
+                }
+            }
+            return failed;
+        });
+        if (!undrawn.isEmpty()) {
+            throw new AssertionError("AE2 particles with no provider on Fabric: " + undrawn);
+        }
+        LOG.info("AE2 game test: {} particle types registered, {} drawable", ParticleTypes.all().size(),
+                drawable.size());
     }
 
     private static void assertCreativeTabRegistered(ClientGameTestContext context) {

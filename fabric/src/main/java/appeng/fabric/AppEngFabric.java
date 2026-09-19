@@ -56,6 +56,7 @@ public class AppEngFabric implements ModInitializer {
         // Components before the items: an item's default components name component types, and a stack carrying one
         // cannot be read back before its type is in the registry.
         FabricComponents.register();
+        FabricParticles.register();
         FabricBlocks.register();
         FabricItems.register();
         FabricRecipes.register();

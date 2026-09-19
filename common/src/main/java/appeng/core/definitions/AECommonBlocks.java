@@ -44,6 +44,7 @@ import appeng.decorative.AEDecorativeBlock;
 import appeng.decorative.AEStairBlock;
 import appeng.decorative.solid.CertusQuartzClusterBlock;
 import appeng.decorative.solid.QuartzGlassBlock;
+import appeng.decorative.solid.QuartzLampBlock;
 
 /**
  * The AE2 blocks whose block classes are loader-agnostic, declared once so a loader that cannot yet run
@@ -100,6 +101,7 @@ public final class AECommonBlocks {
         block("Certus Quartz Pillar", AEBlockIds.QUARTZ_PILLAR, (p, resolve) -> new RotatedPillarBlock(quartzProperties(p)));
         block("Chiseled Certus Quartz Block", AEBlockIds.CHISELED_QUARTZ_BLOCK, (p, resolve) -> new AEDecorativeBlock(quartzProperties(p)));
         block("Quartz Glass", AEBlockIds.QUARTZ_GLASS, (p, resolve) -> new QuartzGlassBlock(glassProps(p).noOcclusion().isValidSpawn(NEVER_ALLOW_SPAWN)));
+        block("Vibrant Quartz Glass", AEBlockIds.QUARTZ_VIBRANT_GLASS, (p, resolve) -> new QuartzLampBlock(glassProps(p).lightLevel(b -> 15).noOcclusion().isValidSpawn(NEVER_ALLOW_SPAWN)));
         block("Fluix Block", AEBlockIds.FLUIX_BLOCK, (p, resolve) -> new AEDecorativeBlock(fluixProperties(p)));
         block("Sky Stone", AEBlockIds.SKY_STONE_BLOCK, (p, resolve) -> new AEDecorativeBlock(stoneProps(p).strength(50, 150).requiresCorrectToolForDrops()));
         block("Sky Stone Block", AEBlockIds.SMOOTH_SKY_STONE_BLOCK, (p, resolve) -> new AEDecorativeBlock(skystoneProperties(p)));
@@ -172,7 +174,6 @@ public final class AECommonBlocks {
     }
 
     private static final Map<String, String> NOT_YET_PORTABLE = Map.ofEntries(
-            Map.entry("QUARTZ_VIBRANT_GLASS", "needs QuartzLampBlock, which needs AEConfig and AE2's particle types"),
             Map.entry("CRAFTING_ACCELERATOR", "needs CraftingUnitBlock, which needs a block entity"),
             Map.entry("CRAFTING_STORAGE_1K", "needs CraftingUnitBlock, which needs a block entity"),
             Map.entry("CRAFTING_STORAGE_4K", "needs CraftingUnitBlock, which needs a block entity"),
@@ -185,7 +186,8 @@ public final class AECommonBlocks {
             Map.entry("CHIPPED_BUDDING_QUARTZ", "needs BuddingCertusQuartzBlock"),
             Map.entry("DAMAGED_BUDDING_QUARTZ", "needs BuddingCertusQuartzBlock"),
             Map.entry("MATRIX_FRAME", "needs MatrixFrameBlock"),
-            Map.entry("QUARTZ_FIXTURE", "needs QuartzFixtureBlock"),
+            Map.entry("QUARTZ_FIXTURE", "its lightning particles draw through AERenderTypes, which needs an access "
+                    + "widener and a render pipeline (stage 7)"),
             Map.entry("SKY_STONE_CHEST", "needs SkyStoneChestBlock"),
             Map.entry("SMOOTH_SKY_STONE_CHEST", "needs SkyStoneChestBlock"),
             Map.entry("SKY_STONE_TANK", "needs SkyStoneTankBlock"),

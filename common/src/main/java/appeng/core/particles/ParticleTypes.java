@@ -18,6 +18,10 @@
 
 package appeng.core.particles;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
 import com.mojang.serialization.MapCodec;
 
 import net.minecraft.core.particles.ItemParticleOption;
@@ -25,6 +29,9 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.Identifier;
+
+import appeng.api.ids.AEConstants;
 
 public final class ParticleTypes {
 
@@ -67,6 +74,21 @@ public final class ParticleTypes {
     public static final SimpleParticleType LIGHTNING = new PlainParticleType();
     public static final SimpleParticleType MATTER_CANNON = new PlainParticleType();
     public static final SimpleParticleType VIBRANT = new PlainParticleType();
+
+    /**
+     * Every type declared here with its id, in the order they have always been registered, for whichever loader is
+     * registering them -- the id table used to live in NeoForge's {@code InitParticleTypes}.
+     */
+    public static Map<Identifier, ParticleType<?>> all() {
+        var all = new LinkedHashMap<Identifier, ParticleType<?>>();
+        all.put(AEConstants.makeId("crafting"), CRAFTING);
+        all.put(AEConstants.makeId("energy_fx"), ENERGY);
+        all.put(AEConstants.makeId("lightning_arc_fx"), LIGHTNING_ARC);
+        all.put(AEConstants.makeId("lightning_fx"), LIGHTNING);
+        all.put(AEConstants.makeId("matter_cannon_fx"), MATTER_CANNON);
+        all.put(AEConstants.makeId("vibrant_fx"), VIBRANT);
+        return Collections.unmodifiableMap(all);
+    }
 
     /**
      * {@link SimpleParticleType}'s constructor is protected in vanilla, and was only reachable through an access

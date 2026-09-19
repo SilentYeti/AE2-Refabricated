@@ -16,19 +16,23 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.core.particles;
+package appeng.fabric;
 
 import net.minecraft.core.Registry;
-import net.minecraft.core.particles.ParticleType;
+import net.minecraft.core.registries.BuiltInRegistries;
 
-public final class InitParticleTypes {
+import appeng.core.particles.ParticleTypes;
 
-    private InitParticleTypes() {
+/**
+ * Registers AE2's particle types -- all of them, under the ids NeoForge uses, since a type is only a codec and a
+ * registry entry. Drawing them needs a provider on the client, which {@code AppEngFabricClient} registers for the ones
+ * that can be drawn on Fabric yet.
+ */
+public final class FabricParticles {
+    private FabricParticles() {
     }
 
-    public static void init(Registry<ParticleType<?>> registry) {
-        // The ids live with the types, so that Fabric registers the same ones
-        ParticleTypes.all().forEach((id, type) -> Registry.register(registry, id, type));
+    public static void register() {
+        ParticleTypes.all().forEach((id, type) -> Registry.register(BuiltInRegistries.PARTICLE_TYPE, id, type));
     }
-
 }

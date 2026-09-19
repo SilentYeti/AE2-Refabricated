@@ -234,12 +234,16 @@ public final class AECommonItems {
                 Map.entry("SPATIAL_CELL2", "SpatialStorageCellItem: needs the spatial storage service"),
                 Map.entry("SPATIAL_CELL16", "SpatialStorageCellItem: needs the spatial storage service"),
                 Map.entry("SPATIAL_CELL128", "SpatialStorageCellItem: needs the spatial storage service"),
-                Map.entry("CHARGED_STAFF", "AEBasePoweredItem: needs the energy API"),
-                Map.entry("ENTROPY_MANIPULATOR", "AEBasePoweredItem: needs the energy API"),
-                Map.entry("MATTER_CANNON", "AEBasePoweredItem: needs the energy API"),
-                Map.entry("COLOR_APPLICATOR", "AEBasePoweredItem: needs the energy API"),
-                Map.entry("WIRELESS_TERMINAL", "AEBasePoweredItem: needs the energy API and a menu"),
-                Map.entry("WIRELESS_CRAFTING_TERMINAL", "AEBasePoweredItem: needs the energy API and a menu"),
+                Map.entry("CHARGED_STAFF", "ChargedStaffItem crossed, but nothing on Fabric can charge it -- AE2's "
+                        + "charger is a block entity, other mods' chargers need the energy interop -- and its "
+                        + "lightning particles need AERenderTypes (stage 7)"),
+                Map.entry("ENTROPY_MANIPULATOR", "EntropyManipulatorItem: TinyTNTBlock, AERecipeTypes, "
+                        + "InteractionUtil and Platform, and NeoForge's Block.onCaughtFire"),
+                Map.entry("MATTER_CANNON", "MatterCannonItem: the storage API, upgrades, a packet and NeoForge's "
+                        + "block-break event"),
+                Map.entry("COLOR_APPLICATOR", "ColorApplicatorItem: the storage API, upgrades and the cable bus"),
+                Map.entry("WIRELESS_TERMINAL", "WirelessTerminalItem: the grid, upgrades and a menu"),
+                Map.entry("WIRELESS_CRAFTING_TERMINAL", "WirelessTerminalItem: the grid, upgrades and a menu"),
                 Map.entry("PORTABLE_ITEM_CELL1K", "PortableCellItem: needs the energy and storage APIs"),
                 Map.entry("PORTABLE_ITEM_CELL4K", "PortableCellItem: needs the energy and storage APIs"),
                 Map.entry("PORTABLE_ITEM_CELL16K", "PortableCellItem: needs the energy and storage APIs"),

@@ -14,7 +14,8 @@
   "icon": "logo.png",
   "environment": "*",
   "entrypoints": {
-    "main": ["appeng.fabric.AppEngFabric"]
+    "main": ["appeng.fabric.AppEngFabric"],
+    "client": ["appeng.fabric.client.AppEngFabricClient"]
   },
   "depends": {
     "fabricloader": ">=${fabric_loader_version}",
