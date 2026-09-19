@@ -1,0 +1,111 @@
+### client
+[client]
+client.enableEffects : Boolean = true
+client.notifyForFinishedCraftingJobs : Boolean = true # Show toast when long-running crafting jobs finish.
+client.powerUnit : PowerUnit = AE one of [AE, FE] # Unit of power shown in AE UIs\nAllowed Values: AE, FE
+client.showDebugGuiOverlays : Boolean = false # Show debugging GUI overlays
+client.showPlacementPreview : Boolean = true # Show a preview of part and facade placement
+client.useColoredCraftingStatus : Boolean = true
+client.useTerminalUseLargeFont : Boolean = false
+[recipeViewers]
+recipeViewers.disableColoredCableRecipesInRecipeViewer : Boolean = true
+recipeViewers.enableFacadeRecipesInRecipeViewer : Boolean = true # Show facade recipes in REI/JEI/EMI for supported blocks
+recipeViewers.enableFacadesInRecipeViewer : Boolean = false # Show facades in REI/JEI/EMI item list
+recipeViewers.provideNetworkInventoryToEmi : Boolean = false # Expose the full network inventory to EMI, which might cause performance problems.
+[search]
+search.autoFocusSearch : Boolean = false # Automatically focuses the search field when the terminal opens
+search.clearExternalSearchOnOpen : Boolean = true # When using useExternalSearch, clears the search when the terminal opens
+search.rememberLastSearch : Boolean = true # Remembers the last search term and restores it when the terminal opens
+search.searchModNameInTooltips : Boolean = false # Should the mod name be included when searching in tooltips.
+search.syncWithExternalSearch : Boolean = true # When REI/JEI is installed, automatically set the AE or REI/JEI search text when either is changed while the terminal is open
+search.useExternalSearch : Boolean = false # Replaces AEs own search with the search of REI or JEI
+[terminals]
+terminals.clearGridOnClose : Boolean = false # Automatically clear the crafting/encoding grid when closing the terminal
+terminals.pinAutoCraftedItems : Boolean = true # Pin items that the player auto-crafts to the top of the terminal
+terminals.terminalMargin : Object = 25 in [-2147483648, 2147483647] # The vertical margin to apply when sizing terminals. Used to make room for centered item mod search bars\n Default: 25\n Range: > -2147483648
+terminals.terminalStyle : TerminalStyle = SMALL one of [SMALL, MEDIUM, TALL, FULL] # Allowed Values: SMALL, MEDIUM, TALL, FULL
+[tooltips]
+tooltips.maxCellContentShown : Object = 5 in [1, 32] # The maximum number of content entries to show in the tooltip of storage cells, color applicators and matter cannons\n Default: 5\n Range: 1 ~ 32
+tooltips.showCellContent : Boolean = true # Show a preview of the content in the tooltips of storage cells, color applicators and matter cannons
+tooltips.showCellUpgrades : Boolean = true # Show installed upgrades in the tooltips of storage cells, color applicators and matter cannons
+### common
+[automation]
+automation.formationPlaneEntityLimit : Object = 128 in [-2147483648, 2147483647] #  Default: 128\n Range: > -2147483648
+[battery]
+battery.chargedStaff : Object = 8000 in [-2147483648, 2147483647] #  Default: 8000\n Range: > -2147483648
+battery.chargerChargeRate : Object = 1.0 in [0.1, 10.0] # The chargers charging rate factor, which is applied to the charged items charge rate. 2 means it charges everything twice as fast. 0.5 half as fast.\n Default: 1.0\n Range: 0.1 ~ 10.0
+battery.colorApplicator : Object = 20000 in [-2147483648, 2147483647] #  Default: 20000\n Range: > -2147483648
+battery.entropyManipulator : Object = 200000 in [-2147483648, 2147483647] #  Default: 200000\n Range: > -2147483648
+battery.matterCannon : Object = 200000 in [-2147483648, 2147483647] #  Default: 200000\n Range: > -2147483648
+battery.portableCell : Object = 20000 in [-2147483648, 2147483647] #  Default: 20000\n Range: > -2147483648
+battery.wirelessTerminal : Object = 1600000 in [-2147483648, 2147483647] #  Default: 1600000\n Range: > -2147483648
+[condenser]
+condenser.matterBalls : Object = 256 in [-2147483648, 2147483647] #  Default: 256\n Range: > -2147483648
+condenser.singularity : Object = 256000 in [-2147483648, 2147483647] #  Default: 256000\n Range: > -2147483648
+[crafting]
+crafting.annihilationPlaneSkyDustGeneration : Boolean = true # If enabled, an annihilation placed face up at the maximum world height will generate sky stone passively.
+crafting.growthAccelerator : Object = 10 in [1, 100] # Number of ticks between two crystal growth accelerator ticks\n Default: 10\n Range: 1 ~ 100
+[craftingCPU]
+craftingCPU.craftingCalculationTimePerTick : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+[general]
+general.channels : ChannelMode = DEFAULT one of [INFINITE, DEFAULT, X2, X3, X4] # Changes the channel capacity that cables provide in AE2.\nAllowed Values: INFINITE, DEFAULT, X2, X3, X4
+general.matterCannonBlockDamage : Boolean = true # Enables the ability of the Matter Cannon to break blocks.
+general.spatialAnchorEnableRandomTicks : Boolean = true # Whether Spatial Anchors should force random chunk ticks and entity spawning.
+general.tinyTntBlockDamage : Boolean = true # Enables the ability of Tiny TNT to break blocks.
+general.unsupportedDeveloperTools : Boolean = true
+[logging]
+logging.blockUpdateLog : Boolean = false
+logging.chunkLoggerTrace : Boolean = false # Enable stack trace logging for the chunk loading debug command
+logging.craftingLog : Boolean = false
+logging.debugLog : Boolean = false
+logging.gridLog : Boolean = false
+[powerRatios]
+powerRatios.crystalResonanceGeneratorRate : Object = 20.0 in [0.0, 1000000.0] # How much energy a crystal resonance generator generates per tick.\n Default: 20.0\n Range: 0.0 ~ 1000000.0
+powerRatios.forgeEnergy : Object = 0.5 in [4.9E-324, 1.7976931348623157E308] #  Default: 0.5\n Range: 4.9E-324 ~ 1.7976931348623157E308
+powerRatios.gridEnergyStoragePerNode : Object = 25.0 in [1.0, 1000000.0] # How much energy can the internal grid buffer storage per node attached to the grid.\n Default: 25.0\n Range: 1.0 ~ 1000000.0
+powerRatios.p2pTunnelEnergyTax : Object = 0.025 in [0.0, 1.0] # The cost to transport energy through an energy P2P tunnel expressed as a factor of the transported energy.\n Default: 0.025\n Range: 0.0 ~ 1.0
+powerRatios.p2pTunnelTransportTax : Object = 0.025 in [0.0, 1.0] # The cost to transport items/fluids/etc. through P2P tunnels, expressed in AE energy per equivalent I/O bus operation for the transported object type (i.e. items=per 1 item, fluids=per 125mb).\n Default: 0.025\n Range: 0.0 ~ 1.0
+powerRatios.usageMultiplier : Object = 1.0 in [0.01, 1.7976931348623157E308] #  Default: 1.0\n Range: 0.01 ~ 1.7976931348623157E308
+[spatialio]
+spatialio.spatialPowerExponent : Object = 1.35 in [4.9E-324, 1.7976931348623157E308] #  Default: 1.35\n Range: 4.9E-324 ~ 1.7976931348623157E308
+spatialio.spatialPowerMultiplier : Object = 1250.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 1250.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+[tickRates] #  Min / Max Tickrates for dynamic ticking, most of these components also use sleeping, to prevent constant ticking, adjust with care, non standard rates are not supported or tested.
+tickRates.AnnihilationPlaneMax : Object = 120 in [-2147483648, 2147483647] #  Default: 120\n Range: > -2147483648
+tickRates.AnnihilationPlaneMin : Object = 2 in [-2147483648, 2147483647] #  Default: 2\n Range: > -2147483648
+tickRates.ChargerMax : Object = 10 in [-2147483648, 2147483647] #  Default: 10\n Range: > -2147483648
+tickRates.ChargerMin : Object = 10 in [-2147483648, 2147483647] #  Default: 10\n Range: > -2147483648
+tickRates.ExportBusMax : Object = 60 in [-2147483648, 2147483647] #  Default: 60\n Range: > -2147483648
+tickRates.ExportBusMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.IOPortMax : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.IOPortMin : Object = 1 in [-2147483648, 2147483647] #  Default: 1\n Range: > -2147483648
+tickRates.ImportBusMax : Object = 40 in [-2147483648, 2147483647] #  Default: 40\n Range: > -2147483648
+tickRates.ImportBusMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.InscriberMax : Object = 20 in [-2147483648, 2147483647] #  Default: 20\n Range: > -2147483648
+tickRates.InscriberMin : Object = 1 in [-2147483648, 2147483647] #  Default: 1\n Range: > -2147483648
+tickRates.InterfaceMax : Object = 120 in [-2147483648, 2147483647] #  Default: 120\n Range: > -2147483648
+tickRates.InterfaceMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.ItemTunnelMax : Object = 60 in [-2147483648, 2147483647] #  Default: 60\n Range: > -2147483648
+tickRates.ItemTunnelMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.LightTunnelMax : Object = 60 in [-2147483648, 2147483647] #  Default: 60\n Range: > -2147483648
+tickRates.LightTunnelMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.METunnelMax : Object = 20 in [-2147483648, 2147483647] #  Default: 20\n Range: > -2147483648
+tickRates.METunnelMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.StorageBusMax : Object = 60 in [-2147483648, 2147483647] #  Default: 60\n Range: > -2147483648
+tickRates.StorageBusMin : Object = 5 in [-2147483648, 2147483647] #  Default: 5\n Range: > -2147483648
+tickRates.VibrationChamberMax : Object = 40 in [-2147483648, 2147483647] #  Default: 40\n Range: > -2147483648
+tickRates.VibrationChamberMin : Object = 10 in [-2147483648, 2147483647] #  Default: 10\n Range: > -2147483648
+[vibrationChamber] # Settings for the Vibration Chamber
+vibrationChamber.baseEnergyPerFuelTick : Object = 5.0 in [0.1, 1000.0] # AE energy produced per fuel burn tick (reminder: coal = 1600, block of coal = 16000, lava bucket = 20000 burn ticks)\n Default: 5.0\n Range: 0.1 ~ 1000.0
+vibrationChamber.baseMaxEnergyPerGameTick : Object = 40 in [1, 1000] # Maximum amount of AE/t the vibration chamber can speed up to when generated energy is being fully consumed.\n Default: 40\n Range: 1 ~ 1000
+vibrationChamber.minEnergyPerGameTick : Object = 4 in [0, 1000] # Minimum amount of AE/t the vibration chamber can slow down to when energy is being wasted.\n Default: 4\n Range: 0 ~ 1000
+[wireless]
+wireless.wirelessBaseCost : Object = 8.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 8.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessBaseRange : Object = 16.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 16.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessBoosterExp : Object = 1.5 in [4.9E-324, 1.7976931348623157E308] #  Default: 1.5\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessBoosterRangeMultiplier : Object = 1.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 1.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessCostMultiplier : Object = 1.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 1.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessHighWirelessCount : Object = 64.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 64.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+wireless.wirelessTerminalDrainMultiplier : Object = 1.0 in [4.9E-324, 1.7976931348623157E308] #  Default: 1.0\n Range: 4.9E-324 ~ 1.7976931348623157E308
+[worldGen]
+worldGen.spawnFlawlessOnly : Boolean = false
+worldGen.spawnPressesInMeteorites : Boolean = true
