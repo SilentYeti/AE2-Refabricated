@@ -331,8 +331,8 @@ delete exclusion lines as later stages unblock them.
       `CustomDataTest` pins that the two are the same question — on the NeoForge side, since that is
       where the patched class is. `MEMORY_CARD`, the third, also needs the parts API
 - [ ] `ContainerItemStrategies` — stage 3, it is a capability lookup
-- [ ] Register the key types on Fabric, and the `FabricFluids` counterpart to `NeoForgeFluids`
-      (needed by stage 4, not before)
+- [x] Register the key types on Fabric (`FabricKeyTypes`, synced, NeoForge's 127-id limit checked rather
+      than assumed), and `FabricFluids`, the counterpart to `NeoForgeFluids`
 - [ ] Clear the `notYetPortable` entries naming components and the storage API (~20)
 
 **Done when:** storage cells and view cells register and the gametest sees them. That is **23 of the
@@ -421,15 +421,18 @@ capabilities. So the shape of `FabricInventories.storage(InternalInventory)` is 
       two deliberate mutations each fail the check meant to catch them. Writing the twin found a real
       NeoForge bug: a slot's extract ignored which item it was asked for, destroying one item and
       crediting another -- fixed and pinned
-- [ ] Fluid storage → `Storage<FluidVariant>`. **The next thing to do, and it is one seam.**
-      `ContainerItemStrategies` registers NeoForge's `FluidContainerItemStrategy` from a static
-      initializer, and that one line is the root of a chain: `ContainerItemStrategies` ← `WrappedGenericStack`
-      ← `ConfigMenuInventory` ← `GenericStackInv`, and `GenericStackInv` is what AE2's config slots and
-      interface storage are built on. Do what `StackWorldBehaviors` got -- a platform SPI supplying the
-      defaults, called from the same static initializer -- and write Fabric's `FluidContainerItemStrategy`
-      over `FluidStorage.ITEM` with a `ContainerItemContext`. Then the whole chain should cross, and
-      `GenericStackInvJournal`'s Fabric twin (a `SnapshotParticipant` over `copySlots`/`restoreSlots`/
-      `onCommitted`) can expose it
+- [x] Fluids in items → `FluidStorage.ITEM`. `ContainerItemStrategies` asks a
+      `ContainerItemStrategiesPlatform` for its defaults, from the same static initializer and for the same
+      reason as `StackWorldBehaviors`, and the container-item API and `WrappedGenericStack` crossed.
+      `FabricFluidContainerItemStrategy` is NeoForge's method for method. **Units:** AE2 counts fluid in
+      millibuckets on both loaders -- saved worlds and cells hold that -- and Fabric counts droplets, 81 to
+      the millibucket. `FabricFluids` converts at the boundary and moves **whole millibuckets only**: ask,
+      round down, move exactly that in a nested transaction, roll back on any surprise. Rounding up would
+      create or destroy fluid. Checked in the client gametest against a real bucket in a player's inventory
+- [ ] Exposing AE2's *own* fluid inventories -- **stage 6, not here.** `GenericStackInv` implements
+      `MEStorage`, whose `IActionSource` reaches `IActionHost` and so the grid node; it crosses with the
+      storage API. Its Fabric journal is ready to write when it does: a `SnapshotParticipant` over
+      `copySlots`/`restoreSlots`/`onCommitted`
 - [x] Transactions: NeoForge `SnapshotJournal` → Fabric `SnapshotParticipant`, for everything that can be
       exposed on Fabric today. The rest are block entities and parts (stage 6)
 - [x] **`AEConfig`, which gated most of the above** -- not on the checklist, but the battery sizes, `AELog`
@@ -439,11 +442,27 @@ capabilities. So the shape of `FabricInventories.storage(InternalInventory)` is 
       so no player's file changes. Fabric's backend is JSON (`ae2-common.json`, `ae2-client.json`),
       corrected the way NeoForge corrects TOML; comments do not carry over. `AELog`, `Settings` and
       `CpuSelectionMode` crossed with it
-- [ ] Forge Energy interop → `teamreborn:energy:5.0.0`. `AEBasePoweredItem` is in `:common` now, so the
-      item side (`PoweredItemCapabilities`) has a Fabric target; the charged staff is waiting on exactly
-      this -- nothing on Fabric can charge it otherwise
+- [x] Energy interop, item side → **Team Reborn Energy 5.0.0, bundled in the jar** (`include`, 24 KB,
+      MIT; declares Minecraft ≥ 26.1). Verified loading at runtime from `META-INF/jars`.
+      `PoweredItemEnergyStorage` is `PoweredItemCapabilities` decision for decision, at the Forge Energy
+      rate, registered for every item that stores AE power. The **charged staff** registers on Fabric with
+      it. Its lightning was the other thing it seemed to wait on, but the staff spawns it with
+      `addParticle` on the *server* level, which is an empty method in vanilla -- it has never shown on
+      NeoForge either. That is an upstream bug; behaviour matches
+- [ ] Energy interop, block and part side -- `AEBasePoweredBlockEntity`, the energy acceptor, the FE P2P
+      tunnel, `ForgeEnergyAdapter`. All block entities or parts: stage 6. `EnergyStorage.SIDED` is the
+      Fabric lookup, and it goes through `AEBlockCapability` like any other
       (`maven.fabricmc.net`; resolves and compiles against 26.2, runtime unverified — assert it in
       the gametest). Six sites, all interop; AE2's own power is self-contained and needs nothing.
+
+**Where the port stands after stage 4.** Everything that moves items, fluids and energy *across the loader
+boundary* is done for whatever exists on Fabric, and checked in the client gametest. What does not exist on
+Fabric yet is the ME network itself: the controller, drives, cables, terminals, interfaces, the charger and
+the inscriber are all still in `AECommonBlocks.notYetPortable()`, and every one of them is a block entity on
+the grid, opens a menu, or both. So a playable network needs stage 5 (menus and packets) and stage 6 (the
+grid, block entities, parts) together, and its rendering -- cables, terminal screens -- is stage 7. Those
+three are most of what is left: roughly 716 files in `:neoforge/src/main` and 307 in `src/client`, almost
+all inside the one cycle described above.
 
 ## Stage 5 — Networking and menus
 
