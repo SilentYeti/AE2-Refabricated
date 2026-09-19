@@ -22,9 +22,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
+import net.fabricmc.loader.api.FabricLoader;
 
+import appeng.core.AEConfig;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
+import appeng.fabric.config.FabricConfigBackend;
 import appeng.platform.AEPlatform;
 
 /**
@@ -42,6 +46,11 @@ public class AppEngFabric implements ModInitializer {
         var platform = AEPlatform.get();
         LOG.info("AE2 Fabric: platform SPI resolved -- loader={}, dev={}, client={}",
                 platform.loader(), platform.isDevelopmentEnvironment(), platform.isPhysicalClient());
+        // First, as on NeoForge: much of AE2 reads its config while it is being set up
+        AEConfig.register(new FabricConfigBackend(FabricLoader.getInstance().getConfigDir(),
+                platform.isPhysicalClient()));
+        ServerLifecycleEvents.SERVER_STARTING.register(FabricPlatform::setServer);
+        ServerLifecycleEvents.SERVER_STOPPED.register(server -> FabricPlatform.setServer(null));
         // Blocks first: their BlockItems have to exist before the creative tab is populated, and the
         // stair, slab and wall variants copy the block state of the block they are cut from.
         // Components before the items: an item's default components name component types, and a stack carrying one

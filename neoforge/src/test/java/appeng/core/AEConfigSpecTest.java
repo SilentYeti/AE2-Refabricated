@@ -35,6 +35,8 @@ import org.junit.jupiter.api.Test;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
+import appeng.core.config.ConfigBuilder;
+import appeng.neoforge.config.NeoForgeConfigBuilder;
 import appeng.util.BootstrapMinecraft;
 
 /**
@@ -82,14 +84,17 @@ class AEConfigSpecTest {
         return specs;
     }
 
+    /**
+     * Declares one of AE2's config holders against the NeoForge backend's builder and returns what it built -- the same
+     * path {@code AEConfig.register} takes, minus the mod container.
+     */
     private static ModConfigSpec specOf(String holderClass) throws Exception {
         var clazz = Class.forName(holderClass);
-        var constructor = clazz.getDeclaredConstructor();
+        var constructor = clazz.getDeclaredConstructor(ConfigBuilder.class);
         constructor.setAccessible(true);
-        var holder = constructor.newInstance();
-        var field = clazz.getDeclaredField("spec");
-        field.setAccessible(true);
-        return (ModConfigSpec) field.get(holder);
+        var builder = new NeoForgeConfigBuilder();
+        constructor.newInstance(builder);
+        return builder.build();
     }
 
     private static void dump(ModConfigSpec spec, UnmodifiableConfig level, List<String> path, StringBuilder out)

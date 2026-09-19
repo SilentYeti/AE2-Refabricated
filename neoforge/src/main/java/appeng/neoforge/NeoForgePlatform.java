@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.util.thread.SidedThreadGroups;
 
 import appeng.platform.AEPlatform;
 
@@ -57,5 +58,11 @@ public class NeoForgePlatform implements AEPlatform {
     public boolean isPhysicalClient() {
         var loader = FMLLoader.getCurrentOrNull();
         return loader == null || loader.getDist().isClient();
+    }
+
+    @Override
+    public boolean isServerThread() {
+        // What appeng.util.Platform.isServer() answers: FML runs the logical server in its own thread group
+        return Thread.currentThread().getThreadGroup() == SidedThreadGroups.SERVER;
     }
 }

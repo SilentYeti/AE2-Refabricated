@@ -35,6 +35,7 @@ import appeng.api.ids.AEComponents;
 import appeng.api.ids.AECreativeTabIds;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
+import appeng.platform.AEPlatform;
 import appeng.recipes.AECommonRecipes;
 
 /**
@@ -77,6 +78,11 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         assertComponentTypesRegistered(context);
         assertCreativeTabRegistered(context);
         assertItemModelsResolved(context);
+        try {
+            LOG.info("AE2 game test: {} config checks passed", ConfigChecks.run());
+        } catch (java.io.IOException e) {
+            throw new AssertionError("AE2 config checks could not use their temporary files", e);
+        }
 
         try (var singleplayer = context.worldBuilder().create()) {
             var server = singleplayer.getServer();
@@ -105,6 +111,14 @@ public class AE2ClientGameTest implements FabricClientGameTest {
             // storages, and a vanilla chest reached through ItemTransferPlatform.
             int transferChecks = server.computeOnServer(TransferChecks::run);
             LOG.info("AE2 game test: {} item transfer checks passed", transferChecks);
+
+            // Which of AE2's two loggers a message goes to depends on this; Fabric answers it from the server itself
+            if (!server.computeOnServer(s -> AEPlatform.get().isServerThread())) {
+                throw new AssertionError("the server thread should be recognised as the server's");
+            }
+            if (AEPlatform.get().isServerThread()) {
+                throw new AssertionError("the test thread should not be taken for the server's");
+            }
 
             // Put real AE2 stacks in the hotbar so the screenshot shows the item models actually
             // rendering, not just that they resolved to something.

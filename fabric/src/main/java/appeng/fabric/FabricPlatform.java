@@ -22,6 +22,7 @@ import java.util.Optional;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.server.MinecraftServer;
 
 import appeng.platform.AEPlatform;
 
@@ -54,5 +55,21 @@ public class FabricPlatform implements AEPlatform {
     @Override
     public boolean isPhysicalClient() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+    }
+
+    /**
+     * The running server, tracked from its lifecycle events by {@link AppEngFabric}. Fabric has no thread groups
+     * marking the logical server's threads the way FML does, so the question is asked of the server itself.
+     */
+    private static volatile MinecraftServer server;
+
+    static void setServer(MinecraftServer running) {
+        server = running;
+    }
+
+    @Override
+    public boolean isServerThread() {
+        var running = server;
+        return running != null && running.isSameThread();
     }
 }

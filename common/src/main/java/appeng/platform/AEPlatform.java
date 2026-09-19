@@ -55,6 +55,12 @@ public interface AEPlatform {
      */
     boolean isPhysicalClient();
 
+    /**
+     * @return True when the calling thread is the logical server's. Only used to pick which of AE2's two loggers a
+     *         message goes to, so an answer for a thread neither side owns does not matter.
+     */
+    boolean isServerThread();
+
     enum Loader {
         NEOFORGE,
         FABRIC

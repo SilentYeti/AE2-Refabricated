@@ -22,55 +22,55 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.neoforged.neoforge.common.ModConfigSpec;
-import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
-import net.neoforged.neoforge.common.ModConfigSpec.DoubleValue;
-import net.neoforged.neoforge.common.ModConfigSpec.EnumValue;
-import net.neoforged.neoforge.common.ModConfigSpec.IntValue;
-
 import appeng.api.config.CondenserOutput;
 import appeng.api.config.PowerMultiplier;
 import appeng.api.config.PowerUnit;
 import appeng.api.config.Settings;
 import appeng.api.config.TerminalStyle;
 import appeng.api.networking.pathing.ChannelMode;
+import appeng.core.config.ConfigBackend;
+import appeng.core.config.ConfigBuilder;
+import appeng.core.config.ConfigFile;
+import appeng.core.config.ConfigOption;
+import appeng.core.config.ConfigType;
 import appeng.core.settings.TickRates;
+import appeng.platform.AEPlatform;
 import appeng.util.EnumCycler;
-import appeng.util.Platform;
 
+/**
+ * AE2's configuration: the player's client preferences and the common gameplay settings.
+ * <p>
+ * The values are declared here once, against {@link ConfigBuilder}, and each loader's {@link ConfigBackend} turns that
+ * into its own config file -- on NeoForge the same spec as before, which {@code AEConfigSpecTest} pins section by
+ * section and key by key, so no player's config file changes.
+ */
 public final class AEConfig {
 
-    private final ClientConfig client = new ClientConfig();
-    private final CommonConfig common = new CommonConfig();
+    private final ClientConfig client;
+    private final CommonConfig common;
 
     // Default Energy Conversion Rates
     private static final double DEFAULT_FE_EXCHANGE = 0.5;
 
     private static AEConfig instance;
 
-    private AEConfig(ModContainer container) {
-        container.registerConfig(ModConfig.Type.CLIENT, client.spec);
-        container.registerConfig(ModConfig.Type.COMMON, common.spec);
-        container.getEventBus().addListener((ModConfigEvent.Loading evt) -> {
-            if (evt.getConfig().getSpec() == common.spec) {
-                common.sync();
-            }
+    private AEConfig(ConfigBackend backend) {
+        var clientBuilder = backend.newBuilder();
+        client = new ClientConfig(clientBuilder);
+        var commonBuilder = backend.newBuilder();
+        common = new CommonConfig(commonBuilder);
+        // Assigned before registering, since a backend may load -- and so sync -- during registration
+        instance = this;
+        client.file = backend.register(ConfigType.CLIENT, clientBuilder, () -> {
         });
-        container.getEventBus().addListener((ModConfigEvent.Reloading evt) -> {
-            if (evt.getConfig().getSpec() == common.spec) {
-                common.sync();
-            }
-        });
+        common.file = backend.register(ConfigType.COMMON, commonBuilder, common::sync);
     }
 
-    public static void register(ModContainer container) {
-        if (!container.getModId().equals(AppEng.MOD_ID)) {
-            throw new IllegalArgumentException();
-        }
-        instance = new AEConfig(container);
+    /**
+     * Called once by each loader's entrypoint, with that loader's config system.
+     */
+    public static void register(ConfigBackend backend) {
+        new AEConfig(backend);
     }
 
     public static AEConfig instance() {
@@ -106,9 +106,9 @@ public final class AEConfig {
     }
 
     public void setSearchModNameInTooltips(boolean enable) {
-        if (enable != client.searchModNameInTooltips.getAsBoolean()) {
+        if (enable != client.searchModNameInTooltips.get()) {
             client.searchModNameInTooltips.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -117,9 +117,9 @@ public final class AEConfig {
     }
 
     public void setUseExternalSearch(boolean enable) {
-        if (enable != client.useExternalSearch.getAsBoolean()) {
+        if (enable != client.useExternalSearch.get()) {
             client.useExternalSearch.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -128,9 +128,9 @@ public final class AEConfig {
     }
 
     public void setClearExternalSearchOnOpen(boolean enable) {
-        if (enable != client.clearExternalSearchOnOpen.getAsBoolean()) {
+        if (enable != client.clearExternalSearchOnOpen.get()) {
             client.clearExternalSearchOnOpen.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -139,9 +139,9 @@ public final class AEConfig {
     }
 
     public void setRememberLastSearch(boolean enable) {
-        if (enable != client.rememberLastSearch.getAsBoolean()) {
+        if (enable != client.rememberLastSearch.get()) {
             client.rememberLastSearch.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -150,9 +150,9 @@ public final class AEConfig {
     }
 
     public void setAutoFocusSearch(boolean enable) {
-        if (enable != client.autoFocusSearch.getAsBoolean()) {
+        if (enable != client.autoFocusSearch.get()) {
             client.autoFocusSearch.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -161,9 +161,9 @@ public final class AEConfig {
     }
 
     public void setSyncWithExternalSearch(boolean enable) {
-        if (enable != client.syncWithExternalSearch.getAsBoolean()) {
+        if (enable != client.syncWithExternalSearch.get()) {
             client.syncWithExternalSearch.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -174,7 +174,7 @@ public final class AEConfig {
     public void setTerminalStyle(TerminalStyle setting) {
         if (setting != client.terminalStyle.get()) {
             client.terminalStyle.set(setting);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -194,7 +194,7 @@ public final class AEConfig {
         var selected = EnumCycler.rotateEnum(getSelectedEnergyUnit(), backwards,
                 Settings.POWER_UNITS.getValues());
         client.selectedPowerUnit.set(selected);
-        client.spec.save();
+        client.file.save();
     }
 
     // Getters
@@ -207,31 +207,31 @@ public final class AEConfig {
     }
 
     public boolean isEnableEffects() {
-        return client.enableEffects.getAsBoolean();
+        return client.enableEffects.get();
     }
 
     public boolean isUseLargeFonts() {
-        return client.useLargeFonts.getAsBoolean();
+        return client.useLargeFonts.get();
     }
 
     public boolean isUseColoredCraftingStatus() {
-        return client.useColoredCraftingStatus.getAsBoolean();
+        return client.useColoredCraftingStatus.get();
     }
 
     public boolean isDisableColoredCableRecipesInRecipeViewer() {
-        return client.disableColoredCableRecipesInRecipeViewer.getAsBoolean();
+        return client.disableColoredCableRecipesInRecipeViewer.get();
     }
 
     public boolean isEnableFacadesInRecipeViewer() {
-        return client.enableFacadesInRecipeViewer.getAsBoolean();
+        return client.enableFacadesInRecipeViewer.get();
     }
 
     public boolean isEnableFacadeRecipesInRecipeViewer() {
-        return client.enableFacadeRecipesInRecipeViewer.getAsBoolean();
+        return client.enableFacadeRecipesInRecipeViewer.get();
     }
 
     public boolean isExposeNetworkInventoryToEmi() {
-        return client.exposeNetworkInventoryToEmi.getAsBoolean();
+        return client.exposeNetworkInventoryToEmi.get();
     }
 
     public int getCraftingCalculationTimePerTick() {
@@ -283,9 +283,9 @@ public final class AEConfig {
     }
 
     public void setShowDebugGuiOverlays(boolean enable) {
-        if (enable != client.debugGuiOverlays.getAsBoolean()) {
+        if (enable != client.debugGuiOverlays.get()) {
             client.debugGuiOverlays.set(enable);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -328,7 +328,7 @@ public final class AEConfig {
     public void setChannelModel(ChannelMode mode) {
         if (mode != common.channels.get()) {
             common.channels.set(mode);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -367,9 +367,9 @@ public final class AEConfig {
     }
 
     public void setPinAutoCraftedItems(boolean enabled) {
-        if (enabled != client.pinAutoCraftedItems.getAsBoolean()) {
+        if (enabled != client.pinAutoCraftedItems.get()) {
             client.pinAutoCraftedItems.set(enabled);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -378,9 +378,9 @@ public final class AEConfig {
     }
 
     public void setNotifyForFinishedCraftingJobs(boolean enabled) {
-        if (enabled != client.notifyForFinishedCraftingJobs.getAsBoolean()) {
+        if (enabled != client.notifyForFinishedCraftingJobs.get()) {
             client.notifyForFinishedCraftingJobs.set(enabled);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -389,9 +389,9 @@ public final class AEConfig {
     }
 
     public void setClearGridOnClose(boolean enabled) {
-        if (enabled != client.clearGridOnClose.getAsBoolean()) {
+        if (enabled != client.clearGridOnClose.get()) {
             client.clearGridOnClose.set(enabled);
-            client.spec.save();
+            client.file.save();
         }
     }
 
@@ -412,47 +412,46 @@ public final class AEConfig {
     }
 
     public void save() {
-        common.spec.save();
-        client.spec.save();
+        common.file.save();
+        client.file.save();
     }
 
     private static class ClientConfig {
-        private final ModConfigSpec spec;
+        private ConfigFile file;
 
         // Misc
-        public final BooleanValue enableEffects;
-        public final BooleanValue useLargeFonts;
-        public final BooleanValue useColoredCraftingStatus;
-        public final BooleanValue disableColoredCableRecipesInRecipeViewer;
-        public final BooleanValue enableFacadesInRecipeViewer;
-        public final BooleanValue enableFacadeRecipesInRecipeViewer;
-        public final BooleanValue exposeNetworkInventoryToEmi;
-        public final EnumValue<PowerUnit> selectedPowerUnit;
-        public final BooleanValue debugGuiOverlays;
-        public final BooleanValue showPlacementPreview;
-        public final BooleanValue notifyForFinishedCraftingJobs;
+        public final ConfigOption<Boolean> enableEffects;
+        public final ConfigOption<Boolean> useLargeFonts;
+        public final ConfigOption<Boolean> useColoredCraftingStatus;
+        public final ConfigOption<Boolean> disableColoredCableRecipesInRecipeViewer;
+        public final ConfigOption<Boolean> enableFacadesInRecipeViewer;
+        public final ConfigOption<Boolean> enableFacadeRecipesInRecipeViewer;
+        public final ConfigOption<Boolean> exposeNetworkInventoryToEmi;
+        public final ConfigOption<PowerUnit> selectedPowerUnit;
+        public final ConfigOption<Boolean> debugGuiOverlays;
+        public final ConfigOption<Boolean> showPlacementPreview;
+        public final ConfigOption<Boolean> notifyForFinishedCraftingJobs;
 
         // Terminal Settings
-        public final EnumValue<TerminalStyle> terminalStyle;
-        public final BooleanValue pinAutoCraftedItems;
-        public final BooleanValue clearGridOnClose;
-        public final IntValue terminalMargin;
+        public final ConfigOption<TerminalStyle> terminalStyle;
+        public final ConfigOption<Boolean> pinAutoCraftedItems;
+        public final ConfigOption<Boolean> clearGridOnClose;
+        public final ConfigOption<Integer> terminalMargin;
 
         // Search Settings
-        public final BooleanValue searchModNameInTooltips;
-        public final BooleanValue useExternalSearch;
-        public final BooleanValue clearExternalSearchOnOpen;
-        public final BooleanValue syncWithExternalSearch;
-        public final BooleanValue rememberLastSearch;
-        public final BooleanValue autoFocusSearch;
+        public final ConfigOption<Boolean> searchModNameInTooltips;
+        public final ConfigOption<Boolean> useExternalSearch;
+        public final ConfigOption<Boolean> clearExternalSearchOnOpen;
+        public final ConfigOption<Boolean> syncWithExternalSearch;
+        public final ConfigOption<Boolean> rememberLastSearch;
+        public final ConfigOption<Boolean> autoFocusSearch;
 
         // Tooltip settings
-        public final BooleanValue tooltipShowCellUpgrades;
-        public final BooleanValue tooltipShowCellContent;
-        public final IntValue tooltipMaxCellContentShown;
+        public final ConfigOption<Boolean> tooltipShowCellUpgrades;
+        public final ConfigOption<Boolean> tooltipShowCellContent;
+        public final ConfigOption<Integer> tooltipMaxCellContentShown;
 
-        public ClientConfig() {
-            var builder = new ModConfigSpec.Builder();
+        public ClientConfig(ConfigBuilder builder) {
 
             builder.push("recipeViewers");
             this.disableColoredCableRecipesInRecipeViewer = define(builder, "disableColoredCableRecipesInRecipeViewer",
@@ -512,84 +511,82 @@ public final class AEConfig {
                     "The maximum number of content entries to show in the tooltip of storage cells, color applicators and matter cannons");
             builder.pop();
 
-            this.spec = builder.build();
         }
 
     }
 
     private static class CommonConfig {
-        private final ModConfigSpec spec;
+        private ConfigFile file;
 
         // Misc
-        public final IntValue formationPlaneEntityLimit;
-        public final IntValue craftingCalculationTimePerTick;
-        public final BooleanValue debugTools;
-        public final BooleanValue matterCannonBlockDamage;
-        public final BooleanValue tinyTntBlockDamage;
-        public final EnumValue<ChannelMode> channels;
-        public final BooleanValue spatialAnchorEnableRandomTicks;
+        public final ConfigOption<Integer> formationPlaneEntityLimit;
+        public final ConfigOption<Integer> craftingCalculationTimePerTick;
+        public final ConfigOption<Boolean> debugTools;
+        public final ConfigOption<Boolean> matterCannonBlockDamage;
+        public final ConfigOption<Boolean> tinyTntBlockDamage;
+        public final ConfigOption<ChannelMode> channels;
+        public final ConfigOption<Boolean> spatialAnchorEnableRandomTicks;
 
-        public final IntValue growthAcceleratorSpeed;
-        public final BooleanValue annihilationPlaneSkyDustGeneration;
+        public final ConfigOption<Integer> growthAcceleratorSpeed;
+        public final ConfigOption<Boolean> annihilationPlaneSkyDustGeneration;
 
         // Spatial IO/Dimension
-        public final DoubleValue spatialPowerExponent;
-        public final DoubleValue spatialPowerMultiplier;
+        public final ConfigOption<Double> spatialPowerExponent;
+        public final ConfigOption<Double> spatialPowerMultiplier;
 
         // Logging
-        public final BooleanValue blockUpdateLog;
-        public final BooleanValue craftingLog;
-        public final BooleanValue debugLog;
-        public final BooleanValue gridLog;
-        public final BooleanValue chunkLoggerTrace;
+        public final ConfigOption<Boolean> blockUpdateLog;
+        public final ConfigOption<Boolean> craftingLog;
+        public final ConfigOption<Boolean> debugLog;
+        public final ConfigOption<Boolean> gridLog;
+        public final ConfigOption<Boolean> chunkLoggerTrace;
 
         // Batteries
-        public final DoubleValue chargerChargeRate;
-        public final IntValue wirelessTerminalBattery;
-        public final IntValue entropyManipulatorBattery;
-        public final IntValue matterCannonBattery;
-        public final IntValue portableCellBattery;
-        public final IntValue colorApplicatorBattery;
-        public final IntValue chargedStaffBattery;
+        public final ConfigOption<Double> chargerChargeRate;
+        public final ConfigOption<Integer> wirelessTerminalBattery;
+        public final ConfigOption<Integer> entropyManipulatorBattery;
+        public final ConfigOption<Integer> matterCannonBattery;
+        public final ConfigOption<Integer> portableCellBattery;
+        public final ConfigOption<Integer> colorApplicatorBattery;
+        public final ConfigOption<Integer> chargedStaffBattery;
 
         // Meteors
-        public final BooleanValue spawnPressesInMeteorites;
-        public final BooleanValue spawnFlawlessOnly;
+        public final ConfigOption<Boolean> spawnPressesInMeteorites;
+        public final ConfigOption<Boolean> spawnFlawlessOnly;
 
         // Wireless
-        public final DoubleValue wirelessBaseCost;
-        public final DoubleValue wirelessCostMultiplier;
-        public final DoubleValue wirelessTerminalDrainMultiplier;
-        public final DoubleValue wirelessBaseRange;
-        public final DoubleValue wirelessBoosterRangeMultiplier;
-        public final DoubleValue wirelessBoosterExp;
-        public final DoubleValue wirelessHighWirelessCount;
+        public final ConfigOption<Double> wirelessBaseCost;
+        public final ConfigOption<Double> wirelessCostMultiplier;
+        public final ConfigOption<Double> wirelessTerminalDrainMultiplier;
+        public final ConfigOption<Double> wirelessBaseRange;
+        public final ConfigOption<Double> wirelessBoosterRangeMultiplier;
+        public final ConfigOption<Double> wirelessBoosterExp;
+        public final ConfigOption<Double> wirelessHighWirelessCount;
 
         // Power Ratios
-        public final DoubleValue powerRatioForgeEnergy;
-        public final DoubleValue powerUsageMultiplier;
-        public final DoubleValue gridEnergyStoragePerNode;
-        public final DoubleValue crystalResonanceGeneratorRate;
-        public final DoubleValue p2pTunnelEnergyTax;
-        public final DoubleValue p2pTunnelTransportTax;
+        public final ConfigOption<Double> powerRatioForgeEnergy;
+        public final ConfigOption<Double> powerUsageMultiplier;
+        public final ConfigOption<Double> gridEnergyStoragePerNode;
+        public final ConfigOption<Double> crystalResonanceGeneratorRate;
+        public final ConfigOption<Double> p2pTunnelEnergyTax;
+        public final ConfigOption<Double> p2pTunnelTransportTax;
 
         // Vibration Chamber
-        public final DoubleValue vibrationChamberBaseEnergyPerFuelTick;
-        public final IntValue vibrationChamberMinEnergyPerTick;
-        public final IntValue vibrationChamberMaxEnergyPerTick;
+        public final ConfigOption<Double> vibrationChamberBaseEnergyPerFuelTick;
+        public final ConfigOption<Integer> vibrationChamberMinEnergyPerTick;
+        public final ConfigOption<Integer> vibrationChamberMaxEnergyPerTick;
 
         // Condenser Power Requirement
-        public final IntValue condenserMatterBallsPower;
-        public final IntValue condenserSingularityPower;
+        public final ConfigOption<Integer> condenserMatterBallsPower;
+        public final ConfigOption<Integer> condenserSingularityPower;
 
-        public final Map<TickRates, IntValue> tickRateMin = new HashMap<>();
-        public final Map<TickRates, IntValue> tickRateMax = new HashMap<>();
+        public final Map<TickRates, ConfigOption<Integer>> tickRateMin = new HashMap<>();
+        public final Map<TickRates, ConfigOption<Integer>> tickRateMax = new HashMap<>();
 
-        public CommonConfig() {
-            var builder = new ModConfigSpec.Builder();
+        public CommonConfig(ConfigBuilder builder) {
 
             builder.push("general");
-            debugTools = define(builder, "unsupportedDeveloperTools", Platform.isDevelopmentEnvironment());
+            debugTools = define(builder, "unsupportedDeveloperTools", AEPlatform.get().isDevelopmentEnvironment());
             matterCannonBlockDamage = define(builder, "matterCannonBlockDamage", true,
                     "Enables the ability of the Matter Cannon to break blocks.");
             tinyTntBlockDamage = define(builder, "tinyTntBlockDamage", true,
@@ -693,7 +690,6 @@ public final class AEConfig {
                     "Maximum amount of AE/t the vibration chamber can speed up to when generated energy is being fully consumed.");
             builder.pop();
 
-            spec = builder.build();
         }
 
         public void sync() {
@@ -714,61 +710,63 @@ public final class AEConfig {
         }
     }
 
-    private static BooleanValue define(ModConfigSpec.Builder builder, String name, boolean defaultValue,
+    private static ConfigOption<Boolean> define(ConfigBuilder builder, String name, boolean defaultValue,
             String comment) {
         builder.comment(comment);
         return define(builder, name, defaultValue);
     }
 
-    private static BooleanValue define(ModConfigSpec.Builder builder, String name, boolean defaultValue) {
+    private static ConfigOption<Boolean> define(ConfigBuilder builder, String name, boolean defaultValue) {
         return builder.define(name, defaultValue);
     }
 
-    private static IntValue define(ModConfigSpec.Builder builder, String name, int defaultValue, String comment) {
+    private static ConfigOption<Integer> define(ConfigBuilder builder, String name, int defaultValue, String comment) {
         builder.comment(comment);
         return define(builder, name, defaultValue);
     }
 
-    private static DoubleValue define(ModConfigSpec.Builder builder, String name, double defaultValue) {
+    private static ConfigOption<Double> define(ConfigBuilder builder, String name, double defaultValue) {
         return define(builder, name, defaultValue, Double.MIN_VALUE, Double.MAX_VALUE);
     }
 
-    private static DoubleValue define(ModConfigSpec.Builder builder, String name, double defaultValue, String comment) {
+    private static ConfigOption<Double> define(ConfigBuilder builder, String name, double defaultValue,
+            String comment) {
         builder.comment(comment);
         return define(builder, name, defaultValue);
     }
 
-    private static DoubleValue define(ModConfigSpec.Builder builder, String name, double defaultValue, double min,
+    private static ConfigOption<Double> define(ConfigBuilder builder, String name, double defaultValue, double min,
             double max, String comment) {
         builder.comment(comment);
         return define(builder, name, defaultValue, min, max);
     }
 
-    private static DoubleValue define(ModConfigSpec.Builder builder, String name, double defaultValue, double min,
+    private static ConfigOption<Double> define(ConfigBuilder builder, String name, double defaultValue, double min,
             double max) {
         return builder.defineInRange(name, defaultValue, min, max);
     }
 
-    private static IntValue define(ModConfigSpec.Builder builder, String name, int defaultValue, int min, int max,
+    private static ConfigOption<Integer> define(ConfigBuilder builder, String name, int defaultValue, int min, int max,
             String comment) {
         builder.comment(comment);
         return define(builder, name, defaultValue, min, max);
     }
 
-    private static IntValue define(ModConfigSpec.Builder builder, String name, int defaultValue, int min, int max) {
+    private static ConfigOption<Integer> define(ConfigBuilder builder, String name, int defaultValue, int min,
+            int max) {
         return builder.defineInRange(name, defaultValue, min, max);
     }
 
-    private static IntValue define(ModConfigSpec.Builder builder, String name, int defaultValue) {
+    private static ConfigOption<Integer> define(ConfigBuilder builder, String name, int defaultValue) {
         return define(builder, name, defaultValue, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
-    private static <T extends Enum<T>> EnumValue<T> defineEnum(ModConfigSpec.Builder builder, String name,
+    private static <T extends Enum<T>> ConfigOption<T> defineEnum(ConfigBuilder builder, String name,
             T defaultValue) {
         return builder.defineEnum(name, defaultValue);
     }
 
-    private static <T extends Enum<T>> EnumValue<T> defineEnum(ModConfigSpec.Builder builder, String name,
+    private static <T extends Enum<T>> ConfigOption<T> defineEnum(ConfigBuilder builder, String name,
             T defaultValue, String comment) {
         builder.comment(comment);
         return defineEnum(builder, name, defaultValue);

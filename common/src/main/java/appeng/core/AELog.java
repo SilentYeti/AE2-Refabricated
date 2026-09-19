@@ -24,10 +24,10 @@ import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.message.ParameterizedMessage;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 
-import appeng.blockentity.AEBaseBlockEntity;
-import appeng.util.Platform;
+import appeng.platform.AEPlatform;
 
 public final class AELog {
     private static final String LOGGER_PREFIX = "AE2:";
@@ -54,7 +54,7 @@ public final class AELog {
      * @return a suitable logger instance
      */
     private static Logger getLogger() {
-        return Platform.isServer() ? SERVER : CLIENT;
+        return AEPlatform.get().isServerThread() ? SERVER : CLIENT;
     }
 
     /**
@@ -124,7 +124,7 @@ public final class AELog {
      * @see AELog#log(Level, String, Object...)
      */
     public static void blockUpdate(BlockPos pos, BlockState currentState,
-            BlockState newState, AEBaseBlockEntity blockEntity) {
+            BlockState newState, BlockEntity blockEntity) {
         if (AEConfig.instance().isBlockUpdateLogEnabled()) {
             info(BLOCK_UPDATE, blockEntity.getClass().getName(), pos, currentState, newState);
         }
