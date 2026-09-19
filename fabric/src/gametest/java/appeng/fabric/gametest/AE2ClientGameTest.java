@@ -269,6 +269,27 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         if (!unmodelled.isEmpty()) {
             throw new AssertionError(unmodelled.size() + " AE2 items have no item model: " + unmodelled);
         }
+
+        // And placed: a block can have a perfectly good item model and still render as the missing-model cube
+        // in the world, as the quartz glasses did while their blockstates named a NeoForge-only model type
+        var unplaceable = context.computeOnClient(client -> {
+            var models = client.getModelManager().getBlockStateModelSet();
+            var bad = new ArrayList<Identifier>();
+            for (var entry : AECommonBlocks.entries()) {
+                var block = BuiltInRegistries.BLOCK.getValue(entry.id());
+                for (var state : block.getStateDefinition().getPossibleStates()) {
+                    if (models.get(state) == models.missingModel()) {
+                        bad.add(entry.id());
+                        break;
+                    }
+                }
+            }
+            return bad;
+        });
+        if (!unplaceable.isEmpty()) {
+            throw new AssertionError(unplaceable.size() + " AE2 blocks render as the missing model when placed: "
+                    + unplaceable);
+        }
         LOG.info("AE2 game test: all {} items and block items have a resolved model",
                 AECommonItems.entries().size() + AECommonBlocks.entries().size());
     }

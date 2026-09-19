@@ -127,6 +127,17 @@ processResources {
         expand props
     }
 
+    // Quartz glass and vibrant quartz glass are drawn by AE2's own connected-texture model type,
+    // ae2:quartz_glass, which is NeoForge client code (QuartzGlassModel) and not registered on Fabric.
+    // Left alone, both render as the missing-model cube once placed. Until that model is ported (stage 7),
+    // point them at a static model of what an isolated block looks like on NeoForge: the glass with its
+    // full frame. Neighbouring blocks do not join up yet.
+    filesMatching(['assets/ae2/blockstates/quartz_glass.json', 'assets/ae2/blockstates/quartz_vibrant_glass.json']) {
+        filter { String line ->
+            line.replace('"type": "ae2:quartz_glass"', '"model": "ae2:block/quartz_glass"')
+        }
+    }
+
     // AE2's data pack ships in pieces, because the kinds of data fail differently when they name
     // content Fabric has not registered yet.
     //
