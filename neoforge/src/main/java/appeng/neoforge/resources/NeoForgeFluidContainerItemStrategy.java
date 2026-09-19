@@ -1,4 +1,4 @@
-package appeng.api.behaviors;
+package appeng.neoforge.resources;
 
 import com.google.common.primitives.Ints;
 
@@ -14,14 +14,19 @@ import net.neoforged.neoforge.transfer.access.ItemAccess;
 import net.neoforged.neoforge.transfer.fluid.FluidResource;
 import net.neoforged.neoforge.transfer.transaction.Transaction;
 
+import appeng.api.behaviors.ContainerItemStrategy;
 import appeng.api.config.Actionable;
 import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.GenericStack;
-import appeng.neoforge.resources.NeoForgeFluids;
 import appeng.util.GenericContainerHelper;
 import appeng.util.fluid.FluidSoundHelper;
 
-class FluidContainerItemStrategy implements ContainerItemStrategy<AEFluidKey, ResourceHandler<FluidResource>> {
+/**
+ * Fluids inside items -- buckets, tanks, other mods' cells -- through NeoForge's fluid item capability. Registered by
+ * {@link NeoForgeContainerItemStrategies}; Fabric's twin is {@code FabricFluidContainerItemStrategy}.
+ */
+public class NeoForgeFluidContainerItemStrategy
+        implements ContainerItemStrategy<AEFluidKey, ResourceHandler<FluidResource>> {
     @Override
     public @Nullable GenericStack getContainedStack(ItemStack stack) {
         return GenericContainerHelper.getContainedFluidStack(stack);

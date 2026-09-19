@@ -55,6 +55,8 @@ public class AppEngFabric implements ModInitializer {
         // stair, slab and wall variants copy the block state of the block they are cut from.
         // Components before the items: an item's default components name component types, and a stack carrying one
         // cannot be read back before its type is in the registry.
+        // Key types before anything that can reach AEKeyTypes -- which is most of the storage API
+        FabricKeyTypes.register();
         FabricComponents.register();
         FabricParticles.register();
         FabricBlocks.register();

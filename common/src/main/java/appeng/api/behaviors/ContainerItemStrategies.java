@@ -14,11 +14,11 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.item.ItemStack;
 
-import appeng.api.stacks.AEFluidKey;
 import appeng.api.stacks.AEKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.AEKeyTypes;
 import appeng.api.stacks.GenericStack;
+import appeng.platform.ContainerItemStrategiesPlatform;
 import appeng.util.CowMap;
 
 /**
@@ -28,7 +28,9 @@ public class ContainerItemStrategies {
     private static final CowMap<AEKeyType, ContainerItemStrategy<?, ?>> strategies = CowMap.identityHashMap();
 
     static {
-        register(AEKeyType.fluids(), AEFluidKey.class, new FluidContainerItemStrategy());
+        // Here rather than at mod init: register keeps the first strategy for a key type, so AE2's defaults must be
+        // in before anything else can touch this class for them to take precedence over an addon's.
+        ContainerItemStrategiesPlatform.get().registerDefaults();
     }
 
     public static <T extends AEKey> void register(AEKeyType type, Class<T> keyClass,

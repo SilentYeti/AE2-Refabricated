@@ -127,6 +127,9 @@ public class AE2ClientGameTest implements FabricClientGameTest {
 
             assertParticlesDraw(context);
 
+            int fluidChecks = server.computeOnServer(FluidChecks::run);
+            LOG.info("AE2 game test: {} fluid checks passed", fluidChecks);
+
             // Which of AE2's two loggers a message goes to depends on this; Fabric answers it from the server itself
             if (!server.computeOnServer(s -> AEPlatform.get().isServerThread())) {
                 throw new AssertionError("the server thread should be recognised as the server's");
