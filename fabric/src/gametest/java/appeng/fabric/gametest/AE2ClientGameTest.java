@@ -101,6 +101,11 @@ public class AE2ClientGameTest implements FabricClientGameTest {
             }
             LOG.info("AE2 game test: world loaded, {} ae2 recipes available", recipeCount);
 
+            // Item transfer, both ways, in the real Fabric transaction manager: AE2's inventories as Fabric
+            // storages, and a vanilla chest reached through ItemTransferPlatform.
+            int transferChecks = server.computeOnServer(TransferChecks::run);
+            LOG.info("AE2 game test: {} item transfer checks passed", transferChecks);
+
             // Put real AE2 stacks in the hotbar so the screenshot shows the item models actually
             // rendering, not just that they resolved to something.
             for (var id : HOTBAR_SHOWCASE) {

@@ -9,7 +9,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.world.item.ItemStack;
 
-import appeng.api.inventories.InternalInventory;
+import appeng.api.inventories.MenuOnlyInventory;
 import appeng.api.stacks.AEItemKey;
 import appeng.api.stacks.AEKeyType;
 import appeng.api.stacks.GenericStack;
@@ -21,7 +21,7 @@ import appeng.items.misc.WrappedGenericStack;
  * convert appropriately from {@link ItemStack}s set by the player to the internal key-based representation with the
  * help of a matching {@link AEKeyType}.
  */
-public class ConfigMenuInventory implements InternalInventory {
+public class ConfigMenuInventory implements MenuOnlyInventory {
     private final GenericStackInv inv;
 
     public ConfigMenuInventory(GenericStackInv inv) {

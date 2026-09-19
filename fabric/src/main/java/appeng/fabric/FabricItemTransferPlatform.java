@@ -20,30 +20,26 @@ package appeng.fabric;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.fabricmc.fabric.api.transfer.v1.item.ItemStorage;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.Level;
 
 import appeng.api.inventories.ItemTransfer;
+import appeng.fabric.resources.StorageItemTransfer;
 import appeng.platform.ItemTransferPlatform;
 
 /**
- * Fabric side of {@link ItemTransferPlatform}.
+ * Fabric side of {@link ItemTransferPlatform}: the neighbour's {@code Storage<ItemVariant>} from
+ * {@code ItemStorage.SIDED}, adapted by {@link StorageItemTransfer}. Registered in META-INF/services.
  * <p>
- * <b>Not implemented yet, deliberately.</b> Its only callers are the inscriber and the molecular assembler pushing
- * their output into a neighbour, and neither block registers on Fabric -- so this is unreachable, and failing loudly is
- * safer than answering "no inventory there", which would look like a working machine that silently never pushes its
- * output.
- * <p>
- * The intended shape, for stage 4: look the neighbour up with {@code ItemStorage.SIDED.find(level, pos, side)} and
- * adapt the {@code Storage<ItemVariant>} it returns to {@link ItemTransfer}, as {@code PlatformInventoryWrapper} does
- * for NeoForge's handler. Insertions and extractions each open and commit their own {@code Transaction}; simulations
- * open one and let it abort.
+ * Its callers are the inscriber and the molecular assembler pushing their output into a neighbour, neither of which
+ * registers on Fabric yet; the client gametest reaches it directly against a vanilla chest.
  */
 public class FabricItemTransferPlatform implements ItemTransferPlatform {
     @Override
     public @Nullable ItemTransfer findExternal(Level level, BlockPos pos, Direction side) {
-        throw new UnsupportedOperationException("External item inventories cannot be reached on Fabric yet (stage 4 "
-                + "of PORTING.md). See FabricItemTransferPlatform's javadoc for the intended implementation.");
+        var storage = ItemStorage.SIDED.find(level, pos, side);
+        return storage != null ? new StorageItemTransfer(storage) : null;
     }
 }

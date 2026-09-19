@@ -27,8 +27,8 @@ import net.neoforged.neoforge.transfer.item.PlayerInventoryWrapper;
 
 import appeng.api.inventories.BaseInternalInventory;
 import appeng.api.inventories.InternalInventory;
+import appeng.api.inventories.MenuOnlyInventory;
 import appeng.api.upgrades.UpgradeInventories;
-import appeng.util.ConfigMenuInventory;
 import appeng.util.inv.CarriedItemInventory;
 import appeng.util.inv.CombinedInternalInventory;
 import appeng.util.inv.PlayerInternalInventory;
@@ -59,9 +59,9 @@ public final class NeoForgeInventories {
         if (inventory == InternalInventory.empty() || inventory == UpgradeInventories.empty()) {
             return EmptyResourceHandler.instance();
         }
-        if (inventory instanceof ConfigMenuInventory) {
-            // A menu-facing view that converts between item stacks and AE keys. Exposing it would let another mod
-            // write filter entries through the item API, so it refused before the move as well.
+        if (inventory instanceof MenuOnlyInventory) {
+            // Backs menu slots only -- ConfigMenuInventory, which converts between item stacks and AE keys. Exposing
+            // it would let another mod write filter entries through the item API, so it refused before the move too.
             throw new UnsupportedOperationException();
         }
         if (inventory instanceof CarriedItemInventory carried) {
