@@ -98,6 +98,11 @@ class InternalInventoryResourceHandler extends SnapshotJournal<InternalInventory
             return 0;
         }
 
+        // Only what the slot actually holds: the caller will account for what it extracted as `resource`
+        if (!resource.matches(inventory.getStackInSlot(index))) {
+            return 0;
+        }
+
         updateSnapshots(transaction);
 
         return inventory.extractItem(index, maxAmount, false).getCount();

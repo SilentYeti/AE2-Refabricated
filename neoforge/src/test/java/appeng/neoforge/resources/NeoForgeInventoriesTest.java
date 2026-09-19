@@ -22,9 +22,16 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.transfer.CombinedResourceHandler;
 import net.neoforged.neoforge.transfer.EmptyResourceHandler;
+import net.neoforged.neoforge.transfer.item.ItemResource;
+import net.neoforged.neoforge.transfer.transaction.Transaction;
+import net.neoforged.testframework.junit.EphemeralTestServerProvider;
 
 import appeng.api.inventories.InternalInventory;
 import appeng.api.inventories.PlatformInventoryWrapper;
@@ -41,6 +48,7 @@ import appeng.util.inv.SupplierInternalInventory;
  * nothing about what NeoForge sees.
  */
 @BootstrapMinecraft
+@ExtendWith(EphemeralTestServerProvider.class)
 class NeoForgeInventoriesTest {
 
     @Test
@@ -97,5 +105,21 @@ class NeoForgeInventoriesTest {
         var inv = new ConfigMenuInventory(new GenericStackInv(null, 1));
 
         assertThrows(UnsupportedOperationException.class, () -> NeoForgeInventories.resourceHandler(inv));
+    }
+
+    @Test
+    void aSlotOnlyGivesUpWhatItHolds(MinecraftServer server) {
+        // The caller accounts for what it extracted as the resource it asked for, so a slot answering for a different
+        // item would destroy what it held and credit something that never existed
+        var inv = new AppEngInternalInventory(1);
+        inv.setItemDirect(0, new ItemStack(Items.DIAMOND, 8));
+        var handler = NeoForgeInventories.resourceHandler(inv);
+
+        try (var tx = Transaction.openRoot()) {
+            assertThat(handler.extract(0, ItemResource.of(Items.EMERALD), 8, tx)).isZero();
+            assertThat(handler.extract(0, ItemResource.of(Items.DIAMOND), 3, tx)).isEqualTo(3);
+            tx.commit();
+        }
+        assertThat(inv.getStackInSlot(0).getCount()).isEqualTo(5);
     }
 }
