@@ -64,8 +64,19 @@ public final class ParticleTypes {
             return LightningArcParticleData.STREAM_CODEC;
         }
     };
-    public static final SimpleParticleType LIGHTNING = new SimpleParticleType(false);
-    public static final SimpleParticleType MATTER_CANNON = new SimpleParticleType(false);
-    public static final SimpleParticleType VIBRANT = new SimpleParticleType(false);
+    public static final SimpleParticleType LIGHTNING = new PlainParticleType();
+    public static final SimpleParticleType MATTER_CANNON = new PlainParticleType();
+    public static final SimpleParticleType VIBRANT = new PlainParticleType();
+
+    /**
+     * {@link SimpleParticleType}'s constructor is protected in vanilla, and was only reachable through an access
+     * transformer, which {@code :common} does not have. A subclass may call it -- the same answer as
+     * {@code AEStairBlock}.
+     */
+    private static final class PlainParticleType extends SimpleParticleType {
+        PlainParticleType() {
+            super(false);
+        }
+    }
 
 }

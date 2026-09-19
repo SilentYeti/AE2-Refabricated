@@ -26,15 +26,20 @@ import org.slf4j.LoggerFactory;
 
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
+import net.fabricmc.fabric.api.item.v1.FabricItem;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 import appeng.api.ids.AEComponents;
 import appeng.api.ids.AECreativeTabIds;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
+import appeng.items.tools.powered.powersink.AEBasePoweredItem;
 import appeng.platform.AEPlatform;
 import appeng.recipes.AECommonRecipes;
 
@@ -78,6 +83,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         assertComponentTypesRegistered(context);
         assertCreativeTabRegistered(context);
         assertItemModelsResolved(context);
+        assertReequipHookOverridesFabrics();
         try {
             LOG.info("AE2 game test: {} config checks passed", ConfigChecks.run());
         } catch (java.io.IOException e) {
@@ -251,6 +257,24 @@ public class AE2ClientGameTest implements FabricClientGameTest {
         }
         LOG.info("AE2 game test: all {} items and block items have a resolved model",
                 AECommonItems.entries().size() + AECommonBlocks.entries().size());
+    }
+
+    /**
+     * AEBasePoweredItem overrides Fabric's component-update-animation hook without saying so, so that it compiles in
+     * :common. If Fabric changed the hook's signature, the method would silently stop overriding anything and every
+     * charging tool would bob while it charges; this is what would notice.
+     */
+    private static void assertReequipHookOverridesFabrics() {
+        try {
+            var fabric = FabricItem.class.getMethod("allowComponentsUpdateAnimation", Player.class,
+                    InteractionHand.class, ItemStack.class, ItemStack.class);
+            var ours = AEBasePoweredItem.class.getMethod(fabric.getName(), fabric.getParameterTypes());
+            if (ours.getDeclaringClass() != AEBasePoweredItem.class || ours.getReturnType() != fabric.getReturnType()) {
+                throw new AssertionError("AEBasePoweredItem no longer overrides " + fabric);
+            }
+        } catch (NoSuchMethodException e) {
+            throw new AssertionError("Fabric's item animation hook has changed signature", e);
+        }
     }
 
     private static void assertCreativeTabRegistered(ClientGameTestContext context) {

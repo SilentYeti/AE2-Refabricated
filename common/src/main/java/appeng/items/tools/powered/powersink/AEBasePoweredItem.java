@@ -23,6 +23,8 @@ import java.util.function.DoubleSupplier;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -69,9 +71,26 @@ public abstract class AEBasePoweredItem extends AEBaseItem implements IAEItemPow
         return true;
     }
 
-    @Override
+    /**
+     * Charging changes a powered item's stored energy -- a data component -- every tick, and each change would make the
+     * held item bob as if it had just been swapped. This keeps the animation for an actual swap only.
+     * <p>
+     * NeoForge's {@code IItemExtension} hook, declared <em>without</em> {@code @Override}: vanilla's {@code Item},
+     * which is all {@code :common} sees, does not have it, but on NeoForge the JVM dispatches to it by signature all
+     * the same. {@code AEBasePoweredItemTest} pins that the signature still matches NeoForge's.
+     */
     public boolean shouldCauseReequipAnimation(ItemStack oldStack, ItemStack newStack, boolean slotChanged) {
         return slotChanged || !ItemStack.isSameItem(oldStack, newStack);
+    }
+
+    /**
+     * Fabric's counterpart, {@code FabricItem.allowComponentsUpdateAnimation}, for the same reason and declared the
+     * same way. Fabric only asks when the item stayed the same and its components changed, which is the case to
+     * suppress. The Fabric client gametest pins the signature.
+     */
+    public boolean allowComponentsUpdateAnimation(Player player, InteractionHand hand, ItemStack oldStack,
+            ItemStack newStack) {
+        return !ItemStack.isSameItem(oldStack, newStack);
     }
 
     @Override
