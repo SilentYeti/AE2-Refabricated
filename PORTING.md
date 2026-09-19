@@ -164,6 +164,8 @@ Reach for these before inventing something; each is in the tree with a comment e
 | data is in a loader's format | translate it while assembling the other jar, and fail the build on anything unrecognised | `neoforge:conditions` → `fabric:load_conditions` |
 | an API interface method returns a loader type, implemented differently per class | take it off the interface; a static helper in the loader module dispatches on the concrete type. A test pins every answer. Leave the loader-side interface for the classes that really are the loader's, and for addons | `NeoForgeInventories`, pinned by `NeoForgeInventoriesTest`; `ResourceHandlerProvider` for `PlatformInventoryWrapper` |
 | a loader patches a convenience method onto a vanilla class | call the vanilla long way round, and pin on the loader's side that the two agree | `CustomData.contains` → `copyTag().contains`, pinned by `CustomDataTest` |
+| a loader patches a hook method onto a vanilla class, and a `:common` class must override it | declare it **without** `@Override`: it compiles against vanilla and the JVM still dispatches to it by signature on that loader. Declare the other loader's hook the same way. Pin both signatures by reflection, because a drift turns the override into an unrelated method silently | `AEBasePoweredItem`, pinned by `AEBasePoweredItemTest` and the Fabric gametest |
+| something outside the jar depends on the exact shape of what a refactor touches | snapshot it from the old code into a golden file, commit that first, then refactor against it | `AEConfigSpecTest` |
 | a class caches a loader object by identity | keep the cache, but as an opaque slot the loader fills | `BaseInternalInventory.getOrCreatePlatformAdapter` |
 | a Fabric seam has no reachable caller yet | throw `UnsupportedOperationException` naming the stage, and write the intended design in the javadoc. Returning "nothing" would look like working content that silently does nothing | `FabricMenuPlatform`, `FabricItemTransferPlatform` |
 | a static initializer registers AE2's own loader-specific defaults | the SPI supplies them; keep the call in the static initializer so the ordering guarantee survives | `StackWorldBehaviorsPlatform` |
@@ -407,12 +409,39 @@ head of the greedy order, so that is where to go next.
 capabilities. So the shape of `FabricInventories.storage(InternalInventory)` is the shape
 `NeoForgeInventories.resourceHandler(InternalInventory)` already has, case for case.
 
-- [ ] Item storage → `Storage<ItemVariant>` — `FabricInventories.storage`, mirroring
-      `NeoForgeInventories.resourceHandler`'s dispatch, and `FabricItemTransferPlatform.findExternal` over
-      `ItemStorage.SIDED`
-- [ ] Fluid storage → `Storage<FluidVariant>`
-- [ ] Transactions: NeoForge `SnapshotJournal` → Fabric `SnapshotParticipant`
-- [ ] Forge Energy interop → `teamreborn:energy:5.0.0`
+- [x] Item storage → `Storage<ItemVariant>`, **both ways.** Outwards, `FabricInventories.storage` is
+      `NeoForgeInventories.resourceHandler` case for case, and `InternalInventoryStorage` is a
+      `SnapshotParticipant` making the NeoForge adapter's decisions. One difference: Fabric's final-commit
+      hook is not given the original state, so the adapter records it on first modification and registers
+      for the outer transaction's close -- without that, change notifications would compare against a stale
+      "before". Inwards, `findExternal` is real: `ItemStorage.SIDED` adapted by `StorageItemTransfer`,
+      which walks views and keeps the slot walk's rules, rolling a refused view back with a nested
+      transaction. `MenuOnlyInventory` marks the config-slot view both dispatchers must refuse, without
+      naming the class. **Ten checks in the Fabric client gametest**, including against a vanilla chest;
+      two deliberate mutations each fail the check meant to catch them. Writing the twin found a real
+      NeoForge bug: a slot's extract ignored which item it was asked for, destroying one item and
+      crediting another -- fixed and pinned
+- [ ] Fluid storage → `Storage<FluidVariant>`. **The next thing to do, and it is one seam.**
+      `ContainerItemStrategies` registers NeoForge's `FluidContainerItemStrategy` from a static
+      initializer, and that one line is the root of a chain: `ContainerItemStrategies` ← `WrappedGenericStack`
+      ← `ConfigMenuInventory` ← `GenericStackInv`, and `GenericStackInv` is what AE2's config slots and
+      interface storage are built on. Do what `StackWorldBehaviors` got -- a platform SPI supplying the
+      defaults, called from the same static initializer -- and write Fabric's `FluidContainerItemStrategy`
+      over `FluidStorage.ITEM` with a `ContainerItemContext`. Then the whole chain should cross, and
+      `GenericStackInvJournal`'s Fabric twin (a `SnapshotParticipant` over `copySlots`/`restoreSlots`/
+      `onCommitted`) can expose it
+- [x] Transactions: NeoForge `SnapshotJournal` → Fabric `SnapshotParticipant`, for everything that can be
+      exposed on Fabric today. The rest are block entities and parts (stage 6)
+- [x] **`AEConfig`, which gated most of the above** -- not on the checklist, but the battery sizes, `AELog`
+      and much else read it. It declares its values once against a `ConfigBuilder` in `:common`; NeoForge's
+      backend passes every call to `ModConfigSpec.Builder`, and `AEConfigSpecTest` -- committed against
+      the old code first -- shows the resulting spec is byte-identical, key, default, range and comment,
+      so no player's file changes. Fabric's backend is JSON (`ae2-common.json`, `ae2-client.json`),
+      corrected the way NeoForge corrects TOML; comments do not carry over. `AELog`, `Settings` and
+      `CpuSelectionMode` crossed with it
+- [ ] Forge Energy interop → `teamreborn:energy:5.0.0`. `AEBasePoweredItem` is in `:common` now, so the
+      item side (`PoweredItemCapabilities`) has a Fabric target; the charged staff is waiting on exactly
+      this -- nothing on Fabric can charge it otherwise
       (`maven.fabricmc.net`; resolves and compiles against 26.2, runtime unverified — assert it in
       the gametest). Six sites, all interop; AE2's own power is self-contained and needs nothing.
 
@@ -449,6 +478,10 @@ which should fall out here without individual attention.
       since nothing else automated looks at rendering. **The group is gone from the report entirely
       and 79 files stopped being blocked by a loader import.** Fabric's counterpart is its
       block-entity render data; write it when block entities register there
+- [x] Particles, as far as they go without a render pipeline: every type registers on Fabric from
+      `ParticleTypes.all()`, and four of the six effects draw there. The two lightning effects need
+      `AERenderTypes` -- an access widener for `RenderType.create`, and a render pipeline -- and are what
+      the quartz fixture and the charged staff wait on
 - [x] `requestModelDataUpdate()`, the other half. A NeoForge method on vanilla `BlockEntity` — one of
       the invisible couplings, since calling it needs no import — now behind `ModelDataPlatform`,
       taking the block entity because two callers have only a vanilla one to hand (a block reacting to
