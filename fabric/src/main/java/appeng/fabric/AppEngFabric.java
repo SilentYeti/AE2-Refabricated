@@ -24,11 +24,13 @@ import org.slf4j.LoggerFactory;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import appeng.core.AEConfig;
 import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
 import appeng.fabric.config.FabricConfigBackend;
+import appeng.fabric.resources.PoweredItemEnergyStorage;
 import appeng.platform.AEPlatform;
 
 /**
@@ -61,6 +63,10 @@ public class AppEngFabric implements ModInitializer {
         FabricParticles.register();
         FabricBlocks.register();
         FabricItems.register();
+        // Every registered item that stores AE power, whichever those are as items cross -- so a newly ported tool
+        // charges from other mods without anyone remembering to add it here
+        PoweredItemEnergyStorage.registerFor(FabricItems.registered().stream()
+                .map(BuiltInRegistries.ITEM::getValue).toList());
         FabricRecipes.register();
         LOG.info("AE2 Fabric: registered {} blocks, {} items, {} recipe types, {} component types, plus the "
                 + "creative tab",

@@ -65,7 +65,7 @@ public class AE2ClientGameTest implements FabricClientGameTest {
      * A floor, not a target: recipes naming an unregistered serializer skip themselves, so this rises as the port
      * proceeds. Raise it when it does, so a regression cannot hide under it.
      */
-    private static final int MIN_RECIPES = 179;
+    private static final int MIN_RECIPES = 180;
 
     /** One of each kind of item that made it across: a tool, a material, a print, a component. */
     private static final List<String> HOTBAR_SHOWCASE = List.of(
@@ -129,6 +129,8 @@ public class AE2ClientGameTest implements FabricClientGameTest {
 
             int fluidChecks = server.computeOnServer(FluidChecks::run);
             LOG.info("AE2 game test: {} fluid checks passed", fluidChecks);
+            int energyChecks = server.computeOnServer(EnergyChecks::run);
+            LOG.info("AE2 game test: {} energy checks passed", energyChecks);
 
             // Which of AE2's two loggers a message goes to depends on this; Fabric answers it from the server itself
             if (!server.computeOnServer(s -> AEPlatform.get().isServerThread())) {

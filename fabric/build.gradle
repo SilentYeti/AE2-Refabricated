@@ -32,6 +32,12 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:${project.fabric_loader_version}"
     implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+    // Fabric's common energy API -- what NeoForge's energy capability is to NeoForge -- so other mods' chargers
+    // and generators can reach AE2's. Bundled inside AE2's jar: it is 24 KB, and a player should not have to
+    // install it separately for AE2's items to charge.
+    implementation "teamreborn:energy:${project.team_reborn_energy_version}"
+    include "teamreborn:energy:${project.team_reborn_energy_version}"
+
     compileOnly project(':common')
     compileOnly "org.jetbrains:annotations:${project.jetbrains_annotations_version}"
 }

@@ -49,6 +49,7 @@ import appeng.items.tools.fluix.FluixPickaxeItem;
 import appeng.items.tools.fluix.FluixSmithingTemplateItem;
 import appeng.items.tools.fluix.FluixSpadeItem;
 import appeng.items.tools.fluix.FluixSwordItem;
+import appeng.items.tools.powered.ChargedStaffItem;
 import appeng.items.tools.quartz.QuartzAxeItem;
 import appeng.items.tools.quartz.QuartzHoeItem;
 import appeng.items.tools.quartz.QuartzSpadeItem;
@@ -130,6 +131,11 @@ public final class AECommonItems {
         item("Fluix Shovel", AEItemIds.FLUIX_SHOVEL, FluixSpadeItem::new, TOOLS_AND_UTILITIES);
         item("Fluix Pickaxe", AEItemIds.FLUIX_PICK, FluixPickaxeItem::new, TOOLS_AND_UTILITIES);
         item("Fluix Sword", AEItemIds.FLUIX_SWORD, FluixSwordItem::new, COMBAT);
+
+        ///
+        /// VARIOUS POWERED TOOLS
+        ///
+        item("Charged Staff", AEItemIds.CHARGED_STAFF, p -> new ChargedStaffItem(p.stacksTo(1)));
 
         ///
         /// MISC
@@ -234,9 +240,6 @@ public final class AECommonItems {
                 Map.entry("SPATIAL_CELL2", "SpatialStorageCellItem: needs the spatial storage service"),
                 Map.entry("SPATIAL_CELL16", "SpatialStorageCellItem: needs the spatial storage service"),
                 Map.entry("SPATIAL_CELL128", "SpatialStorageCellItem: needs the spatial storage service"),
-                Map.entry("CHARGED_STAFF", "ChargedStaffItem crossed, but nothing on Fabric can charge it -- AE2's "
-                        + "charger is a block entity, other mods' chargers need the energy interop -- and its "
-                        + "lightning particles need AERenderTypes (stage 7)"),
                 Map.entry("ENTROPY_MANIPULATOR", "EntropyManipulatorItem: TinyTNTBlock, AERecipeTypes, "
                         + "InteractionUtil and Platform, and NeoForge's Block.onCaughtFire"),
                 Map.entry("MATTER_CANNON", "MatterCannonItem: the storage API, upgrades, a packet and NeoForge's "
