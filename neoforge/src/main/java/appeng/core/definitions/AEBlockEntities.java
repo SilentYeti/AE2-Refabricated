@@ -20,19 +20,24 @@ package appeng.core.definitions;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 
 import com.google.common.base.Preconditions;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntityTicker;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
+import appeng.api.ids.AEConstants;
 import appeng.block.AEBaseEntityBlock;
 import appeng.blockentity.AEBaseBlockEntity;
 import appeng.blockentity.ClientTickingBlockEntity;
@@ -68,7 +73,6 @@ import appeng.blockentity.storage.IOPortBlockEntity;
 import appeng.blockentity.storage.MEChestBlockEntity;
 import appeng.blockentity.storage.SkyStoneChestBlockEntity;
 import appeng.blockentity.storage.SkyStoneTankBlockEntity;
-import appeng.core.AppEng;
 import appeng.debug.CubeGeneratorBlockEntity;
 import appeng.debug.EnergyGeneratorBlockEntity;
 import appeng.debug.ItemGenBlockEntity;
@@ -77,8 +81,16 @@ import appeng.debug.PhantomNodeBlockEntity;
 public final class AEBlockEntities {
     private static final List<AEBlockEntityType<?>> BLOCK_ENTITY_TYPES = new ArrayList<>();
 
-    public static final DeferredRegister<BlockEntityType<?>> DR = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE,
-            AppEng.MOD_ID);
+    /**
+     * Every block entity type declared here, in declaration order, for whichever loader is registering them -- a plain
+     * table rather than a {@code DeferredRegister}, as {@code AEComponents} and {@code AERecipeTypes} already are. Each
+     * value builds its type, and wires its tickers and its item, when the loader is ready to register it.
+     */
+    private static final Map<Identifier, Supplier<BlockEntityType<?>>> ALL = new LinkedHashMap<>();
+
+    public static Map<Identifier, Supplier<BlockEntityType<?>>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     public static final AEBlockEntityType<InscriberBlockEntity> INSCRIBER = create("inscriber",
             InscriberBlockEntity.class,
@@ -220,7 +232,8 @@ public final class AEBlockEntities {
             BlockDefinition<? extends AEBaseEntityBlock<?>>... blockDefinitions) {
         Preconditions.checkArgument(blockDefinitions.length > 0);
 
-        var deferred = DR.register(shortId, () -> {
+        var key = AEConstants.makeId(shortId);
+        ALL.put(key, () -> {
             AtomicReference<BlockEntityType<T>> typeHolder = new AtomicReference<>();
             BlockEntityType.BlockEntitySupplier<T> supplier = (blockPos, blockState) -> factory.create(typeHolder.get(),
                     blockPos, blockState);
@@ -257,7 +270,9 @@ public final class AEBlockEntities {
             return type;
         });
 
-        var result = new AEBlockEntityType<>(entityClass, deferred);
+        // Resolved from the registry rather than held, so the table can be registered by either loader
+        var result = new AEBlockEntityType<>(entityClass,
+                () -> (BlockEntityType<T>) BuiltInRegistries.BLOCK_ENTITY_TYPE.getValue(key));
         BLOCK_ENTITY_TYPES.add(result);
         return result;
     }

@@ -18,54 +18,69 @@
 
 package appeng.core.definitions;
 
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import net.minecraft.SharedConstants;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityType.Builder;
 import net.minecraft.world.entity.EntityType.EntityFactory;
 import net.minecraft.world.entity.MobCategory;
-import net.neoforged.neoforge.registries.DeferredHolder;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
-import appeng.core.AppEng;
+import appeng.api.ids.AEConstants;
 import appeng.entity.TinyTNTPrimedEntity;
 
 public final class AEEntities {
 
-    public static final DeferredRegister<EntityType<?>> DR = DeferredRegister.create(Registries.ENTITY_TYPE,
-            AppEng.MOD_ID);
+    /**
+     * Every entity type declared here, in declaration order, for whichever loader is registering them -- a plain table
+     * rather than a {@code DeferredRegister}, as {@code AEComponents} and {@code AERecipeTypes} already are. Each value
+     * builds its type when the loader is ready to register it.
+     */
+    private static final Map<Identifier, Supplier<EntityType<?>>> ALL = new LinkedHashMap<>();
+
+    public static Map<Identifier, Supplier<EntityType<?>>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     public static final Map<String, String> ENTITY_ENGLISH_NAMES = new HashMap<>();
 
-    public static final DeferredHolder<EntityType<?>, EntityType<TinyTNTPrimedEntity>> TINY_TNT_PRIMED = create(
+    public static final Supplier<EntityType<TinyTNTPrimedEntity>> TINY_TNT_PRIMED = create(
             "tiny_tnt_primed",
             "Tiny TNT Primed",
             TinyTNTPrimedEntity::new,
             MobCategory.MISC,
             builder -> builder.setTrackingRange(16).setUpdateInterval(4).setShouldReceiveVelocityUpdates(true));
 
-    private static <T extends Entity> DeferredHolder<EntityType<?>, EntityType<T>> create(String id,
+    @SuppressWarnings("unchecked")
+    private static <T extends Entity> Supplier<EntityType<T>> create(String id,
             String englishName,
             EntityFactory<T> entityFactory,
             MobCategory classification,
             Consumer<Builder<T>> customizer) {
         ENTITY_ENGLISH_NAMES.put(id, englishName);
-        return DR.register(id, () -> {
+        var key = AEConstants.makeId(id);
+        ALL.put(key, () -> {
             Builder<T> builder = Builder.of(entityFactory, classification);
             customizer.accept(builder);
             // Temporarily disable the data fixer check to avoid the annoying "no data fixer registered for ae2:xxx".
             boolean prev = SharedConstants.CHECK_DATA_FIXER_SCHEMA;
             SharedConstants.CHECK_DATA_FIXER_SCHEMA = false;
-            EntityType<T> result = builder.build(ResourceKey.create(Registries.ENTITY_TYPE, AppEng.makeId(id)));
+            EntityType<T> result = builder.build(ResourceKey.create(Registries.ENTITY_TYPE, key));
             SharedConstants.CHECK_DATA_FIXER_SCHEMA = prev;
             return result;
         });
+        // Resolved from the registry rather than held, so the table can be registered by either loader
+        return () -> (EntityType<T>) BuiltInRegistries.ENTITY_TYPE.getValue(key);
     }
 
 }

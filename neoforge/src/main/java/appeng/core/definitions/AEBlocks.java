@@ -25,7 +25,9 @@ import static appeng.block.AEBaseBlock.stoneProps;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 
@@ -33,6 +35,7 @@ import com.google.common.base.Preconditions;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -49,7 +52,6 @@ import net.minecraft.world.level.block.WallBlock;
 import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.minecraft.world.level.block.state.BlockBehaviour.StateArgumentPredicate;
 import net.minecraft.world.level.material.MapColor;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 import appeng.api.ids.AEBlockIds;
 import appeng.block.AEBaseBlock;
@@ -109,7 +111,22 @@ import appeng.decorative.solid.QuartzLampBlock;
  * Internal implementation for the API blocks
  */
 public final class AEBlocks {
-    public static final DeferredRegister.Blocks DR = DeferredRegister.createBlocks(AppEng.MOD_ID);
+    /**
+     * Every block declared here, in declaration order, and how to build its item -- a plain table rather than a
+     * {@code DeferredRegister}, as {@code AEComponents} and {@code AERecipeTypes} already are. The loader builds the
+     * block in the block registration pass and the item in the item one, which is the order the deferred registers ran
+     * in.
+     */
+    private static final Map<Identifier, Function<Properties, ? extends Block>> ALL = new LinkedHashMap<>();
+    private static final Map<Identifier, Function<Block, ? extends BlockItem>> ALL_ITEMS = new LinkedHashMap<>();
+
+    public static Map<Identifier, Function<Properties, ? extends Block>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
+
+    public static Map<Identifier, Function<Block, ? extends BlockItem>> allItems() {
+        return Collections.unmodifiableMap(ALL_ITEMS);
+    }
 
     private static final List<BlockDefinition<?>> BLOCKS = new ArrayList<>();
     private static final StateArgumentPredicate<EntityType<?>> NEVER_ALLOW_SPAWN = (p1, p2, p3,
@@ -272,9 +289,8 @@ public final class AEBlocks {
         Preconditions.checkArgument(id.getNamespace().equals(AppEng.MOD_ID));
 
         // Create block and matching item
-        var deferredBlock = DR.registerBlock(id.getPath(), blockSupplier);
-        var deferredItem = AEItems.DR.register(id.getPath(), () -> {
-            var block = deferredBlock.get();
+        ALL.put(id, blockSupplier);
+        ALL_ITEMS.put(id, block -> {
             var itemProperties = new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id))
                     .useBlockDescriptionPrefix();
             if (itemFactory != null) {
@@ -290,9 +306,14 @@ public final class AEBlocks {
             }
         });
 
-        var itemDef = new ItemDefinition<>(englishName, id, deferredItem);
+        // Resolved from the registries rather than held, so the table can be registered by either loader
+        @SuppressWarnings("unchecked")
+        var itemDef = new ItemDefinition<BlockItem>(englishName, id,
+                () -> (BlockItem) BuiltInRegistries.ITEM.getValue(id));
         MainCreativeTab.add(itemDef);
-        BlockDefinition<T> definition = new BlockDefinition<>(englishName, id, deferredBlock, itemDef);
+        @SuppressWarnings("unchecked")
+        BlockDefinition<T> definition = new BlockDefinition<>(englishName, id,
+                () -> (T) BuiltInRegistries.BLOCK.getValue(id), itemDef);
 
         BLOCKS.add(definition);
 

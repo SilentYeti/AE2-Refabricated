@@ -29,6 +29,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -36,9 +37,11 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.crafting.RecipeMap;
 import net.minecraft.world.item.crafting.RecipeType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockBehaviour.Properties;
 import net.neoforged.bus.api.EventPriority;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -134,10 +137,6 @@ public abstract class AppEngBase implements AppEng {
         InitBlockEntityMoveStrategies.init();
 
         AEParts.init();
-        AEBlocks.DR.register(modEventBus);
-        AEItems.DR.register(modEventBus);
-        AEBlockEntities.DR.register(modEventBus);
-        AEEntities.DR.register(modEventBus);
         InitStructures.register(modEventBus);
         AEAttachmentTypes.register(modEventBus);
 
@@ -149,7 +148,21 @@ public abstract class AppEngBase implements AppEng {
         modEventBus.addListener(InitCapabilityProviders::register);
         modEventBus.addListener(EventPriority.LOWEST, InitCapabilityProviders::registerGenericAdapters);
         modEventBus.addListener((RegisterEvent event) -> {
-            if (event.getRegistryKey() == Registries.DATA_COMPONENT_TYPE) {
+            if (event.getRegistryKey() == Registries.BLOCK) {
+                AEBlocks.all().forEach((id, factory) -> event.register(Registries.BLOCK, id,
+                        () -> factory.apply(Properties.of().setId(ResourceKey.create(Registries.BLOCK, id)))));
+            } else if (event.getRegistryKey() == Registries.ITEM) {
+                AEItems.all().forEach((id, factory) -> event.register(Registries.ITEM, id,
+                        () -> factory.apply(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, id)))));
+                // The block items come after the plain items, as they did when both went through one deferred register
+                AEBlocks.allItems().forEach((id, factory) -> event.register(Registries.ITEM, id,
+                        () -> factory.apply(BuiltInRegistries.BLOCK.getValue(id))));
+            } else if (event.getRegistryKey() == Registries.BLOCK_ENTITY_TYPE) {
+                AEBlockEntities.all()
+                        .forEach((id, type) -> event.register(Registries.BLOCK_ENTITY_TYPE, id, type::get));
+            } else if (event.getRegistryKey() == Registries.ENTITY_TYPE) {
+                AEEntities.all().forEach((id, type) -> event.register(Registries.ENTITY_TYPE, id, type::get));
+            } else if (event.getRegistryKey() == Registries.DATA_COMPONENT_TYPE) {
                 AEComponents.all()
                         .forEach((id, type) -> event.register(Registries.DATA_COMPONENT_TYPE, id, () -> type));
             } else if (event.getRegistryKey() == Registries.RECIPE_TYPE) {

@@ -20,6 +20,7 @@ package appeng.core.definitions;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -31,6 +32,7 @@ import com.google.common.base.Preconditions;
 
 import org.jetbrains.annotations.Nullable;
 
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
@@ -38,7 +40,6 @@ import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
 import net.minecraft.world.item.ToolMaterial;
-import net.neoforged.neoforge.registries.DeferredRegister;
 
 import appeng.api.crafting.PatternDetailsHelper;
 import appeng.api.ids.AECreativeTabIds;
@@ -99,7 +100,16 @@ import appeng.menu.me.common.MEStorageMenu;
  * Internal implementation for the API items
  */
 public final class AEItems {
-    public static final DeferredRegister.Items DR = DeferredRegister.createItems(AppEng.MOD_ID);
+    /**
+     * Every item declared here, in declaration order, for whichever loader is registering them -- a plain table rather
+     * than a {@code DeferredRegister}, as {@code AEComponents} and {@code AERecipeTypes} already are. The loader gives
+     * each factory the properties, with the id already set, exactly as the deferred register did.
+     */
+    private static final Map<Identifier, Function<Item.Properties, ? extends Item>> ALL = new LinkedHashMap<>();
+
+    public static Map<Identifier, Function<Item.Properties, ? extends Item>> all() {
+        return Collections.unmodifiableMap(ALL);
+    }
 
     // spotless:off
     private static final List<ItemDefinition<?>> ITEMS = new ArrayList<>();
@@ -327,7 +337,10 @@ public final class AEItems {
             @Nullable ResourceKey<CreativeModeTab> group) {
 
         Preconditions.checkArgument(id.getNamespace().equals(AppEng.MOD_ID), "Can only register for AE2");
-        var definition = new ItemDefinition<>(name, id, DR.registerItem(id.getPath(), factory));
+        ALL.put(id, factory);
+        // Resolved from the registry rather than held, so the table can be registered by either loader
+        @SuppressWarnings("unchecked")
+        var definition = new ItemDefinition<>(name, id, () -> (T) BuiltInRegistries.ITEM.getValue(id));
 
         if (Objects.equals(group, AECreativeTabIds.MAIN)) {
             MainCreativeTab.add(definition);
