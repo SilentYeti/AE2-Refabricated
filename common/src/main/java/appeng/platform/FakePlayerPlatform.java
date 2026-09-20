@@ -25,6 +25,7 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
 /**
  * The loader's fake player: the stand-in AE2's machines act as when they break a block, use an item or catch a drop, so
@@ -35,6 +36,12 @@ import net.minecraft.server.level.ServerPlayer;
  */
 public interface FakePlayerPlatform {
     ServerPlayer get(ServerLevel level, GameProfile profile);
+
+    /**
+     * Whether this player is a stand-in for a machine rather than a person -- AE2's own or another mod's. A crank, for
+     * one, refuses to be turned by a machine.
+     */
+    boolean isFakePlayer(Player player);
 
     /** AE2's own fake player, the one it uses when nothing more specific is known. */
     default ServerPlayer get(ServerLevel level, UUID uuid) {

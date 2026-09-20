@@ -50,10 +50,13 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
+import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
@@ -204,7 +207,25 @@ public abstract class AppEngBase implements AppEng {
 
         modEventBus.addListener(this::registerTests);
 
-        TickHandler.instance().init();
+        // AE2's tick handler, fed from NeoForge's events; Fabric's entrypoint feeds the same methods
+        var tickHandler = TickHandler.instance();
+        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Pre event) -> tickHandler.onServerTickStart());
+        NeoForge.EVENT_BUS.addListener((ServerTickEvent.Post event) -> tickHandler.onServerTickEnd());
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Pre event) -> {
+            if (event.getLevel() instanceof ServerLevel level) {
+                tickHandler.onLevelTickStart(level);
+            }
+        });
+        NeoForge.EVENT_BUS.addListener((LevelTickEvent.Post event) -> {
+            if (event.getLevel() instanceof ServerLevel level) {
+                tickHandler.onLevelTickEnd(level);
+            }
+        });
+        NeoForge.EVENT_BUS.addListener(
+                (ChunkEvent.Unload event) -> tickHandler.onUnloadChunk(event.getLevel(), event.getChunk()));
+        // Last, since it tears down state the other listeners may still want
+        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST,
+                (LevelEvent.Unload event) -> tickHandler.onUnloadLevel(event.getLevel()));
 
         NeoForge.EVENT_BUS.addListener(this::onServerAboutToStart);
         NeoForge.EVENT_BUS.addListener(this::serverStopped);

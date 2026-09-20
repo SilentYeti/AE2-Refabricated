@@ -47,12 +47,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.bus.api.EventPriority;
-import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.event.level.ChunkEvent;
-import net.neoforged.neoforge.event.level.LevelEvent;
-import net.neoforged.neoforge.event.tick.LevelTickEvent;
-import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.minecraft.world.level.chunk.ChunkAccess;
 
 import appeng.blockentity.AEBaseBlockEntity;
 import appeng.core.AEConfig;
@@ -97,15 +92,11 @@ public class TickHandler {
     private TickHandler() {
     }
 
-    public void init() {
-        NeoForge.EVENT_BUS.addListener(this::onServerTickStart);
-        NeoForge.EVENT_BUS.addListener(this::onServerTickEnd);
-        NeoForge.EVENT_BUS.addListener(this::onServerLevelTickStart);
-        NeoForge.EVENT_BUS.addListener(this::onServerLevelTickEnd);
-        NeoForge.EVENT_BUS.addListener(this::onUnloadChunk);
-        // Try to go last for level unloads since we use it to clean-up state
-        NeoForge.EVENT_BUS.addListener(EventPriority.LOWEST, this::onUnloadLevel);
-    }
+    /*
+     * These six are called by the loader's module from its own events -- NeoForge's tick, chunk and level events,
+     * Fabric's ServerTickEvents, ServerChunkEvents and ServerLevelEvents. AE2 asks to hear about a level unload last,
+     * since it tears down state the others may still want.
+     */
 
     public void addCallable(LevelAccessor level, Runnable c) {
         addCallable(level, ignored -> c.run());
@@ -195,10 +186,7 @@ public class TickHandler {
      * <p>
      * Removes any pending initialization callbacks for block entities in that chunk.
      */
-    public void onUnloadChunk(final ChunkEvent.Unload ev) {
-        var level = ev.getLevel();
-        var chunk = ev.getChunk();
-
+    public void onUnloadChunk(LevelAccessor level, ChunkAccess chunk) {
         if (!level.isClientSide()) {
             this.blockEntities.removeChunk(level, chunk.getPos().pack());
         }
@@ -207,9 +195,7 @@ public class TickHandler {
     /**
      * Handle a level unload and tear down related data structures.
      */
-    public void onUnloadLevel(final LevelEvent.Unload ev) {
-        var level = ev.getLevel();
-
+    public void onUnloadLevel(LevelAccessor level) {
         if (level.isClientSide()) {
             return; // for no there is no reason to care about this on the client...
         }
@@ -233,10 +219,7 @@ public class TickHandler {
         this.callQueue.remove(level);
     }
 
-    private void onServerLevelTickStart(LevelTickEvent.Pre event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) {
-            return;
-        }
+    public void onLevelTickStart(ServerLevel level) {
         var queue = this.callQueue.remove(level);
         processQueueElementsRemaining += this.processQueue(queue, level);
         var newQueue = this.callQueue.put(level, queue);
@@ -259,10 +242,7 @@ public class TickHandler {
         }
     }
 
-    private void onServerLevelTickEnd(LevelTickEvent.Post event) {
-        if (!(event.getLevel() instanceof ServerLevel level)) {
-            return;
-        }
+    public void onLevelTickEnd(ServerLevel level) {
         this.simulateCraftingJobs(level);
         this.readyBlockEntities(level);
 
@@ -279,7 +259,7 @@ public class TickHandler {
         }
     }
 
-    private void onServerTickStart(ServerTickEvent.Pre event) {
+    public void onServerTickStart() {
         // Reset the stop watch on the start of each server tick.
         this.processQueueElementsProcessed = 0;
         this.processQueueElementsRemaining = 0;
@@ -297,7 +277,7 @@ public class TickHandler {
         }
     }
 
-    private void onServerTickEnd(ServerTickEvent.Post event) {
+    public void onServerTickEnd() {
         // tick networks
         for (var g : this.grids.getNetworks()) {
             try {

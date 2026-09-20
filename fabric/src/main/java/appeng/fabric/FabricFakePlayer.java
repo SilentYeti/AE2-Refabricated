@@ -23,6 +23,7 @@ import com.mojang.authlib.GameProfile;
 import net.fabricmc.fabric.api.entity.FakePlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
 
 import appeng.platform.FakePlayerPlatform;
 
@@ -34,5 +35,10 @@ public class FabricFakePlayer implements FakePlayerPlatform {
     @Override
     public ServerPlayer get(ServerLevel level, GameProfile profile) {
         return FakePlayer.get(level, profile);
+    }
+
+    @Override
+    public boolean isFakePlayer(Player player) {
+        return player instanceof FakePlayer;
     }
 }

@@ -22,6 +22,8 @@ import com.mojang.authlib.GameProfile;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.neoforged.neoforge.common.util.FakePlayer;
 import net.neoforged.neoforge.common.util.FakePlayerFactory;
 
 import appeng.platform.FakePlayerPlatform;
@@ -33,5 +35,10 @@ public class NeoForgeFakePlayer implements FakePlayerPlatform {
     @Override
     public ServerPlayer get(ServerLevel level, GameProfile profile) {
         return FakePlayerFactory.get(level, profile);
+    }
+
+    @Override
+    public boolean isFakePlayer(Player player) {
+        return player instanceof FakePlayer;
     }
 }
