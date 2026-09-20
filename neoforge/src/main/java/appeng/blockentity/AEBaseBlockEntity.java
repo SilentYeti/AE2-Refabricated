@@ -69,9 +69,6 @@ import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
-import net.neoforged.neoforge.common.util.FriendlyByteBufUtil;
-import net.neoforged.neoforge.model.data.ModelData;
-import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import it.unimi.dsi.fastutil.objects.Reference2IntMap;
 
@@ -88,8 +85,8 @@ import appeng.core.AELog;
 import appeng.hooks.VisualStateSaving;
 import appeng.hooks.ticking.TickHandler;
 import appeng.items.tools.MemoryCardItem;
-import appeng.neoforge.model.NeoForgeModelData;
 import appeng.platform.ModelDataPlatform;
+import appeng.platform.NetworkPlatform;
 import appeng.util.IDebugExportable;
 import appeng.util.JsonStreamUtil;
 import appeng.util.Platform;
@@ -159,8 +156,8 @@ public class AEBaseBlockEntity extends BlockEntity
             if (registryAccess == null) {
                 LOG.warn("Ignoring  update packet for {} since no registry is available.", this);
             } else if (readUpdateData(
-                    new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(decodedUpdateData), registryAccess,
-                            ConnectionType.NEOFORGE))) {
+                    NetworkPlatform.get().createBuffer(Unpooled.wrappedBuffer(decodedUpdateData),
+                            registryAccess))) {
                 // Triggers a chunk re-render if the level is already loaded
                 if (level != null) {
                     ModelDataPlatform.get().requestModelDataUpdate(this);
@@ -218,7 +215,7 @@ public class AEBaseBlockEntity extends BlockEntity
     @Override
     public CompoundTag getUpdateTag(HolderLookup.Provider registries) {
         var data = new CompoundTag();
-        var updateData = FriendlyByteBufUtil.writeCustomData(this::writeToStream, level.registryAccess());
+        var updateData = writeUpdateData(level.registryAccess());
         data.putString("#upd", Base64.getEncoder().encodeToString(updateData));
         return data;
     }
@@ -442,19 +439,31 @@ public class AEBaseBlockEntity extends BlockEntity
         return null;
     }
 
-    @Override
-    public ModelData getModelData() {
-        return NeoForgeModelData.of(getAEModelData());
-    }
-
     /**
      * The extra state this block entity's model needs, beyond its block state.
      * <p>
-     * AE2's own type, so that a subclass supplying it does not have to name the loader's. The NeoForge override above
-     * is the only place that does.
+     * AE2's own type, so that a subclass supplying it does not have to name the loader's. Each loader attaches its own
+     * hook to this by a mixin: NeoForge's {@code getModelData}, whose return type is NeoForge's, and Fabric's
+     * {@code RenderDataBlockEntity.getRenderData}, whose interface is Fabric's. Neither can be named here.
      */
     public AEModelData getAEModelData() {
         return AEModelData.EMPTY;
+    }
+
+    /**
+     * The same bytes {@code FriendlyByteBufUtil.writeCustomData} produced on NeoForge, through the loader's own buffer.
+     */
+    private byte[] writeUpdateData(RegistryAccess registryAccess) {
+        var buffer = NetworkPlatform.get().createBuffer(Unpooled.buffer(), registryAccess);
+        try {
+            writeToStream(buffer);
+            buffer.readerIndex(0);
+            var data = new byte[buffer.readableBytes()];
+            buffer.readBytes(data);
+            return data;
+        } finally {
+            buffer.release();
+        }
     }
 
     /**
