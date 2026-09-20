@@ -474,13 +474,53 @@ all inside the one cycle described above.
 
 ## Stage 6 — The grid
 
-`me/` 57, `parts/` 72, `blockentity/` 47, `block/` 47 — plus most of the 217 invisibly-blocked files,
-which should fall out here without individual attention.
+**The shape of it, measured rather than guessed.** Move everything and compile, then build the import
+graph of what bounced: the remainder is **one interlocked group of 253 files** — the grid, the block
+entities, the parts, the menus — with the other ~460 downstream of it. They cross together or not at
+all, so the only thing that matters is the loader couplings *inside* that group. There were **34**.
+Nothing else in it names a loader at all.
 
-- [ ] Grid services, pathing, storage/crafting services
-- [ ] Parts and the cable bus
-- [ ] Chunk loading: spatial anchors need a direct `ServerLevel` ticket implementation, as Fabric has
-      no ticket-controller equivalent
+That makes stage 6 a finite list rather than a wall. **14 are left**, and each is named below. Rebuild
+the list after any change with the SCC analysis in "Where it now stands" above.
+
+Done, and why each was what it was:
+
+- [x] `AEBaseBlockEntity` — the keystone. Two helpers it could hold itself, and one it could not:
+      NeoForge asks a block entity for model data through a method whose *return type* is NeoForge's,
+      so unlike the item hooks it cannot be declared without `@Override` and matched by signature. A
+      mixin adds it, answering with the block entity's own `AEModelData`. **Fabric's hook,
+      `RenderDataBlockEntity.getRenderData`, still has to be written as a mixin in `:fabric` when this
+      class crosses** — without it AE2's blocks draw there with no model data, silently
+- [x] Registries — `AEBlocks`, `AEItems`, `AEBlockEntities`, `AEEntities` off `DeferredRegister` and
+      into ordered tables, registered through `RegisterEvent`. What registers on Fabric is unchanged
+- [x] Packet sending — `NetworkPlatform`, which also owns the buffer. Receiving is stage 5
+- [x] `Platform` — the most-named file in the group. Four couplings already had a seam; a mod's
+      display name joined `AEPlatform`, and fake players got `FakePlayerPlatform`
+- [x] `TickHandler` — the six events become plain methods the loader calls. **Fabric's wiring
+      (`ServerTickEvents`, `ServerChunkEvents`, `ServerLevelEvents`) goes in when it crosses**
+- [x] The loader events: auto-crafting and item-destroyed announcements behind `PlayerEventPlatform`
+      (Fabric has neither event, so it does nothing, which is correct), the creative-tab listener
+      relocated, and the quantum bridge's level-unload listener moved to a `:common` list each loader
+      feeds
+
+Left, grouped by what they need:
+
+- [ ] **Machines exposing themselves to the loader's transfer API (7)** — `CondenserBlockEntity`,
+      `MEChestBlockEntity`, `SkyStoneTankBlockEntity`, `ItemGenBlockEntity`,
+      `EnergyGeneratorBlockEntity`, `EnergyAcceptorPart`, `P2PTunnelPart`. The outward half of stage 4,
+      and the biggest piece: each holds or implements a NeoForge handler. The answer is the one
+      `GenericStackInv` got — AE2 keeps the state and behaviour, the adapter moves to the loader's
+      module and is handed out by a dispatcher there. `SkyStoneTankBlockEntity` needs a tank of AE2's
+      own first, since it currently *is* a `FluidStacksResourceHandler`; `MEChestBlockEntity` also
+      calls `invalidateCapabilities`, which wants a seam (Fabric needs no invalidation, its lookups
+      re-ask); `P2PTunnelPart`'s energy-cost journal is the `SnapshotJournal` problem again
+- [ ] **Capabilities (2)** — `P2PTunnelAttunement` (item capabilities → `ContainerItemContext`) and
+      `StorageBusPart` (`ICapabilityInvalidationListener`, which Fabric does not need)
+- [ ] **Chunk loading (2)** — `ChunkLoadingService` and `SpatialAnchorBlockEntity`. Fabric has no
+      ticket-controller equivalent, so this needs a direct `ServerLevel` ticket implementation
+- [ ] **Three of a kind** — `TinyTNTPrimedEntity` (custom spawn data and `EventHooks`),
+      `MatterCannonItem` (`BlockSnapshot` and a block-break event), `QuartzCuttingRecipe`
+      (`CommonHooks`, `RecipeMatcher`, `ServerLifecycleHooks`)
 
 ## Stage 7 — Client (311 files)
 
