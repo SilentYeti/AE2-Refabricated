@@ -53,6 +53,13 @@ public class FabricPlatform implements AEPlatform {
     }
 
     @Override
+    public String getModName(String modId) {
+        return FabricLoader.getInstance().getModContainer(modId)
+                .map(mod -> mod.getMetadata().getName())
+                .orElse(modId);
+    }
+
+    @Override
     public boolean isPhysicalClient() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     }

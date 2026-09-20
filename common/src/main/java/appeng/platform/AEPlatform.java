@@ -51,6 +51,11 @@ public interface AEPlatform {
     Optional<String> getModVersion(String modId);
 
     /**
+     * @return The display name of the given mod, or the id itself when it is not loaded.
+     */
+    String getModName(String modId);
+
+    /**
      * @return True on the physical client; false on a dedicated server.
      */
     boolean isPhysicalClient();

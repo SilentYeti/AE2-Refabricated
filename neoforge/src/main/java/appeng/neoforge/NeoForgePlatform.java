@@ -55,6 +55,11 @@ public class NeoForgePlatform implements AEPlatform {
     }
 
     @Override
+    public String getModName(String modId) {
+        return ModList.get().getModContainerById(modId).map(mc -> mc.getModInfo().getDisplayName()).orElse(modId);
+    }
+
+    @Override
     public boolean isPhysicalClient() {
         var loader = FMLLoader.getCurrentOrNull();
         return loader == null || loader.getDist().isClient();

@@ -54,7 +54,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
@@ -977,10 +976,7 @@ public abstract class AEBaseMenu extends AbstractContainerMenu {
                 throw new IllegalArgumentException(
                         "Client action " + action + " requires an argument, but none was given");
             }
-            var buffer = new RegistryFriendlyByteBuf(
-                    Unpooled.buffer(),
-                    registryAccess(),
-                    ConnectionType.NEOFORGE);
+            var buffer = NetworkPlatform.get().createBuffer(Unpooled.buffer(), registryAccess());
             clientAction.argCodec.encode(buffer, arg);
             argumentPayload = new byte[buffer.readableBytes()];
             buffer.readBytes(argumentPayload);
@@ -1008,10 +1004,7 @@ public abstract class AEBaseMenu extends AbstractContainerMenu {
             T arg = null;
             LOG.debug("Handling client action '{}' with payload {}", key, HexFormat.of().formatHex(payload));
             if (argCodec != null) {
-                var buffer = new RegistryFriendlyByteBuf(
-                        Unpooled.wrappedBuffer(payload),
-                        registryAccess,
-                        ConnectionType.NEOFORGE);
+                var buffer = NetworkPlatform.get().createBuffer(Unpooled.wrappedBuffer(payload), registryAccess);
                 arg = argCodec.decode(buffer);
             } else {
                 if (payload.length > 0) {
