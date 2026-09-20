@@ -54,7 +54,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import it.unimi.dsi.fastutil.shorts.ShortOpenHashSet;
@@ -87,6 +86,7 @@ import appeng.menu.slot.DisabledSlot;
 import appeng.menu.slot.FakeSlot;
 import appeng.menu.slot.RestrictedInputSlot;
 import appeng.parts.AEBasePart;
+import appeng.platform.NetworkPlatform;
 import appeng.util.ConfigMenuInventory;
 
 public abstract class AEBaseMenu extends AbstractContainerMenu {
@@ -987,7 +987,7 @@ public abstract class AEBaseMenu extends AbstractContainerMenu {
         }
 
         ServerboundPacket message = new GuiActionPacket(containerId, clientAction.key().name(), argumentPayload);
-        ClientPacketDistributor.sendToServer(message);
+        NetworkPlatform.get().sendToServer(message);
     }
 
     /**

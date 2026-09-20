@@ -18,10 +18,17 @@
 
 package appeng.fabric;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.netty.buffer.ByteBuf;
 
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 import appeng.platform.NetworkPlatform;
 
@@ -33,5 +40,34 @@ public class FabricNetworkPlatform implements NetworkPlatform {
     @Override
     public RegistryFriendlyByteBuf createBuffer(ByteBuf backing, RegistryAccess registries) {
         return new RegistryFriendlyByteBuf(backing, registries);
+    }
+
+    @Override
+    public void sendToServer(CustomPacketPayload payload) {
+        ClientPlayNetworking.send(payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
+        ServerPlayNetworking.send(player, payload);
+    }
+
+    /**
+     * Fabric has no counterpart to NeoForge's {@code sendToPlayersNear}, so this does what it does: everyone in the
+     * level within the radius, except the one player to skip. Fabric refuses to send a payload whose type the receiver
+     * cannot handle, so each is asked first -- NeoForge drops those itself.
+     */
+    @Override
+    public void sendToPlayersNear(ServerLevel level, @Nullable ServerPlayer except, double x, double y, double z,
+            double radius, CustomPacketPayload payload) {
+        var radiusSquared = radius * radius;
+        for (var player : level.players()) {
+            if (player == except || player.distanceToSqr(x, y, z) > radiusSquared) {
+                continue;
+            }
+            if (ServerPlayNetworking.canSend(player, payload.type())) {
+                ServerPlayNetworking.send(player, payload);
+            }
+        }
     }
 }

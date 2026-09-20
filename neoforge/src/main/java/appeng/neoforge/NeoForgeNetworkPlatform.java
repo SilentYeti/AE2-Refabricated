@@ -18,10 +18,17 @@
 
 package appeng.neoforge;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.netty.buffer.ByteBuf;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.connection.ConnectionType;
 
 import appeng.platform.NetworkPlatform;
@@ -34,5 +41,21 @@ public class NeoForgeNetworkPlatform implements NetworkPlatform {
     @Override
     public RegistryFriendlyByteBuf createBuffer(ByteBuf backing, RegistryAccess registries) {
         return new RegistryFriendlyByteBuf(backing, registries, ConnectionType.NEOFORGE);
+    }
+
+    @Override
+    public void sendToServer(CustomPacketPayload payload) {
+        ClientPacketDistributor.sendToServer(payload);
+    }
+
+    @Override
+    public void sendToPlayer(ServerPlayer player, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayer(player, payload);
+    }
+
+    @Override
+    public void sendToPlayersNear(ServerLevel level, @Nullable ServerPlayer except, double x, double y, double z,
+            double radius, CustomPacketPayload payload) {
+        PacketDistributor.sendToPlayersNear(level, except, x, y, z, radius, payload);
     }
 }

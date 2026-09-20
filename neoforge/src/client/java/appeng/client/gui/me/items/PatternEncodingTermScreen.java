@@ -30,7 +30,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import appeng.api.behaviors.ContainerItemStrategies;
 import appeng.api.behaviors.EmptyingAction;
@@ -51,6 +50,7 @@ import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.SlotSemantics;
 import appeng.menu.me.items.PatternEncodingTermMenu;
 import appeng.parts.encoding.EncodingMode;
+import appeng.platform.NetworkPlatform;
 
 public class PatternEncodingTermScreen<C extends PatternEncodingTermMenu> extends MEStorageScreen<C> {
     private final Map<EncodingMode, EncodingModePanel> modePanels = new EnumMap<>(EncodingMode.class);
@@ -110,7 +110,7 @@ public class PatternEncodingTermScreen<C extends PatternEncodingTermMenu> extend
                                 ServerboundPacket message = new InventoryActionPacket(
                                         InventoryAction.SET_FILTER, slot.index,
                                         WrappedGenericStack.wrapOrEmpty(newStack));
-                                ClientPacketDistributor.sendToServer(message);
+                                NetworkPlatform.get().sendToServer(message);
                             });
                     switchToScreen(screen);
                     return true;

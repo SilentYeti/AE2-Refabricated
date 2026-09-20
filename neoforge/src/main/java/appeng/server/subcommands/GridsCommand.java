@@ -42,7 +42,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.storage.SerializableChunkData;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import appeng.api.networking.GridHelper;
 import appeng.core.network.clientbound.ExportedGridContent;
@@ -52,6 +51,7 @@ import appeng.me.Grid;
 import appeng.me.service.StatisticsService;
 import appeng.parts.AEBasePart;
 import appeng.parts.p2p.MEP2PTunnelPart;
+import appeng.platform.NetworkPlatform;
 import appeng.server.ISubCommand;
 import appeng.util.Platform;
 
@@ -165,7 +165,7 @@ public class GridsCommand implements ISubCommand {
 
         if (source.isPlayer()) {
             var player = source.getPlayerOrException();
-            PacketDistributor.sendToPlayer(player,
+            NetworkPlatform.get().sendToPlayer(player,
                     new ExportedGridContent(baseSerialNumber, ExportedGridContent.ContentType.FIRST_CHUNK,
                             new byte[0]));
 
@@ -251,7 +251,7 @@ public class GridsCommand implements ISubCommand {
             Preconditions.checkState(!closed, "stream already closed");
             bout.write(b);
             if (bout.size() > FLUSH_AFTER) {
-                PacketDistributor.sendToPlayer(player,
+                NetworkPlatform.get().sendToPlayer(player,
                         new ExportedGridContent(baseSerialNumber, ExportedGridContent.ContentType.CHUNK,
                                 bout.toByteArray()));
                 bout.reset();
@@ -263,7 +263,7 @@ public class GridsCommand implements ISubCommand {
             Preconditions.checkState(!closed, "stream already closed");
             bout.write(b, off, len);
             if (bout.size() > FLUSH_AFTER) {
-                PacketDistributor.sendToPlayer(player,
+                NetworkPlatform.get().sendToPlayer(player,
                         new ExportedGridContent(baseSerialNumber, ExportedGridContent.ContentType.CHUNK,
                                 bout.toByteArray()));
                 bout.reset();
@@ -274,7 +274,7 @@ public class GridsCommand implements ISubCommand {
         public void close() {
             if (!closed) {
                 closed = true;
-                PacketDistributor.sendToPlayer(player,
+                NetworkPlatform.get().sendToPlayer(player,
                         new ExportedGridContent(baseSerialNumber, ExportedGridContent.ContentType.LAST_CHUNK,
                                 bout.toByteArray()));
                 bout.reset();

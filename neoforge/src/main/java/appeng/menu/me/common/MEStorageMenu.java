@@ -40,7 +40,6 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.crafting.Ingredient;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import it.unimi.dsi.fastutil.shorts.ShortSet;
@@ -88,6 +87,7 @@ import appeng.menu.interfaces.KeyTypeSelectionMenu;
 import appeng.menu.me.crafting.CraftAmountMenu;
 import appeng.menu.slot.AppEngSlot;
 import appeng.menu.slot.RestrictedInputSlot;
+import appeng.platform.NetworkPlatform;
 import appeng.util.Platform;
 
 public class MEStorageMenu extends AEBaseMenu
@@ -373,7 +373,7 @@ public class MEStorageMenu extends AEBaseMenu
     public final void handleInteraction(long serial, InventoryAction action) {
         if (isClientSide()) {
             ServerboundPacket message = new MEInteractionPacket(containerId, serial, action);
-            ClientPacketDistributor.sendToServer(message);
+            NetworkPlatform.get().sendToServer(message);
             return;
         }
 

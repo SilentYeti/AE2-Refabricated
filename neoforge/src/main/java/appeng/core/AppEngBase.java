@@ -54,7 +54,6 @@ import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
@@ -95,6 +94,7 @@ import appeng.init.worldgen.InitStructures;
 import appeng.integration.Integrations;
 import appeng.neoforge.NeoForgeCreativeTabs;
 import appeng.neoforge.config.NeoForgeConfigBackend;
+import appeng.platform.NetworkPlatform;
 import appeng.recipes.AERecipeSerializers;
 import appeng.recipes.AERecipeTypes;
 import appeng.server.AECommand;
@@ -315,7 +315,7 @@ public abstract class AppEngBase implements AppEng {
             if (p instanceof ServerPlayer) {
                 except = (ServerPlayer) p;
             }
-            PacketDistributor.sendToPlayersNear(serverLevel, except, x, y, z, dist, packet);
+            NetworkPlatform.get().sendToPlayersNear(serverLevel, except, x, y, z, dist, packet);
         }
     }
 

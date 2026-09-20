@@ -75,7 +75,6 @@ import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsE
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.model.standalone.SimpleUnbakedStandaloneModel;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.client.resources.VanillaClientListeners;
 import net.neoforged.neoforge.client.settings.KeyConflictContext;
 import net.neoforged.neoforge.common.NeoForge;
@@ -180,6 +179,7 @@ import appeng.helpers.IMouseWheelItem;
 import appeng.items.storage.StorageCellTooltipComponent;
 import appeng.parts.reporting.ConversionMonitorPart;
 import appeng.parts.reporting.StorageMonitorPart;
+import appeng.platform.NetworkPlatform;
 import appeng.spatial.SpatialStorageDimensionIds;
 import appeng.util.Platform;
 
@@ -399,7 +399,7 @@ public class AppEngClient extends AppEngBase {
 
             if (mainHand || offHand) {
                 ServerboundPacket message = new MouseWheelPacket(me.getScrollDeltaY() > 0);
-                ClientPacketDistributor.sendToServer(message);
+                NetworkPlatform.get().sendToServer(message);
                 me.setCanceled(true);
             }
         }
@@ -414,7 +414,7 @@ public class AppEngClient extends AppEngBase {
                 var previousIsDown = player.getData(AEAttachmentTypes.HOLDING_CTRL);
                 if (previousIsDown != isDown) {
                     player.setData(AEAttachmentTypes.HOLDING_CTRL, isDown);
-                    ClientPacketDistributor.sendToServer(new UpdateHoldingCtrlPacket(isDown));
+                    NetworkPlatform.get().sendToServer(new UpdateHoldingCtrlPacket(isDown));
                 }
             }
         }

@@ -9,7 +9,6 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.world.item.ItemStack;
-import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 
 import mezz.jei.api.constants.VanillaTypes;
 import mezz.jei.api.gui.handlers.IGhostIngredientHandler;
@@ -23,6 +22,7 @@ import appeng.helpers.InventoryAction;
 import appeng.items.misc.WrappedGenericStack;
 import appeng.menu.slot.AppEngSlot;
 import appeng.menu.slot.FakeSlot;
+import appeng.platform.NetworkPlatform;
 
 /**
  * JEI allows ingredients to be dragged from a JEI panel onto compatible slots to set filters and the like without
@@ -113,7 +113,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AEBaseScreen> {
         }
 
         if (index > -1) {
-            ClientPacketDistributor.sendToServer(new InventoryActionPacket(InventoryAction.SET_FILTER,
+            NetworkPlatform.get().sendToServer(new InventoryActionPacket(InventoryAction.SET_FILTER,
                     index, wrapped));
         }
 
@@ -141,7 +141,7 @@ class GhostIngredientHandler implements IGhostIngredientHandler<AEBaseScreen> {
             var wrapped = wrapDraggedItem(type, ingredient);
 
             if (wrapped != null) {
-                ClientPacketDistributor.sendToServer(new InventoryActionPacket(InventoryAction.SET_FILTER,
+                NetworkPlatform.get().sendToServer(new InventoryActionPacket(InventoryAction.SET_FILTER,
                         slot.index, wrapped));
             }
         }

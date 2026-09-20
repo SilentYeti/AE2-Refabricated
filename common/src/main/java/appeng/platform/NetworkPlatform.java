@@ -20,13 +20,18 @@ package appeng.platform;
 
 import java.util.ServiceLoader;
 
+import org.jetbrains.annotations.Nullable;
+
 import io.netty.buffer.ByteBuf;
 
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 
 /**
- * The loader's packet buffers.
+ * The loader's packet buffers, and sending a packet through it.
  * <p>
  * Vanilla's {@link RegistryFriendlyByteBuf} takes only the registries; NeoForge's takes a connection type as well, and
  * its own stream codecs read it to decide how much they may write. AE2 writes block entity update data through such a
@@ -35,6 +40,20 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
  */
 public interface NetworkPlatform {
     RegistryFriendlyByteBuf createBuffer(ByteBuf backing, RegistryAccess registries);
+
+    /**
+     * Sends a payload from the client to the server. Only called on the client, where a connection exists.
+     */
+    void sendToServer(CustomPacketPayload payload);
+
+    void sendToPlayer(ServerPlayer player, CustomPacketPayload payload);
+
+    /**
+     * Sends to everyone within {@code radius} of the point who can see it, skipping {@code except} -- how AE2 tells
+     * nearby players about something a machine did.
+     */
+    void sendToPlayersNear(ServerLevel level, @Nullable ServerPlayer except, double x, double y, double z,
+            double radius, CustomPacketPayload payload);
 
     // --- lookup ---
 
