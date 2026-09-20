@@ -19,6 +19,7 @@
 package appeng.core;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import com.google.common.collect.HashMultimap;
@@ -27,7 +28,6 @@ import com.google.common.collect.Multimap;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
-import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
 import appeng.api.ids.AECreativeTabIds;
 import appeng.block.AEBaseBlock;
@@ -52,10 +52,12 @@ public final class MainCreativeTab {
         Registry.register(registry, AECreativeTabIds.MAIN, tab);
     }
 
-    public static void initExternal(BuildCreativeModeTabContentsEvent contents) {
-        for (var itemDefinition : externalItemDefs.get(contents.getTabKey())) {
-            contents.accept(itemDefinition);
-        }
+    /**
+     * The AE2 items that belong in someone else's creative tab. Each loader adds them its own way -- NeoForge from an
+     * event, Fabric from its item-group API -- so the list is kept here and handed over.
+     */
+    public static Collection<ItemDefinition<?>> externalItems(ResourceKey<CreativeModeTab> tab) {
+        return externalItemDefs.get(tab);
     }
 
     public static void add(ItemDefinition<?> itemDef) {

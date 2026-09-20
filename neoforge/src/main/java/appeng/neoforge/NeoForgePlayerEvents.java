@@ -16,24 +16,32 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.crafting;
+package appeng.neoforge;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.entity.player.PlayerDestroyItemEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 
-import appeng.api.crafting.IPatternDetails;
 import appeng.platform.PlayerEventPlatform;
+import appeng.util.Platform;
 
-public class CraftingEvent {
-
-    public static void fireAutoCraftingEvent(Level level,
-            // NOTE: We want to be able to include the recipe in the event later
-            @SuppressWarnings("unused") IPatternDetails pattern,
-            ItemStack craftedItem,
-            Container container) {
-        PlayerEventPlatform.get().autoCrafted((ServerLevel) level, craftedItem, container);
+/**
+ * NeoForge side of {@link PlayerEventPlatform}: the two events AE2 posted directly before. Registered in
+ * META-INF/services.
+ */
+public class NeoForgePlayerEvents implements PlayerEventPlatform {
+    @Override
+    public void autoCrafted(ServerLevel level, ItemStack crafted, Container craftingGrid) {
+        var fakePlayer = Platform.getFakePlayer(level, null);
+        NeoForge.EVENT_BUS.post(new PlayerEvent.ItemCraftedEvent(fakePlayer, crafted, craftingGrid));
     }
 
+    @Override
+    public void itemDestroyed(Player player, ItemStack destroyed) {
+        NeoForge.EVENT_BUS.post(new PlayerDestroyItemEvent(player, destroyed, null));
+    }
 }

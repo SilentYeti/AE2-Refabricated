@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -31,6 +32,7 @@ import appeng.core.definitions.AECommonBlocks;
 import appeng.core.definitions.AECommonItems;
 import appeng.fabric.config.FabricConfigBackend;
 import appeng.fabric.resources.PoweredItemEnergyStorage;
+import appeng.hooks.LevelUnloadListeners;
 import appeng.platform.AEPlatform;
 
 /**
@@ -52,6 +54,9 @@ public class AppEngFabric implements ModInitializer {
         AEConfig.register(new FabricConfigBackend(FabricLoader.getInstance().getConfigDir(),
                 platform.isPhysicalClient()));
         ServerLifecycleEvents.SERVER_STARTING.register(FabricPlatform::setServer);
+        // NeoForge's LevelEvent.Unload, which AE2's quantum bridges listen for. Fabric's fires for server levels
+        // only, which is where clusters live.
+        ServerLevelEvents.UNLOAD.register((server, level) -> LevelUnloadListeners.fire(level));
         ServerLifecycleEvents.SERVER_STOPPED.register(server -> FabricPlatform.setServer(null));
         // Blocks first: their BlockItems have to exist before the creative tab is populated, and the
         // stair, slab and wall variants copy the block state of the block they are cut from.

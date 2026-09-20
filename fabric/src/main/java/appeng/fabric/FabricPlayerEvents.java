@@ -16,24 +16,29 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.crafting;
+package appeng.fabric;
 
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 
-import appeng.api.crafting.IPatternDetails;
 import appeng.platform.PlayerEventPlatform;
 
-public class CraftingEvent {
-
-    public static void fireAutoCraftingEvent(Level level,
-            // NOTE: We want to be able to include the recipe in the event later
-            @SuppressWarnings("unused") IPatternDetails pattern,
-            ItemStack craftedItem,
-            Container container) {
-        PlayerEventPlatform.get().autoCrafted((ServerLevel) level, craftedItem, container);
+/**
+ * Fabric side of {@link PlayerEventPlatform}.
+ * <p>
+ * <b>Does nothing, and that is the whole of it.</b> Fabric has no counterpart to either NeoForge event: nothing there
+ * listens for "a machine crafted this" or "this item was used up". Both are announcements for other mods, and no part
+ * of AE2 reads them back, so a loader with nowhere to announce them has nothing to do -- unlike a seam AE2 itself
+ * depends on, which fails loudly instead. If Fabric ever grows such events, this is where they go.
+ */
+public class FabricPlayerEvents implements PlayerEventPlatform {
+    @Override
+    public void autoCrafted(ServerLevel level, ItemStack crafted, Container craftingGrid) {
     }
 
+    @Override
+    public void itemDestroyed(Player player, ItemStack destroyed) {
+    }
 }

@@ -47,6 +47,7 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.RegisterGameTestsEvent;
+import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
@@ -69,6 +70,7 @@ import appeng.core.definitions.AEParts;
 import appeng.core.network.ClientboundPacket;
 import appeng.core.network.InitNetwork;
 import appeng.core.particles.InitParticleTypes;
+import appeng.hooks.LevelUnloadListeners;
 import appeng.hooks.SkyStoneBreakSpeed;
 import appeng.hooks.WrenchHook;
 import appeng.hooks.ticking.TickHandler;
@@ -88,6 +90,7 @@ import appeng.init.internal.InitStorageCells;
 import appeng.init.internal.InitUpgrades;
 import appeng.init.worldgen.InitStructures;
 import appeng.integration.Integrations;
+import appeng.neoforge.NeoForgeCreativeTabs;
 import appeng.neoforge.config.NeoForgeConfigBackend;
 import appeng.recipes.AERecipeSerializers;
 import appeng.recipes.AERecipeTypes;
@@ -139,7 +142,7 @@ public abstract class AppEngBase implements AppEng {
         AEAttachmentTypes.register(modEventBus);
 
         modEventBus.addListener(this::registerRegistries);
-        modEventBus.addListener(MainCreativeTab::initExternal);
+        modEventBus.addListener(NeoForgeCreativeTabs::addExternalItems);
         modEventBus.addListener(InitNetwork::init);
         modEventBus.addListener(ChunkLoadingService.getInstance()::register);
         modEventBus.addListener(EventPriority.HIGH, InitCapabilityProviders::markProxyableCapabilities);
@@ -196,6 +199,8 @@ public abstract class AppEngBase implements AppEng {
         NeoForge.EVENT_BUS.addListener(this::registerCommands);
 
         NeoForge.EVENT_BUS.addListener(WrenchHook::onPlayerUseBlockEvent);
+        // Quantum bridges take themselves apart when their level goes; the listeners live in :common
+        NeoForge.EVENT_BUS.addListener((LevelEvent.Unload event) -> LevelUnloadListeners.fire(event.getLevel()));
         NeoForge.EVENT_BUS.addListener(SkyStoneBreakSpeed::handleBreakFaster);
         NeoForge.EVENT_BUS.addListener(this::registerSynchronizedRecipes);
 

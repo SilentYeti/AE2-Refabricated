@@ -16,24 +16,24 @@
  * along with Applied Energistics 2.  If not, see <http://www.gnu.org/licenses/lgpl>.
  */
 
-package appeng.crafting;
+package appeng.neoforge;
 
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.Container;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 
-import appeng.api.crafting.IPatternDetails;
-import appeng.platform.PlayerEventPlatform;
+import appeng.core.MainCreativeTab;
 
-public class CraftingEvent {
-
-    public static void fireAutoCraftingEvent(Level level,
-            // NOTE: We want to be able to include the recipe in the event later
-            @SuppressWarnings("unused") IPatternDetails pattern,
-            ItemStack craftedItem,
-            Container container) {
-        PlayerEventPlatform.get().autoCrafted((ServerLevel) level, craftedItem, container);
+/**
+ * Adds AE2's items to other mods' and vanilla's creative tabs, from NeoForge's event. This lived on
+ * {@link MainCreativeTab} itself, which is otherwise loader-agnostic; Fabric does the same from its item-group API in
+ * {@code FabricItems}.
+ */
+public final class NeoForgeCreativeTabs {
+    private NeoForgeCreativeTabs() {
     }
 
+    public static void addExternalItems(BuildCreativeModeTabContentsEvent contents) {
+        for (var itemDefinition : MainCreativeTab.externalItems(contents.getTabKey())) {
+            contents.accept(itemDefinition);
+        }
+    }
 }
